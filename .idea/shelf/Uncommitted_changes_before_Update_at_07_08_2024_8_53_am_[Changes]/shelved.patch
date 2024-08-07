@@ -1,0 +1,191 @@
+Index: build.gradle.kts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>// Top-level build file where you can add configuration options common to all sub-projects/modules.\r\nplugins {\r\n    alias(libs.plugins.android.application) apply false\r\n    alias(libs.plugins.jetbrains.kotlin.android) apply false\r\n    alias(libs.plugins.compose.compiler) apply false\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/build.gradle.kts b/build.gradle.kts
+--- a/build.gradle.kts	(revision 9ca71334fbfc5a47f8155fbc24592b1303d7a2e1)
++++ b/build.gradle.kts	(date 1723016921114)
+@@ -1,6 +1,7 @@
+ // Top-level build file where you can add configuration options common to all sub-projects/modules.
+ plugins {
+     alias(libs.plugins.android.application) apply false
+-    alias(libs.plugins.jetbrains.kotlin.android) apply false
+     alias(libs.plugins.compose.compiler) apply false
++    alias(libs.plugins.jetbrains.kotlin.android) apply false
++    alias(libs.plugins.ksp) apply false
+ }
+\ No newline at end of file
+Index: gradle/libs.versions.toml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>[versions]\r\nagp = \"8.5.1\"\r\nkotlin = \"2.0.0\"\r\ncoreKtx = \"1.13.1\"\r\njunit = \"4.13.2\"\r\njunitVersion = \"1.2.1\"\r\nespressoCore = \"3.6.1\"\r\nlifecycleRuntimeKtx = \"2.8.4\"\r\nactivityCompose = \"1.9.1\"\r\ncomposeBom = \"2024.06.00\"\r\nkoinBom = \"3.6.0-wasm-alpha2\"\r\nsplashScreen = \"1.0.1\"\r\n\r\n[libraries]\r\nandroidx-core-ktx = { group = \"androidx.core\", name = \"core-ktx\", version.ref = \"coreKtx\" }\r\njunit = { group = \"junit\", name = \"junit\", version.ref = \"junit\" }\r\nandroidx-junit = { group = \"androidx.test.ext\", name = \"junit\", version.ref = \"junitVersion\" }\r\nandroidx-espresso-core = { group = \"androidx.test.espresso\", name = \"espresso-core\", version.ref = \"espressoCore\" }\r\nandroidx-lifecycle-runtime-ktx = { group = \"androidx.lifecycle\", name = \"lifecycle-runtime-ktx\", version.ref = \"lifecycleRuntimeKtx\" }\r\nandroidx-activity-compose = { group = \"androidx.activity\", name = \"activity-compose\", version.ref = \"activityCompose\" }\r\nandroidx-compose-bom = { group = \"androidx.compose\", name = \"compose-bom\", version.ref = \"composeBom\" }\r\nandroidx-ui = { group = \"androidx.compose.ui\", name = \"ui\" }\r\nandroidx-ui-graphics = { group = \"androidx.compose.ui\", name = \"ui-graphics\" }\r\nandroidx-ui-tooling = { group = \"androidx.compose.ui\", name = \"ui-tooling\" }\r\nandroidx-ui-tooling-preview = { group = \"androidx.compose.ui\", name = \"ui-tooling-preview\" }\r\nandroidx-ui-test-manifest = { group = \"androidx.compose.ui\", name = \"ui-test-manifest\" }\r\nandroidx-ui-test-junit4 = { group = \"androidx.compose.ui\", name = \"ui-test-junit4\" }\r\nandroidx-material3 = { group = \"androidx.compose.material3\", name = \"material3\" }\r\nkoin-android = { module = \"io.insert-koin:koin-android\"}\r\nkoin-bom = { module = \"io.insert-koin:koin-bom\", version.ref = \"koinBom\"}\r\nkoin-core = { module = \"io.insert-koin:koin-core\"}\r\nkoin-androidx-compose = { module = \"io.insert-koin:koin-androidx-compose\", version.ref = \"kotlin\" }\r\nsplash = { group = \"androidx.core\", name = \"core-splashscreen\", version.ref = \"splashScreen\"}\r\n\r\n[plugins]\r\nandroid-application = { id = \"com.android.application\", version.ref = \"agp\" }\r\njetbrains-kotlin-android = { id = \"org.jetbrains.kotlin.android\", version.ref = \"kotlin\" }\r\ncompose-compiler = { id = \"org.jetbrains.kotlin.plugin.compose\", version.ref = \"kotlin\" }\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/gradle/libs.versions.toml b/gradle/libs.versions.toml
+--- a/gradle/libs.versions.toml	(revision 9ca71334fbfc5a47f8155fbc24592b1303d7a2e1)
++++ b/gradle/libs.versions.toml	(date 1723017010774)
+@@ -1,21 +1,26 @@
+ [versions]
+ agp = "8.5.1"
+ kotlin = "2.0.0"
++ksp = "2.0.0-1.0.23"
++
++activityCompose = "1.9.1"
++composeBom = "2024.06.00"
++composeIcon = "1.6.8"
+ coreKtx = "1.13.1"
+-junit = "4.13.2"
+-junitVersion = "1.2.1"
+-espressoCore = "3.6.1"
+ lifecycleRuntimeKtx = "2.8.4"
+-activityCompose = "1.9.1"
+-composeBom = "2024.06.00"
++gson = "2.11.0"
+ koinBom = "3.6.0-wasm-alpha2"
++material3 = "1.2.1"
++navigation = "2.7.7"
++room = "2.6.1"
+ splashScreen = "1.0.1"
+ 
++espressoCore = "3.6.1"
++junit = "4.13.2"
++junitVersion = "1.2.1"
++
+ [libraries]
+ androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+-junit = { group = "junit", name = "junit", version.ref = "junit" }
+-androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+-androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+ androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+ androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+ androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+@@ -23,17 +28,27 @@
+ androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+ androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+ androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+-androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+-androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+-androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+-koin-android = { module = "io.insert-koin:koin-android"}
+-koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koinBom"}
+-koin-core = { module = "io.insert-koin:koin-core"}
++androidx-compose-navigation = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
++androidx-material-icons = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "composeIcon" }
++androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
++gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
++koin-android = { module = "io.insert-koin:koin-android" }
++koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koinBom" }
++koin-core = { module = "io.insert-koin:koin-core" }
+ koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "kotlin" }
+-splash = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashScreen"}
++room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
++room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
++room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
++splash = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashScreen" }
+ 
++androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
++androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
++androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
++junit = { group = "junit", name = "junit", version.ref = "junit" }
++androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
++
+ [plugins]
+ android-application = { id = "com.android.application", version.ref = "agp" }
+-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+ compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+-
++jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
++ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+Index: app/build.gradle.kts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>plugins {\r\n    alias(libs.plugins.android.application)\r\n    alias(libs.plugins.jetbrains.kotlin.android)\r\n    alias(libs.plugins.compose.compiler)\r\n}\r\n\r\nandroid {\r\n    namespace = \"dev.borisochieng.sketchpad\"\r\n    compileSdk = 34\r\n\r\n    defaultConfig {\r\n        applicationId = \"dev.borisochieng.sketchpad\"\r\n        minSdk = 24\r\n        targetSdk = 34\r\n        versionCode = 1\r\n        versionName = \"1.0\"\r\n\r\n        testInstrumentationRunner = \"androidx.test.runner.AndroidJUnitRunner\"\r\n        vectorDrawables {\r\n            useSupportLibrary = true\r\n        }\r\n    }\r\n\r\n    buildTypes {\r\n        release {\r\n            isMinifyEnabled = false\r\n            proguardFiles(\r\n                getDefaultProguardFile(\"proguard-android-optimize.txt\"),\r\n                \"proguard-rules.pro\"\r\n            )\r\n        }\r\n    }\r\n    compileOptions {\r\n        sourceCompatibility = JavaVersion.VERSION_1_8\r\n        targetCompatibility = JavaVersion.VERSION_1_8\r\n    }\r\n    kotlinOptions {\r\n        jvmTarget = \"1.8\"\r\n    }\r\n    buildFeatures {\r\n        compose = true\r\n    }\r\n    composeOptions {\r\n        kotlinCompilerExtensionVersion = \"1.5.1\"\r\n    }\r\n    packaging {\r\n        resources {\r\n            excludes += \"/META-INF/{AL2.0,LGPL2.1}\"\r\n        }\r\n    }\r\n}\r\n\r\ndependencies {\r\n\r\n    implementation(libs.androidx.core.ktx)\r\n    implementation(libs.androidx.lifecycle.runtime.ktx)\r\n    implementation(libs.androidx.activity.compose)\r\n    implementation(platform(libs.androidx.compose.bom))\r\n    implementation(libs.androidx.ui)\r\n    implementation(libs.androidx.ui.graphics)\r\n    implementation(libs.androidx.ui.tooling.preview)\r\n    implementation(libs.androidx.material3)\r\n    //koin\r\n    implementation(libs.koin.android)\r\n    implementation(platform(libs.koin.bom))\r\n    implementation(libs.koin.core)\r\n    implementation(libs.koin.androidx.compose)\r\n\r\n    //splashscreen\r\n    implementation(libs.splash)\r\n\r\n    testImplementation(libs.junit)\r\n    androidTestImplementation(libs.androidx.junit)\r\n    androidTestImplementation(libs.androidx.espresso.core)\r\n    androidTestImplementation(platform(libs.androidx.compose.bom))\r\n    androidTestImplementation(libs.androidx.ui.test.junit4)\r\n    debugImplementation(libs.androidx.ui.tooling)\r\n    debugImplementation(libs.androidx.ui.test.manifest)\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/build.gradle.kts b/app/build.gradle.kts
+--- a/app/build.gradle.kts	(revision 9ca71334fbfc5a47f8155fbc24592b1303d7a2e1)
++++ b/app/build.gradle.kts	(date 1723016920481)
+@@ -1,7 +1,8 @@
+ plugins {
+     alias(libs.plugins.android.application)
+-    alias(libs.plugins.jetbrains.kotlin.android)
+     alias(libs.plugins.compose.compiler)
++    alias(libs.plugins.jetbrains.kotlin.android)
++    alias(libs.plugins.ksp)
+ }
+ 
+ android {
+@@ -52,21 +53,35 @@
+ 
+ dependencies {
+ 
++    // android
+     implementation(libs.androidx.core.ktx)
+     implementation(libs.androidx.lifecycle.runtime.ktx)
++
++    // compose
+     implementation(libs.androidx.activity.compose)
+     implementation(platform(libs.androidx.compose.bom))
++    implementation(libs.androidx.compose.navigation)
+     implementation(libs.androidx.ui)
+     implementation(libs.androidx.ui.graphics)
+     implementation(libs.androidx.ui.tooling.preview)
++    implementation(libs.androidx.material.icons)
+     implementation(libs.androidx.material3)
++
++    // gson
++    implementation(libs.gson)
++
+     //koin
+     implementation(libs.koin.android)
+     implementation(platform(libs.koin.bom))
+     implementation(libs.koin.core)
+     implementation(libs.koin.androidx.compose)
+ 
+-    //splashscreen
++    // room
++    implementation(libs.room.ktx)
++    implementation(libs.room.runtime)
++    ksp(libs.room.compiler)
++
++    // splashscreen
+     implementation(libs.splash)
+ 
+     testImplementation(libs.junit)
+Index: .idea/vcs.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/vcs.xml b/.idea/vcs.xml
+new file mode 100644
+--- /dev/null	(date 1723015023853)
++++ b/.idea/vcs.xml	(date 1723015023853)
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="VcsDirectoryMappings">
++    <mapping directory="" vcs="Git" />
++  </component>
++</project>
+\ No newline at end of file
+Index: .idea/misc.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"ExternalStorageConfigurationManager\" enabled=\"true\" />\r\n  <component name=\"ProjectRootManager\" version=\"2\" languageLevel=\"JDK_17\" default=\"true\" project-jdk-name=\"jbr-17\" project-jdk-type=\"JavaSDK\">\r\n    <output url=\"file://$PROJECT_DIR$/build/classes\" />\r\n  </component>\r\n  <component name=\"ProjectType\">\r\n    <option name=\"id\" value=\"Android\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/misc.xml b/.idea/misc.xml
+--- a/.idea/misc.xml	(revision 9ca71334fbfc5a47f8155fbc24592b1303d7a2e1)
++++ b/.idea/misc.xml	(date 1723015467211)
+@@ -1,4 +1,3 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+ <project version="4">
+   <component name="ExternalStorageConfigurationManager" enabled="true" />
+   <component name="ProjectRootManager" version="2" languageLevel="JDK_17" default="true" project-jdk-name="jbr-17" project-jdk-type="JavaSDK">
