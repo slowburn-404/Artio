@@ -1,6 +1,8 @@
 package dev.borisochieng.sketchpad.ui.theme
 
+import android.content.res.Configuration
 import android.os.Build
+import android.view.Window
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme
@@ -9,8 +11,16 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.view.WindowInsetsControllerCompat
+import dev.borisochieng.sketchpad.toby.data.dataStore
+import dev.borisochieng.sketchpad.toby.data.isDarkThemeOn
+import dev.borisochieng.sketchpad.toby.data.themePreferenceKey
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 
 private val lightScheme = lightColorScheme(
     primary = primaryLight,
@@ -274,5 +284,25 @@ fun AppTheme(
     typography = AppTypography,
     content = content
   )
+}
+
+
+@Composable
+fun isSystemInDarkThemeCustom(): Boolean {
+    val context = LocalContext.current
+    val exampleData = runBlocking { context.dataStore.data.first() }
+    val theme = context.isDarkThemeOn().collectAsState(initial = exampleData[themePreferenceKey] ?: 0)
+    return when (theme.value) {
+        2 -> true
+        1 -> false
+        else -> context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
+    }
+}
+
+@Composable
+fun Window.StatusBarConfig(darkTheme: Boolean) {
+    WindowInsetsControllerCompat(this, this.decorView).isAppearanceLightStatusBars =
+        !darkTheme
+    this.statusBarColor = MaterialTheme.colorScheme.background.toArgb()
 }
 
