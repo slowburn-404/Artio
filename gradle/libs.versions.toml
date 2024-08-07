@@ -1,5 +1,7 @@
 [versions]
 agp = "8.5.1"
+datastorePreferences = "1.1.1"
+drawbox = "1.0.3"
 kotlin = "2.0.0"
 ksp = "2.0.0-1.0.23"
 
@@ -13,6 +15,7 @@ koinBom = "3.6.0-wasm-alpha2"
 material3 = "1.2.1"
 navigation = "2.7.7"
 room = "2.6.1"
+rangVikalp = "1.0.0-alpha02"
 splashScreen = "1.0.1"
 firebaseBom = "33.1.2"
 
@@ -23,6 +26,11 @@ junitVersion = "1.2.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
+drawbox = { module = "io.ak1:drawbox", version.ref = "drawbox" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
@@ -44,12 +52,10 @@ room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "
 splash = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashScreen" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom"}
 firebase-auth = {module = "com.google.firebase:firebase-auth"}
-
-androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+rang-vikalp = { module = "io.ak1:rang-vikalp", version.ref = "rangVikalp" }
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
-junit = { group = "junit", name = "junit", version.ref = "junit" }
-androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
