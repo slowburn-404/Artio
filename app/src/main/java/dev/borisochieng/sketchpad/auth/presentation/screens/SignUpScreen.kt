@@ -1,5 +1,6 @@
 package dev.borisochieng.sketchpad.auth.presentation.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,14 +11,17 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.RemoveRedEye
 import androidx.compose.material.icons.rounded.AccountBox
 import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Password
+import androidx.compose.material.icons.rounded.RemoveRedEye
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -38,6 +42,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
@@ -91,12 +97,20 @@ fun SignUpScreen(
     var showProgressIndicator by remember {
         mutableStateOf(false)
     }
+    var isPasswordVisible by remember {
+        mutableStateOf(false)
+    }
+    var isConfirmPasswordVisible by remember {
+        mutableStateOf(false)
+    }
+
     val snackBarHostState = remember { SnackbarHostState() }
     val uiState  = viewModel.uiState.collectAsState()
+    showProgressIndicator = uiState.value.isLoading
 
-    LaunchedEffect(Unit) {
-        viewModel.uiEvent.collectLatest{ message ->
-            snackBarHostState.showSnackbar(message = message.toString())
+    LaunchedEffect(uiState) {
+        viewModel.uiEvent.collectLatest{ _ ->
+            snackBarHostState.showSnackbar(message = uiState.value.error)
         }
     }
 
@@ -126,35 +140,35 @@ fun SignUpScreen(
                     .wrapContentWidth()
             )
 
-            OutlinedTextField(
-                modifier = Modifier.fillMaxWidth(),
-                value = username,
-                onValueChange = {
-                    username = it
-                },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                placeholder = {
-                    Text(
-                        text = "Enter a your username",
-                        style = AppTypography.labelSmall,
-                        color = Color.LightGray
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Rounded.AccountBox,
-                        contentDescription = "Email",
-                    )
-                },
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = lightScheme.primary,
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedContainerColor = Color.Transparent,
-                    cursorColor = lightScheme.primary
-                ),
-                shape = RoundedCornerShape(50.dp)
-            )
+//            OutlinedTextField(
+//                modifier = Modifier.fillMaxWidth(),
+//                value = username,
+//                onValueChange = {
+//                    username = it
+//                },
+//                singleLine = true,
+//                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+//                placeholder = {
+//                    Text(
+//                        text = "Enter a your username",
+//                        style = AppTypography.labelSmall,
+//                        color = Color.LightGray
+//                    )
+//                },
+//                leadingIcon = {
+//                    Icon(
+//                        imageVector = Icons.Rounded.AccountBox,
+//                        contentDescription = "Email",
+//                    )
+//                },
+//                colors = TextFieldDefaults.colors(
+//                    focusedIndicatorColor = lightScheme.primary,
+//                    unfocusedContainerColor = Color.Transparent,
+//                    focusedContainerColor = Color.Transparent,
+//                    cursorColor = lightScheme.primary
+//                ),
+//                shape = RoundedCornerShape(50.dp)
+//            )
 
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
@@ -194,6 +208,7 @@ fun SignUpScreen(
                 },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                visualTransformation = if(isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 placeholder = {
                     Text(
                         text = "Enter you password",
@@ -208,6 +223,10 @@ fun SignUpScreen(
                     )
                 },
                 trailingIcon = {
+                    IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                        Icon(imageVector = Icons.Rounded.RemoveRedEye, contentDescription = "Toggle Password Visibility")
+
+                    }
 
                 },
                 colors = TextFieldDefaults.colors(
@@ -227,6 +246,7 @@ fun SignUpScreen(
                 },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                visualTransformation = if(isConfirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 placeholder = {
                     Text(
                         text = "Confirm your password",
@@ -239,6 +259,13 @@ fun SignUpScreen(
                         imageVector = Icons.Rounded.Lock,
                         contentDescription = "Email",
                     )
+                },
+                trailingIcon = {
+                    IconButton(onClick = { isConfirmPasswordVisible = !isConfirmPasswordVisible }) {
+                        Icon(imageVector = Icons.Rounded.RemoveRedEye
+                            , contentDescription = "Toggle password visibility")
+
+                    }
                 },
                 colors = TextFieldDefaults.colors(
                     focusedIndicatorColor = lightScheme.primary,
@@ -260,15 +287,18 @@ fun SignUpScreen(
                     contentColor = lightScheme.onPrimary
                 ),
                 onClick = {
-                    if(uiState.value.isLoading) {
+                    if(!uiState.value.isLoading) {
                         showProgressIndicator = true
                         viewModel.signUpUser(email, password)
+                    } else if(uiState.value.error.isNotEmpty()) {
                         navigate(Screens.HomeScreenScreen)
                     }
                 }) {
 
                 if(showProgressIndicator) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(
+                        color = lightScheme.onPrimary
+                    )
                 } else {
                     Text(
                         text = "Sign Up",
@@ -294,7 +324,9 @@ fun SignUpScreen(
             }
 
             Text(
-                modifier = Modifier.padding(4.dp),
+                modifier = Modifier
+                    .padding(4.dp)
+                    .clickable(onClick = { navigate(Screens.HomeScreenScreen) }),
                 text = "Continue as Guest",
                 style = AppTypography.labelLarge,
                 textDecoration = TextDecoration.Underline
