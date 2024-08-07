@@ -12,6 +12,8 @@ class NavActions(private val navController: NavHostController) {
 			Screens.SettingsScreen -> navigateToSettingsScreen()
 			Screens.ProfileScreen -> navigateToProfileScreen()
 			Screens.Back -> navController.navigateUp()
+			Screens.OnBoardingScreen -> Unit
+			Screens.SignUpScreen -> navigateToSignUpScreen()
 		}
 	}
 
@@ -33,6 +35,10 @@ class NavActions(private val navController: NavHostController) {
 		navController.navigate(AppRoute.ProfileScreen.route)
 	}
 
+	private fun navigateToSignUpScreen() {
+		navController.navigate(AppRoute.SignUpScreen.route)
+	}
+
 }
 
 @SuppressLint("DefaultLocale")
@@ -43,6 +49,8 @@ sealed class AppRoute(val route: String) {
 	}
 	data object SettingsScreen: AppRoute("settings_screen")
 	data object ProfileScreen: AppRoute("profile_screen")
+	data object OnBoardingScreen: AppRoute("onboarding_screen")
+	data object SignUpScreen: AppRoute("welcome_screen")
 }
 
 sealed class Screens {
@@ -51,4 +59,6 @@ sealed class Screens {
 	data object SettingsScreen : Screens()
 	data object ProfileScreen : Screens()
 	data object Back : Screens()
+	data object OnBoardingScreen: Screens()
+	data object SignUpScreen: Screens()
 }

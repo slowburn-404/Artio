@@ -7,7 +7,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.util.Calendar
 
-class SketchRepositoryImpl : SketchRepository, KoinComponent {
+class SketchRepositoryImpl: SketchRepository, KoinComponent {
 
 	private val sketchDao by inject<SketchDao>()
 

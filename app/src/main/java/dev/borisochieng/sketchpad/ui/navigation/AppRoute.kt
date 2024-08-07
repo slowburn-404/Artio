@@ -9,6 +9,8 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import dev.borisochieng.sketchpad.auth.presentation.screens.OnBoardingScreen
+import dev.borisochieng.sketchpad.auth.presentation.screens.SignUpScreen
 import dev.borisochieng.sketchpad.toby.SketchPadScreen
 import dev.borisochieng.sketchpad.ui.screens.profile.ProfileScreen
 import dev.borisochieng.sketchpad.ui.screens.settings.SettingsScreen
@@ -24,7 +26,7 @@ fun AppRoute(
 ) {
 	NavHost(
 		navController = navController,
-		startDestination = AppRoute.HomeScreen.route,
+		startDestination = AppRoute.OnBoardingScreen.route,
 		modifier = Modifier.padding(paddingValues)
 	) {
 		composable(AppRoute.HomeScreen.route) {
@@ -48,6 +50,12 @@ fun AppRoute(
 		}
 		composable(AppRoute.ProfileScreen.route) {
 			ProfileScreen(navigate = navActions::navigate)
+		}
+		animatedComposable(AppRoute.OnBoardingScreen.route) {
+			OnBoardingScreen(navigate = navActions::navigate)
+		}
+		animatedComposable(AppRoute.SignUpScreen.route) {
+			SignUpScreen(navigate = navActions:: navigate)
 		}
 	}
 }

@@ -22,7 +22,7 @@ import dev.borisochieng.sketchpad.toby.data.themePreferenceKey
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 
-private val lightScheme = lightColorScheme(
+ val lightScheme = lightColorScheme(
     primary = primaryLight,
     onPrimary = onPrimaryLight,
     primaryContainer = primaryContainerLight,
