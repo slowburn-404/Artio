@@ -1,21 +1,21 @@
 package dev.borisochieng.sketchpad.auth.presentation.screens
 
+import android.util.Patterns
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.RemoveRedEye
-import androidx.compose.material.icons.rounded.AccountBox
 import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Lock
-import androidx.compose.material.icons.rounded.Password
 import androidx.compose.material.icons.rounded.RemoveRedEye
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -39,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
@@ -47,12 +48,10 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.borisochieng.sketchpad.R
 import dev.borisochieng.sketchpad.auth.presentation.SignUpViewModel
 import dev.borisochieng.sketchpad.ui.navigation.Screens
-import dev.borisochieng.sketchpad.ui.theme.AppTheme
 import dev.borisochieng.sketchpad.ui.theme.AppTypography
 import dev.borisochieng.sketchpad.ui.theme.lightScheme
 import kotlinx.coroutines.flow.collectLatest
@@ -64,13 +63,8 @@ fun SignUpScreen(
     viewModel: SignUpViewModel = koinViewModel()
 ) {
     val title = buildAnnotatedString {
-        withStyle(
-            style = SpanStyle(
-                color = lightScheme.onBackground
-            )
-        ) {
-            append("Sketch")
-        }
+        append("Sketch")
+
         withStyle(
             style = SpanStyle(
                 color = lightScheme.primary
@@ -80,7 +74,24 @@ fun SignUpScreen(
         }
     }
 
+    val loginText = buildAnnotatedString {
+        append("Already have an account?")
+
+        withStyle(
+            style = SpanStyle(
+                color = lightScheme.primary,
+                textDecoration = TextDecoration.Underline
+            )
+        ) {
+            append(" Login")
+        }
+    }
+
+
     var email by remember {
+        mutableStateOf("")
+    }
+    var emailError by remember {
         mutableStateOf("")
     }
 
@@ -88,7 +99,15 @@ fun SignUpScreen(
         mutableStateOf("")
     }
 
+    var passwordError by remember {
+        mutableStateOf("")
+    }
+
     var confirmPassword by remember {
+        mutableStateOf("")
+    }
+
+    var confirmPasswordError by remember {
         mutableStateOf("")
     }
     var username by remember {
@@ -105,39 +124,43 @@ fun SignUpScreen(
     }
 
     val snackBarHostState = remember { SnackbarHostState() }
-    val uiState  = viewModel.uiState.collectAsState()
+    val uiState = viewModel.uiState.collectAsState()
     showProgressIndicator = uiState.value.isLoading
 
     LaunchedEffect(uiState) {
-        viewModel.uiEvent.collectLatest{ _ ->
+        viewModel.uiEvent.collectLatest { _ ->
             snackBarHostState.showSnackbar(message = uiState.value.error)
         }
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackBarHostState)}
+        snackbarHost = { SnackbarHost(hostState = snackBarHostState) }
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .padding(16.dp),
+                .padding(16.dp)
+                .imePadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            Spacer(modifier = Modifier.weight(1f))
             Text(
                 text = title,
                 textAlign = TextAlign.Center,
-                style = AppTypography.headlineLarge,
+                style = AppTypography.displayMedium,
                 modifier = Modifier
                     .wrapContentWidth()
+                    .padding(4.dp)
             )
 
             Text(
                 text = "Sign Up",
                 textAlign = TextAlign.Center,
-                style = AppTypography.titleLarge,
+                style = AppTypography.headlineLarge,
                 modifier = Modifier
                     .wrapContentWidth()
+                    .padding(4.dp)
             )
 
 //            OutlinedTextField(
@@ -175,7 +198,15 @@ fun SignUpScreen(
                 value = email,
                 onValueChange = {
                     email = it
+                    emailError = if(it.isEmpty()) {
+                        "Email cannot be empty"
+                    } else if(!isValidEmail(it)) {
+                        "Invalid email address"
+                    } else {
+                        ""
+                    }
                 },
+
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 placeholder = {
@@ -197,7 +228,17 @@ fun SignUpScreen(
                     focusedContainerColor = Color.Transparent,
                     cursorColor = lightScheme.primary
                 ),
-                shape = RoundedCornerShape(50.dp)
+                shape = RoundedCornerShape(50.dp),
+                isError = emailError.isNotEmpty(),
+                supportingText = {
+                    if (emailError.isNotEmpty()) {
+                        Text(
+                            text = emailError,
+                            color = lightScheme.error,
+                            style = AppTypography.labelMedium
+                        )
+                    }
+                }
             )
 
             OutlinedTextField(
@@ -205,10 +246,11 @@ fun SignUpScreen(
                 value = password,
                 onValueChange = {
                     password = it
+                    passwordError = "Password".checkIfInputFieldsAreEmpty(password)
                 },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                visualTransformation = if(isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 placeholder = {
                     Text(
                         text = "Enter you password",
@@ -224,7 +266,10 @@ fun SignUpScreen(
                 },
                 trailingIcon = {
                     IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
-                        Icon(imageVector = Icons.Rounded.RemoveRedEye, contentDescription = "Toggle Password Visibility")
+                        Icon(
+                            imageVector = Icons.Rounded.RemoveRedEye,
+                            contentDescription = "Toggle Password Visibility"
+                        )
 
                     }
 
@@ -235,7 +280,17 @@ fun SignUpScreen(
                     focusedContainerColor = Color.Transparent,
                     cursorColor = lightScheme.primary
                 ),
-                shape = RoundedCornerShape(50.dp)
+                shape = RoundedCornerShape(50.dp),
+                isError = passwordError.isNotEmpty(),
+                supportingText = {
+                    if (passwordError.isNotEmpty()) {
+                        Text(
+                            text = passwordError,
+                            color = lightScheme.error,
+                            style = AppTypography.labelMedium
+                        )
+                    }
+                }
             )
 
             OutlinedTextField(
@@ -243,10 +298,15 @@ fun SignUpScreen(
                 value = confirmPassword,
                 onValueChange = {
                     confirmPassword = it
+                    confirmPasswordError = if(it != password) {
+                        "Password do not match"
+                    } else {
+                        "Password".checkIfInputFieldsAreEmpty(it)
+                    }
                 },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                visualTransformation = if(isConfirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                visualTransformation = if (isConfirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 placeholder = {
                     Text(
                         text = "Confirm your password",
@@ -262,8 +322,10 @@ fun SignUpScreen(
                 },
                 trailingIcon = {
                     IconButton(onClick = { isConfirmPasswordVisible = !isConfirmPasswordVisible }) {
-                        Icon(imageVector = Icons.Rounded.RemoveRedEye
-                            , contentDescription = "Toggle password visibility")
+                        Icon(
+                            imageVector = Icons.Rounded.RemoveRedEye,
+                            contentDescription = "Toggle password visibility"
+                        )
 
                     }
                 },
@@ -273,7 +335,17 @@ fun SignUpScreen(
                     focusedContainerColor = Color.Transparent,
                     cursorColor = lightScheme.primary
                 ),
-                shape = RoundedCornerShape(50.dp)
+                shape = RoundedCornerShape(50.dp),
+                isError = confirmPasswordError.isNotEmpty(),
+                supportingText = {
+                    if (confirmPasswordError.isNotEmpty()) {
+                        Text(
+                            text = confirmPasswordError,
+                            color = lightScheme.error,
+                            style = AppTypography.labelMedium
+                        )
+                    }
+                }
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -287,15 +359,17 @@ fun SignUpScreen(
                     contentColor = lightScheme.onPrimary
                 ),
                 onClick = {
-                    if(!uiState.value.isLoading) {
+                    if (!uiState.value.isLoading) {
                         showProgressIndicator = true
                         viewModel.signUpUser(email, password)
-                    } else if(uiState.value.error.isNotEmpty()) {
+                    } else if (uiState.value.error.isNotEmpty()) {
                         navigate(Screens.HomeScreenScreen)
                     }
-                }) {
+                },
+                enabled = enableButton(email, password, confirmPassword)
+            ) {
 
-                if(showProgressIndicator) {
+                if (showProgressIndicator) {
                     CircularProgressIndicator(
                         color = lightScheme.onPrimary
                     )
@@ -308,38 +382,79 @@ fun SignUpScreen(
 
             }
 
-            OutlinedButton(
+//            OutlinedButton(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(horizontal = 16.dp),
+//                onClick = {
+//                }) {
+//
+//                Row(
+//                    modifier = Modifier.fillMaxWidth(),
+//                    verticalAlignment = Alignment.CenterVertically,
+//                    horizontalArrangement = Arrangement.SpaceEvenly
+//                ) {
+//
+//                    Icon(
+//                        painter = painterResource(id = R.drawable.ic_google),
+//                        contentDescription = "Google logo"
+//                    )
+//
+//                    Text(
+//                        text = "Sign Up With Google",
+//                        style = AppTypography.labelLarge,
+//                        color = lightScheme.primary,
+//                    )
+//                }
+//
+//            }
+
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                onClick = {
-                }) {
+                    .wrapContentHeight(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
 
                 Text(
-                    text = "Sign In",
+                    modifier = Modifier
+                        .padding(4.dp)
+                        .clickable(onClick = { navigate(Screens.HomeScreenScreen) }),
+                    text = "Continue as Guest",
                     style = AppTypography.labelLarge,
-                    color = lightScheme.primary,
+                    textDecoration = TextDecoration.Underline
                 )
 
+                Text(
+                    modifier = Modifier
+                        .padding(4.dp)
+                        .clickable(onClick = { navigate(Screens.HomeScreenScreen) }),
+                    text = loginText,
+                    style = AppTypography.labelLarge,
+                )
             }
-
-            Text(
-                modifier = Modifier
-                    .padding(4.dp)
-                    .clickable(onClick = { navigate(Screens.HomeScreenScreen) }),
-                text = "Continue as Guest",
-                style = AppTypography.labelLarge,
-                textDecoration = TextDecoration.Underline
-            )
         }
-
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun WelcomeScreenPreview() {
-    AppTheme {
-        SignUpScreen({}, viewModel() )
-    }
+private fun String.checkIfInputFieldsAreEmpty(input: String): String {
+    return if (input.isEmpty()) "$this cannot be empty" else ""
+}
+
+private fun isValidEmail(email: String): Boolean {
+    return Patterns.EMAIL_ADDRESS.matcher(email).matches()
+}
+
+private fun checkIfPasswordsMatch(password: String, confirmPassword: String): Boolean {
+    return password == confirmPassword
+}
+
+
+private fun enableButton(email: String, password: String, confirmPassword: String): Boolean {
+    return checkIfPasswordsMatch(password, confirmPassword) &&
+            password.isNotEmpty() &&
+            confirmPassword.isNotEmpty() &&
+            email.isNotEmpty() &&
+            isValidEmail(email)
 }
