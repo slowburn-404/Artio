@@ -2,6 +2,7 @@ package dev.borisochieng.sketchpad
 
 import android.app.Application
 import dev.borisochieng.sketchpad.di.AppModule.appModule
+import dev.borisochieng.sketchpad.di.PersistenceModule.persistenceModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -13,7 +14,7 @@ class SketchPadApp: Application() {
         startKoin {
             androidContext(this@SketchPadApp)
             androidLogger(Level.INFO)
-            modules(appModule)
+            modules(appModule, persistenceModule)
         }
     }
 }
