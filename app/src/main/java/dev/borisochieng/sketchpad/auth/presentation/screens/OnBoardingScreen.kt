@@ -1,18 +1,15 @@
-package dev.borisochieng.sketchpad.ui.screens
+package dev.borisochieng.sketchpad.auth.presentation.screens
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
@@ -22,8 +19,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.borisochieng.sketchpad.R
 import dev.borisochieng.sketchpad.auth.domain.model.PagerItem
-import dev.borisochieng.sketchpad.ui.components.HorizontalPagerIndicator
-import dev.borisochieng.sketchpad.ui.components.HorizontalPagerItem
+import dev.borisochieng.sketchpad.auth.presentation.components.HorizontalPagerIndicator
+import dev.borisochieng.sketchpad.auth.presentation.components.HorizontalPagerItem
+import dev.borisochieng.sketchpad.ui.navigation.Screens
 import dev.borisochieng.sketchpad.ui.theme.AppTheme
 import dev.borisochieng.sketchpad.ui.theme.AppTypography
 import dev.borisochieng.sketchpad.ui.theme.lightScheme
@@ -32,7 +30,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnBoardingScreen(
-    modifier: Modifier
+    navigate: (Screens) -> Unit
 ) {
     val pagerState = rememberPagerState(pageCount = { 3 })
     val scope = rememberCoroutineScope()
@@ -99,12 +97,12 @@ fun OnBoardingScreen(
                         pagerState.scrollToPage(pagerState.currentPage + 1)
                     }
                 } else {
-                    //TODO(navigate to login screen)
+                    navigate(Screens.SignUpScreen)
                 }
             }) {
 
             Text(
-                text = if (pagerState.currentPage < 2) "Next" else "Finish",
+                text = if (pagerState.currentPage < 2) "Next" else "Get Started",
                 style = AppTypography.labelLarge
             )
 
@@ -117,6 +115,6 @@ fun OnBoardingScreen(
 @Composable
 fun OnBoardingScreenPreview() {
     AppTheme {
-        OnBoardingScreen(Modifier)
+        OnBoardingScreen({})
     }
 }
