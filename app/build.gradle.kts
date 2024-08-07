@@ -91,4 +91,10 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    //SketchPad Lib
+    implementation  (libs.drawbox)
+    implementation  (libs.rang.vikalp)
+    //dataStore
+    implementation (libs.androidx.datastore.preferences)
 }
