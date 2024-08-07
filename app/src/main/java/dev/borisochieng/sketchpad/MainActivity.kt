@@ -18,6 +18,7 @@ import dev.borisochieng.sketchpad.ui.theme.AppTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(R.style.Theme_SketchPad)
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {

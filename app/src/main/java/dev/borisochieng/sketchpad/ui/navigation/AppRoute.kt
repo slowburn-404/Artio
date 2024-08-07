@@ -33,8 +33,9 @@ fun AppRoute(
 			route = AppRoute.SketchPad.route,
 			animationDirection = AnimationDirection.UpDown
 		) { backStackEntry ->
-			val sketchId = backStackEntry.arguments?.getInt("sketchId") ?: 0
+			val sketchId = backStackEntry.arguments?.getInt("sketchId")
 			LaunchedEffect(true) {
+				if (sketchId == null) return@LaunchedEffect
 				// fetch sketch from database using id
 			}
 
