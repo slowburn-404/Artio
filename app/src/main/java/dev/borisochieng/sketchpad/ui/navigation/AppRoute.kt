@@ -12,8 +12,8 @@ import androidx.navigation.compose.composable
 import dev.borisochieng.sketchpad.auth.presentation.screens.LoginScreen
 import dev.borisochieng.sketchpad.auth.presentation.screens.OnBoardingScreen
 import dev.borisochieng.sketchpad.auth.presentation.screens.SignUpScreen
-import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadScreen
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadViewModel
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.alt.DrawingBoard
 import dev.borisochieng.sketchpad.ui.screens.home.HomeScreen
 import dev.borisochieng.sketchpad.ui.screens.home.HomeViewModel
 import dev.borisochieng.sketchpad.ui.screens.profile.ProfileScreen
@@ -52,9 +52,8 @@ fun AppRoute(
 				sketchPadViewModel.fetchSketch(sketchId)
 			}
 
-			SketchPadScreen(
+			DrawingBoard(
 				sketch = sketchPadViewModel.sketch,
-				save = saveImage,
 				actions = sketchPadViewModel::actions,
 				navigate = navActions::navigate
 			)

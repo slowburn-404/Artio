@@ -35,7 +35,6 @@ class MainActivity : ComponentActivity() {
                         bottomBar = { NavBar(navController) },
                     ) { paddingValues ->
                         AppRoute(
-                            modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars),
                             navActions = navActions,
                             navController = navController,
                             paddingValues = paddingValues,

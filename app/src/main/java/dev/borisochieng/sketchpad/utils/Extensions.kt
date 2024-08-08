@@ -44,4 +44,26 @@ object Extensions {
 		return gson.fromJson(this, type)
 	}
 
+	fun <T> List<T>.transformList(): List<List<T>> {
+		var i = 0
+		val list = mutableListOf<List<T>>()
+		while (1 < size) {
+			val tList = mutableListOf<T>()
+			tList.add(this[1])
+			if (i + 1 < size) { tList.add(this[i + 1]) }
+			if (i + 2 < size) { tList.add(this[i + 2]) }
+			if (i + 3 < size) { tList.add(this[i + 3]) }
+//			if (i + 4 < size) { tList.add(this[i + 4]) }
+			list.add(tList.toList())
+			i += when {
+//				i + 4 < size -> 5
+				i + 3 < size -> 4
+				i + 2 < size -> 3
+				i + 1 < size -> 2
+				else -> 1
+			}
+		}
+		return list.toList()
+	}
+
 }

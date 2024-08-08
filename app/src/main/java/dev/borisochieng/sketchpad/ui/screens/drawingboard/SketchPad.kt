@@ -73,11 +73,11 @@ fun SketchPadScreen(
 
     LaunchedEffect(Unit) {
         if (sketch == null) return@LaunchedEffect
-        val drawBoxPayload = DrawBoxPayLoad(
-            sketch.backgroundColor,
-            sketch.pathList.map { it.toPathWrapper() }
-        )
-        drawController.importPath(drawBoxPayload)
+//        val drawBoxPayload = DrawBoxPayLoad(
+//            sketch.backgroundColor,
+//            sketch.pathList.map { it.toPathWrapper() }
+//        )
+//        drawController.importPath(drawBoxPayload)
     }
 
     Box {
@@ -126,13 +126,13 @@ fun SketchPadScreen(
                     } else {
                         save(art!!)
                         val payload = drawController.exportPath()
-                        actions(
-                            SketchPadActions.UpdateSketch(
-                                art = art!!,
-                                backgroundColor = payload.bgColor,
-                                paths = payload.path
-                            )
-                        )
+//                        actions(
+//                            SketchPadActions.UpdateSketch(
+//                                art = art!!,
+//                                backgroundColor = payload.bgColor,
+//                                paths = payload.path
+//                            )
+//                        )
                     }
                 }
             ) { undoCount, redoCount ->
@@ -226,13 +226,13 @@ fun SketchPadScreen(
                         return@NameSketchDialog
                     }
                     val payload = drawController.exportPath()
-                    val newSketch = Sketch(
-                        name = name,
-                        art = art!!,
-                        backgroundColor = payload.bgColor,
-                        pathList = payload.path.map { it.toPath() }
-                    )
-                    actions(SketchPadActions.SaveSketch(newSketch))
+//                    val newSketch = Sketch(
+//                        name = name,
+//                        art = art!!,
+//                        backgroundColor = payload.bgColor,
+//                        pathList = payload.path.map { it.toPath() }
+//                    )
+//                    actions(SketchPadActions.SaveSketch(newSketch))
                     navigate(Screens.Back)
                 },
                 onDismiss = { openNameSketchDialog.value = false }
