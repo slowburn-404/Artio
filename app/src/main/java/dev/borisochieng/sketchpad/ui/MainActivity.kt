@@ -34,10 +34,10 @@ class MainActivity : ComponentActivity() {
                 val navActions = NavActions(navController)
                 AppTheme {
                     Scaffold(
-                        modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars),
                         bottomBar = { NavBar(navController) },
                     ) { paddingValues ->
                         AppRoute(
+                            modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars),
                             navActions = navActions,
                             navController = navController,
                             paddingValues = paddingValues,

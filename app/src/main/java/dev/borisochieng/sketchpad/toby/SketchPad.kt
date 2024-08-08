@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asAndroidBitmap
 import dev.borisochieng.sketchpad.toby.data.convertToOldColor
 import dev.borisochieng.sketchpad.ui.navigation.Screens
+import dev.borisochieng.sketchpad.ui.theme.lightScheme
 import io.ak1.drawbox.DrawBox
 import io.ak1.drawbox.rememberDrawController
 import io.ak1.rangvikalp.RangVikalp
@@ -107,7 +108,7 @@ fun SketchPadScreen(save: (Bitmap) -> Unit, navigate: (Screens) -> Unit ) {
         CustomSeekbar(
             isVisible = sizeBarVisibility.value,
             progress = currentSize.value,
-            progressColor = MaterialTheme.colorScheme.primary.convertToOldColor(),
+            progressColor = lightScheme.primary.convertToOldColor(),
             thumbColor = currentColor.value.convertToOldColor()
         ) {
             currentSize.value = it

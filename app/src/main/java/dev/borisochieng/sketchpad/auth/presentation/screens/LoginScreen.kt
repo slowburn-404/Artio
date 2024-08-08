@@ -1,6 +1,5 @@
 package dev.borisochieng.sketchpad.auth.presentation.screens
 
-import android.util.Patterns
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -56,9 +55,9 @@ import kotlinx.coroutines.flow.collectLatest
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun SignUpScreen(
-    navigate: (Screens) -> Unit,
-    viewModel: AuthViewModel = koinViewModel()
+fun LoginScreen(
+    viewModel: AuthViewModel = koinViewModel(),
+    navigate: (Screens) -> Unit
 ) {
     val title = buildAnnotatedString {
         append("Sketch")
@@ -69,19 +68,6 @@ fun SignUpScreen(
             )
         ) {
             append("Pad")
-        }
-    }
-
-    val loginText = buildAnnotatedString {
-        append("Already have an account?")
-
-        withStyle(
-            style = SpanStyle(
-                color = lightScheme.primary,
-                textDecoration = TextDecoration.Underline
-            )
-        ) {
-            append(" Login")
         }
     }
 
@@ -101,23 +87,10 @@ fun SignUpScreen(
         mutableStateOf("")
     }
 
-    var confirmPassword by remember {
-        mutableStateOf("")
-    }
-
-    var confirmPasswordError by remember {
-        mutableStateOf("")
-    }
-    var username by remember {
-        mutableStateOf("")
-    }
     var showProgressIndicator by remember {
         mutableStateOf(false)
     }
     var isPasswordVisible by remember {
-        mutableStateOf(false)
-    }
-    var isConfirmPasswordVisible by remember {
         mutableStateOf(false)
     }
 
@@ -132,7 +105,7 @@ fun SignUpScreen(
         }
     }
 
-    //navigate when sign up is successful
+    //navigate when login is successful
     LaunchedEffect(uiState.value) {
         if (!uiState.value.isLoading && uiState.value.error.isEmpty() && uiState.value.user != null) {
             navigate(Screens.HomeScreenScreen)
@@ -163,7 +136,7 @@ fun SignUpScreen(
             )
 
             Text(
-                text = "Sign Up",
+                text = "Login",
                 textAlign = TextAlign.Center,
                 style = AppTypography.headlineLarge,
                 modifier = Modifier
@@ -301,61 +274,6 @@ fun SignUpScreen(
                 }
             )
 
-            OutlinedTextField(
-                modifier = Modifier.fillMaxWidth(),
-                value = confirmPassword,
-                onValueChange = {
-                    confirmPassword = it
-                    confirmPasswordError = if (it != password) {
-                        "Password do not match"
-                    } else {
-                        "Password".checkIfInputFieldsAreEmpty(it)
-                    }
-                },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                visualTransformation = if (isConfirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                placeholder = {
-                    Text(
-                        text = "Confirm your password",
-                        style = AppTypography.labelSmall,
-                        color = Color.LightGray
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Rounded.Lock,
-                        contentDescription = "Email",
-                    )
-                },
-                trailingIcon = {
-                    IconButton(onClick = { isConfirmPasswordVisible = !isConfirmPasswordVisible }) {
-                        Icon(
-                            imageVector = Icons.Rounded.RemoveRedEye,
-                            contentDescription = "Toggle password visibility"
-                        )
-
-                    }
-                },
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = lightScheme.primary,
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedContainerColor = Color.Transparent,
-                    cursorColor = lightScheme.primary
-                ),
-                shape = RoundedCornerShape(50.dp),
-                isError = confirmPasswordError.isNotEmpty(),
-                supportingText = {
-                    if (confirmPasswordError.isNotEmpty()) {
-                        Text(
-                            text = confirmPasswordError,
-                            color = lightScheme.error,
-                            style = AppTypography.labelMedium
-                        )
-                    }
-                }
-            )
-
             Spacer(modifier = Modifier.weight(1f))
 
             Button(
@@ -369,10 +287,10 @@ fun SignUpScreen(
                 onClick = {
                     if (!uiState.value.isLoading) {
                         showProgressIndicator = true
-                        viewModel.signUpUser(email, password)
+                        viewModel.loginUser(email, password)
                     }
                 },
-                enabled = enableSignInButton(email, password, confirmPassword)
+                enabled = enableLoginButton(email, password)
             ) {
 
                 if (showProgressIndicator) {
@@ -383,7 +301,7 @@ fun SignUpScreen(
                     )
                 } else {
                     Text(
-                        text = "Sign Up",
+                        text = "Login",
                         style = AppTypography.labelLarge
                     )
                 }
@@ -437,32 +355,19 @@ fun SignUpScreen(
                 Text(
                     modifier = Modifier
                         .padding(4.dp)
-                        .clickable(onClick = { navigate(Screens.LoginScreen) }),
-                    text = loginText,
+                        .clickable(onClick = { navigate(Screens.SignUpScreen) }),
+                    text = "Create Account",
                     style = AppTypography.labelLarge,
+                    textDecoration = TextDecoration.Underline
                 )
             }
         }
     }
+
 }
 
-fun String.checkIfInputFieldsAreEmpty(input: String): String {
-    return if (input.isEmpty()) "$this cannot be empty" else ""
-}
-
-fun isValidEmail(email: String): Boolean {
-    return Patterns.EMAIL_ADDRESS.matcher(email).matches()
-}
-
-private fun checkIfPasswordsMatch(password: String, confirmPassword: String): Boolean {
-    return password == confirmPassword
-}
-
-
-private fun enableSignInButton(email: String, password: String, confirmPassword: String): Boolean {
-    return checkIfPasswordsMatch(password, confirmPassword) &&
-            password.isNotEmpty() &&
-            confirmPassword.isNotEmpty() &&
+fun enableLoginButton(email: String, password: String): Boolean {
+    return password.isNotEmpty() &&
             email.isNotEmpty() &&
             isValidEmail(email)
 }
