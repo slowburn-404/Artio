@@ -9,11 +9,11 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface SketchDao {
 
-	@Query("SELECT * FROM sketch")
+	@Query("SELECT * FROM sketch ORDER BY lastModified DESC")
 	fun getAllSketches(): Flow<List<Sketch>>
 
 	@Query("SELECT * FROM sketch WHERE id LIKE :sketchId")
-	fun getSketch(sketchId: String): Flow<Sketch>
+	fun getSketch(sketchId: Int): Flow<Sketch>
 
 	@Insert
 	suspend fun saveSketch(sketch: Sketch)
