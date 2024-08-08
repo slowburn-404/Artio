@@ -19,6 +19,7 @@ room = "2.6.1"
 rangVikalp = "1.0.0-alpha02"
 splashScreen = "1.0.1"
 firebaseBom = "33.1.2"
+coil = "2.6.0"
 
 espressoCore = "3.6.1"
 junit = "4.13.2"
@@ -53,6 +54,9 @@ room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "
 splash = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashScreen" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom"}
 firebase-auth = {module = "com.google.firebase:firebase-auth"}
+firebase-storage = { module = "com.google.firebase:firebase-storage" }
+coil = { group = "io.coil-kt", name = "coil", version.ref = "coil" }
+coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 rang-vikalp = { module = "io.ak1:rang-vikalp", version.ref = "rangVikalp" }
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
