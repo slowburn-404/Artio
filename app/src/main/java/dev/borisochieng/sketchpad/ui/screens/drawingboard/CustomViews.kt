@@ -43,7 +43,6 @@ import dev.borisochieng.sketchpad.ui.theme.isSystemInDarkThemeCustom
 import dev.borisochieng.sketchpad.ui.theme.lightScheme
 import io.ak1.drawbox.DrawController
 
-
 @Composable
 fun ControlsBar(
     drawController: DrawController,
@@ -59,40 +58,53 @@ fun ControlsBar(
 ) {
     Row(modifier = Modifier.padding(12.dp), horizontalArrangement = Arrangement.SpaceAround) {
         MenuItems(
-            R.drawable.ic_download,
-            "download",
-            if (undoVisibility.value) lightScheme.onBackground else lightScheme.primary
+            resId = R.drawable.ic_download,
+            desc = "download",
+            colorTint = if (undoVisibility.value) lightScheme.onBackground else lightScheme.primary
         ) {
             if (undoVisibility.value) onDownloadClick()
         }
         MenuItems(
-            R.drawable.ic_undo,
-            "undo",
-            if (undoVisibility.value) lightScheme.primary else lightScheme.inversePrimary
+            resId = R.drawable.ic_undo,
+            desc = "undo",
+            colorTint = if (undoVisibility.value) lightScheme.primary else lightScheme.inversePrimary
         ) {
             if (undoVisibility.value) drawController.unDo()
         }
         MenuItems(
-            R.drawable.ic_redo,
-            "redo",
-            if (redoVisibility.value) lightScheme.primary else lightScheme.inversePrimary
+            resId = R.drawable.ic_redo,
+            desc = "redo",
+            colorTint = if (redoVisibility.value) lightScheme.primary else lightScheme.inversePrimary
         ) {
             if (redoVisibility.value) drawController.reDo()
         }
         MenuItems(
-            R.drawable.ic_refresh,
-            "reset",
-            if (redoVisibility.value || undoVisibility.value) lightScheme.primary else lightScheme.inversePrimary
+            resId = R.drawable.ic_refresh,
+            desc = "reset",
+            colorTint = if (redoVisibility.value || undoVisibility.value) lightScheme.primary else lightScheme.inversePrimary
         ) {
             drawController.reset()
         }
-        MenuItems(R.drawable.icons8_color_wheel_24, "background color", bgColorValue.value, bgColorValue.value == lightScheme.background ) {
+        MenuItems(
+            resId = R.drawable.icons8_color_wheel_24,
+            desc = "background color",
+            colorTint = bgColorValue.value,
+            border = bgColorValue.value == lightScheme.background
+        ) {
             onBgColorClick()
         }
-        MenuItems(R.drawable.palette_2, "stroke color", colorValue.value) {
+        MenuItems(
+            resId = R.drawable.palette_2,
+            desc = "stroke color",
+            colorTint = colorValue.value
+        ) {
             onColorClick()
         }
-        MenuItems(R.drawable.pen, "stroke size", lightScheme.primary) {
+        MenuItems(
+            resId = R.drawable.pen,
+            desc = "stroke size",
+            colorTint = lightScheme.primary
+        ) {
             onSizeClick()
         }
     }
