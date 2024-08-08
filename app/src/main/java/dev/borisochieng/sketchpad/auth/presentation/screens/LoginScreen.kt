@@ -108,7 +108,7 @@ fun LoginScreen(
     //navigate when login is successful
     LaunchedEffect(uiState.value) {
         if (!uiState.value.isLoading && uiState.value.error.isEmpty() && uiState.value.user != null) {
-            navigate(Screens.HomeScreenScreen)
+            navigate(Screens.HomeScreen)
         } else if (uiState.value.error.isNotEmpty()) {
             snackBarHostState.showSnackbar(message = uiState.value.error)
         }
@@ -346,7 +346,7 @@ fun LoginScreen(
                 Text(
                     modifier = Modifier
                         .padding(4.dp)
-                        .clickable(onClick = { navigate(Screens.HomeScreenScreen) }),
+                        .clickable(onClick = { navigate(Screens.HomeScreen) }),
                     text = "Continue as Guest",
                     style = AppTypography.labelLarge,
                     textDecoration = TextDecoration.Underline

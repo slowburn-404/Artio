@@ -1,4 +1,4 @@
-package dev.borisochieng.sketchpad.toby.data
+package dev.borisochieng.sketchpad.drawingpad.data
 
 import android.Manifest
 import android.content.Context

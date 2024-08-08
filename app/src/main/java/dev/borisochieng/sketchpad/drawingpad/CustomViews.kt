@@ -1,4 +1,4 @@
-package dev.borisochieng.sketchpad.toby
+package dev.borisochieng.sketchpad.drawingpad
 
 import android.view.Window
 import android.widget.SeekBar
@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable

@@ -12,7 +12,7 @@ import androidx.navigation.compose.composable
 import dev.borisochieng.sketchpad.auth.presentation.screens.LoginScreen
 import dev.borisochieng.sketchpad.auth.presentation.screens.OnBoardingScreen
 import dev.borisochieng.sketchpad.auth.presentation.screens.SignUpScreen
-import dev.borisochieng.sketchpad.toby.SketchPadScreen
+import dev.borisochieng.sketchpad.drawingpad.SketchPadScreen
 import dev.borisochieng.sketchpad.ui.screens.home.HomeScreen
 import dev.borisochieng.sketchpad.ui.screens.profile.ProfileScreen
 import dev.borisochieng.sketchpad.ui.screens.settings.SettingsScreen

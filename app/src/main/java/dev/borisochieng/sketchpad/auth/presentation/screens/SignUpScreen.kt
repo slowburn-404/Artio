@@ -135,10 +135,17 @@ fun SignUpScreen(
     //navigate when sign up is successful
     LaunchedEffect(uiState.value) {
         if (!uiState.value.isLoading && uiState.value.error.isEmpty() && uiState.value.user != null) {
-            navigate(Screens.HomeScreenScreen)
+            navigate(Screens.HomeScreen)
         } else if (uiState.value.error.isNotEmpty()) {
             snackBarHostState.showSnackbar(message = uiState.value.error)
         }
+    }
+
+    LaunchedEffect(uiState.value.user) {
+        if (uiState.value.user != null) {
+            navigate(Screens.HomeScreen)
+        }
+
     }
 
     Scaffold(
@@ -428,7 +435,7 @@ fun SignUpScreen(
                 Text(
                     modifier = Modifier
                         .padding(4.dp)
-                        .clickable(onClick = { navigate(Screens.HomeScreenScreen) }),
+                        .clickable(onClick = { navigate(Screens.HomeScreen) }),
                     text = "Continue as Guest",
                     style = AppTypography.labelLarge,
                     textDecoration = TextDecoration.Underline

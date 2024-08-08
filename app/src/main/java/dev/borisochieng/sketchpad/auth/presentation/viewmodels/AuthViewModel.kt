@@ -25,6 +25,10 @@ class AuthViewModel : ViewModel(), KoinComponent {
     private val _eventFlow = MutableSharedFlow<UiEvent>()
     val uiEvent: SharedFlow<UiEvent> get() = _eventFlow.asSharedFlow()
 
+    init {
+        isLoggedIn()
+    }
+
 
     fun signUpUser(email: String, password: String) =
         viewModelScope.launch {
@@ -110,6 +114,44 @@ class AuthViewModel : ViewModel(), KoinComponent {
                     }
 
                     _eventFlow.emit(UiEvent.SnackBarEvent(errorMessage))
+                }
+            }
+        }
+
+    fun logoutUser()  =
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isLoading = true,
+                    error = ""
+                )
+            }
+            authRepository.logout()
+
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    error = "",
+                    user = null
+                )
+            }
+
+        }
+
+   private fun isLoggedIn() =
+        viewModelScope.launch {
+            val response = authRepository.checkIfUserIsLoggedIn()
+
+            when(response) {
+                is FirebaseResponse.Success -> {
+                    _uiState.update {
+                        it.copy(
+                            user = response.data
+                        )
+                    }
+                }
+                is FirebaseResponse.Error -> {
+                    _eventFlow.emit(UiEvent.SnackBarEvent(response.message))
                 }
             }
         }

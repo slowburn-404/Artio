@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import dev.borisochieng.sketchpad.ui.navigation.Screens
 import dev.borisochieng.sketchpad.ui.theme.AppTypography
 import dev.borisochieng.sketchpad.ui.theme.lightScheme
@@ -24,6 +25,7 @@ fun HomeScreen(navigate: (Screens) -> Unit) {
     Scaffold(
         topBar = {
             Text(
+                modifier = Modifier.padding(8.dp),
                 text = "Canvas management",
                 style = AppTypography.headlineMedium,
                 textAlign = TextAlign.Center
@@ -48,5 +50,7 @@ fun HomeScreen(navigate: (Screens) -> Unit) {
         Box(
             modifier = Modifier.padding(innerPadding),
         )
+
+        //TODO(Display a list of canvases)
     }
 }

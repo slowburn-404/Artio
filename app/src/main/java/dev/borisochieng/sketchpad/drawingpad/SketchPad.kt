@@ -1,6 +1,7 @@
-package dev.borisochieng.sketchpad.toby
+package dev.borisochieng.sketchpad.drawingpad
 
 import android.graphics.Bitmap
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,7 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asAndroidBitmap
-import dev.borisochieng.sketchpad.toby.data.convertToOldColor
+import dev.borisochieng.sketchpad.drawingpad.data.convertToOldColor
 import dev.borisochieng.sketchpad.ui.navigation.Screens
 import dev.borisochieng.sketchpad.ui.theme.lightScheme
 import io.ak1.drawbox.DrawBox
@@ -34,7 +35,7 @@ fun SketchPadScreen(save: (Bitmap) -> Unit, navigate: (Screens) -> Unit ) {
     val colorIsBg = remember { mutableStateOf(false) }
     val drawController = rememberDrawController()
 
-    Box {
+    Box{
         Column {
 
             DrawBox(

@@ -46,7 +46,7 @@ class AuthRepositoryImpl : AuthRepository {
 
     override suspend fun login(email: String, password: String): FirebaseResponse<User> =
         withContext(Dispatchers.IO) {
-           try {
+            try {
                 val authResult = firebaseAuth.signInWithEmailAndPassword(email, password).await()
                 val firebaseUser: FirebaseUser? = authResult.user
 
@@ -79,4 +79,30 @@ class AuthRepositoryImpl : AuthRepository {
                 error
             }
         }
+
+    override suspend fun logout() =
+        withContext(Dispatchers.IO) {
+            firebaseAuth.signOut()
+        }
+
+    override suspend fun checkIfUserIsLoggedIn(): FirebaseResponse<User> =
+        withContext(Dispatchers.IO) {
+            try {
+                val currentUser = firebaseAuth.currentUser
+                val user = currentUser?.email?.let {
+                    User(
+                        email = it
+                    )
+                }
+
+                FirebaseResponse.Success(user)
+
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                FirebaseResponse.Error(e.message.toString(), e)
+            }
+        }
+
+
 }

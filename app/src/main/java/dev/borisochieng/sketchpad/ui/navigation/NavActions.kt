@@ -7,7 +7,7 @@ class NavActions(private val navController: NavHostController) {
 
     fun navigate(screen: Screens) {
         when (screen) {
-            Screens.HomeScreenScreen -> navigateToHomeScreen()
+            Screens.HomeScreen -> navigateToHomeScreen()
             is Screens.SketchPad -> navigateToSketchPad(screen.sketchId)
             Screens.SettingsScreen -> navigateToSettingsScreen()
             Screens.ProfileScreen -> navigateToProfileScreen()
@@ -19,7 +19,12 @@ class NavActions(private val navController: NavHostController) {
     }
 
     private fun navigateToHomeScreen() {
-        navController.navigate(AppRoute.HomeScreen.route)
+        navController.navigate(AppRoute.HomeScreen.route) {
+            popUpTo(AppRoute.OnBoardingScreen.route) {
+                inclusive = true
+            }
+            launchSingleTop = true
+        }
     }
 
     private fun navigateToSketchPad(sketchId: Int?) {
@@ -41,7 +46,12 @@ class NavActions(private val navController: NavHostController) {
     }
 
     private fun navigateToLoginScreen() {
-        navController.navigate(AppRoute.LoginScreen.route)
+        navController.navigate(AppRoute.LoginScreen.route) {
+            popUpTo(AppRoute.LoginScreen.route) {
+                inclusive = true
+            }
+            launchSingleTop = true
+        }
     }
 
 }
@@ -61,7 +71,7 @@ sealed class AppRoute(val route: String) {
 }
 
 sealed class Screens {
-    data object HomeScreenScreen : Screens()
+    data object HomeScreen : Screens()
     data class SketchPad(val sketchId: Int?) : Screens()
     data object SettingsScreen : Screens()
     data object ProfileScreen : Screens()

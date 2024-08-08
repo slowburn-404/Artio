@@ -16,9 +16,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowInsetsControllerCompat
-import dev.borisochieng.sketchpad.toby.data.dataStore
-import dev.borisochieng.sketchpad.toby.data.isDarkThemeOn
-import dev.borisochieng.sketchpad.toby.data.themePreferenceKey
+import dev.borisochieng.sketchpad.drawingpad.data.dataStore
+import dev.borisochieng.sketchpad.drawingpad.data.isDarkThemeOn
+import dev.borisochieng.sketchpad.drawingpad.data.themePreferenceKey
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 
