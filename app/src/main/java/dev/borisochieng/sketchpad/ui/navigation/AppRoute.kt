@@ -9,9 +9,11 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import dev.borisochieng.sketchpad.auth.presentation.screens.LoginScreen
 import dev.borisochieng.sketchpad.auth.presentation.screens.OnBoardingScreen
 import dev.borisochieng.sketchpad.auth.presentation.screens.SignUpScreen
-import dev.borisochieng.sketchpad.toby.SketchPadScreen
+import dev.borisochieng.sketchpad.drawingpad.SketchPadScreen
+import dev.borisochieng.sketchpad.ui.screens.home.HomeScreen
 import dev.borisochieng.sketchpad.ui.screens.profile.ProfileScreen
 import dev.borisochieng.sketchpad.ui.screens.settings.SettingsScreen
 import dev.borisochieng.sketchpad.utils.AnimationDirection
@@ -19,6 +21,7 @@ import dev.borisochieng.sketchpad.utils.animatedComposable
 
 @Composable
 fun AppRoute(
+	modifier: Modifier = Modifier,
 	navActions: NavActions,
 	navController: NavHostController,
 	paddingValues: PaddingValues,
@@ -29,8 +32,8 @@ fun AppRoute(
 		startDestination = AppRoute.OnBoardingScreen.route,
 		modifier = Modifier.padding(paddingValues)
 	) {
-		composable(AppRoute.HomeScreen.route) {
-			SketchPadScreen(save = saveImage,navigate = navActions::navigate )
+		animatedComposable(AppRoute.HomeScreen.route) {
+			HomeScreen(navigate = navActions::navigate )
 		}
 		animatedComposable(
 			route = AppRoute.SketchPad.route,
@@ -56,6 +59,9 @@ fun AppRoute(
 		}
 		animatedComposable(AppRoute.SignUpScreen.route) {
 			SignUpScreen(navigate = navActions:: navigate)
+		}
+		animatedComposable(AppRoute.LoginScreen.route) {
+			LoginScreen(navigate = navActions::navigate)
 		}
 	}
 }

@@ -13,10 +13,10 @@ import dev.borisochieng.sketchpad.R
 import dev.borisochieng.sketchpad.ui.components.NavBar
 import dev.borisochieng.sketchpad.ui.navigation.AppRoute
 import dev.borisochieng.sketchpad.ui.navigation.NavActions
-import dev.borisochieng.sketchpad.toby.Root
-import dev.borisochieng.sketchpad.toby.data.activityChooser
-import dev.borisochieng.sketchpad.toby.data.checkAndAskPermission
-import dev.borisochieng.sketchpad.toby.data.saveImage
+import dev.borisochieng.sketchpad.drawingpad.Root
+import dev.borisochieng.sketchpad.drawingpad.data.activityChooser
+import dev.borisochieng.sketchpad.drawingpad.data.checkAndAskPermission
+import dev.borisochieng.sketchpad.drawingpad.data.saveImage
 import dev.borisochieng.sketchpad.ui.theme.AppTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,10 +34,10 @@ class MainActivity : ComponentActivity() {
                 val navActions = NavActions(navController)
                 AppTheme {
                     Scaffold(
-                        modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars),
                         bottomBar = { NavBar(navController) },
                     ) { paddingValues ->
                         AppRoute(
+                            modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars),
                             navActions = navActions,
                             navController = navController,
                             paddingValues = paddingValues,
