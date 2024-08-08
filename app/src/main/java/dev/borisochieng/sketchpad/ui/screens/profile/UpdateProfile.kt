@@ -187,8 +187,8 @@ fun UpdateProfileScreen(navigate: (Screens) -> Unit, viewModel: AuthViewModel = 
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
                 onClick = {
-                    if(uiState.error.isNotEmpty()) {
-                    viewModel.updateProfile(imageUrl = photoUri.toString(), username = username )
+                    if(uiState.error.isNotEmpty() && photoUri != null) {
+                    viewModel.updateProfile(imageUrl = photoUri!!, username = username )
                     navigate(Screens.ProfileScreen)}
                 },
                 enabled = username.isNotEmpty()

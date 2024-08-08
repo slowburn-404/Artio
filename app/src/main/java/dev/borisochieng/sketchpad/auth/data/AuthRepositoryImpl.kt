@@ -28,12 +28,14 @@ class AuthRepositoryImpl : AuthRepository {
                     firebaseAuth.createUserWithEmailAndPassword(email, password).await()
                 val firebaseUser: FirebaseUser? = authResult.user
 
-                val newUser = User(
-                    uid = firebaseUser?.uid ?: "",
-                    displayName = firebaseUser?.displayName ?: "",
-                    email = firebaseUser?.email ?: "",
-                    imageUrl = firebaseUser?.photoUrl.toString()
-                )
+                val newUser = firebaseUser?.photoUrl?.let {
+                    User(
+                        uid = firebaseUser.uid,
+                        displayName = firebaseUser.displayName ?: "",
+                        email = firebaseUser.email ?: "",
+                        imageUrl = it
+                    )
+                }
                 FirebaseResponse.Success(newUser)
 
             } catch (e: Exception) {
@@ -59,12 +61,14 @@ class AuthRepositoryImpl : AuthRepository {
                 var user: User? = null
 
                 firebaseUser?.let {
-                    user = User(
-                        uid = it.uid,
-                        email = it.email!!,
-                        displayName = it.displayName!!,
-                        imageUrl = it.photoUrl.toString()
-                    )
+                    user = it.photoUrl?.let { photoUrl ->
+                        User(
+                            uid = it.uid,
+                            email = it.email!!,
+                            displayName = it.displayName!!,
+                            imageUrl = photoUrl
+                        )
+                    }
                 }
 
                 FirebaseResponse.Success(user)
@@ -105,12 +109,14 @@ class AuthRepositoryImpl : AuthRepository {
                 var user: User? = null
 
                 currentUser?.let {
-                    user = User(
-                        uid = it.uid,
-                        email = it.email!!,
-                        displayName = it.displayName ?: "",
-                        imageUrl = it.photoUrl.toString()
-                    )
+                    user = it.photoUrl?.let { imageUrl ->
+                        User(
+                            uid = it.uid,
+                            email = it.email!!,
+                            displayName = it.displayName ?: "",
+                            imageUrl = imageUrl
+                        )
+                    }
                 }
 
                 FirebaseResponse.Success(user)
@@ -124,7 +130,7 @@ class AuthRepositoryImpl : AuthRepository {
 
     override suspend fun updateUserProfile(
         displayName: String,
-        imageUrl: String
+        imageUrl: Uri
     ): FirebaseResponse<User> =
         withContext(Dispatchers.IO) {
             try {
@@ -135,16 +141,18 @@ class AuthRepositoryImpl : AuthRepository {
                         UserProfileChangeRequest
                             .Builder()
                             .setDisplayName(displayName)
-                            .setPhotoUri(imageUrl.let { Uri.parse(it) }).build()
+                            .setPhotoUri(imageUrl).build()
 
                     firebaseUser.updateProfile(profileUpdates).await()
 
-                    val updatedUser = User(
-                        uid = firebaseUser.uid,
-                        email = firebaseUser.email ?: "",
-                        displayName = firebaseUser.displayName ?: "",
-                        imageUrl = firebaseUser.photoUrl?.toString() ?: ""
-                    )
+                    val updatedUser = firebaseUser.photoUrl?.let {
+                        User(
+                            uid = firebaseUser.uid,
+                            email = firebaseUser.email ?: "",
+                            displayName = firebaseUser.displayName ?: "",
+                            imageUrl = it
+                        )
+                    }
                     FirebaseResponse.Success(updatedUser)
                 } else {
                     FirebaseResponse.Error("No user is logged in")
@@ -152,7 +160,7 @@ class AuthRepositoryImpl : AuthRepository {
             } catch (e: Exception) {
                 e.printStackTrace()
 
-                FirebaseResponse.Error("Failed to update profile, please try again", e)
+                FirebaseResponse.Error("${e.message}", e)
 
             }
         }

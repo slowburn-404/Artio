@@ -183,7 +183,7 @@ class AuthViewModel : ViewModel(), KoinComponent {
             }
         }
 
-    fun updateProfile(imageUrl: String, username: String) =
+    fun updateProfile(imageUrl: Uri, username: String) =
         viewModelScope.launch {
             val updateProfile = authRepository.updateUserProfile(displayName = username, imageUrl = imageUrl)
 
