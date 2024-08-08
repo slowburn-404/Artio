@@ -1,4 +1,4 @@
-package dev.borisochieng.sketchpad.drawingpad
+package dev.borisochieng.sketchpad.ui.screens.drawingboard
 
 import android.view.Window
 import android.widget.SeekBar

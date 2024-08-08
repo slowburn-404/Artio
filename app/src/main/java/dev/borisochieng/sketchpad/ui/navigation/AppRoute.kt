@@ -14,10 +14,12 @@ import dev.borisochieng.sketchpad.auth.presentation.screens.OnBoardingScreen
 import dev.borisochieng.sketchpad.auth.presentation.screens.SignUpScreen
 import dev.borisochieng.sketchpad.drawingpad.SketchPadScreen
 import dev.borisochieng.sketchpad.ui.screens.home.HomeScreen
+import dev.borisochieng.sketchpad.ui.screens.home.HomeViewModel
 import dev.borisochieng.sketchpad.ui.screens.profile.ProfileScreen
 import dev.borisochieng.sketchpad.ui.screens.settings.SettingsScreen
 import dev.borisochieng.sketchpad.utils.AnimationDirection
 import dev.borisochieng.sketchpad.utils.animatedComposable
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun AppRoute(
@@ -26,14 +28,18 @@ fun AppRoute(
 	navController: NavHostController,
 	paddingValues: PaddingValues,
 	saveImage: (Bitmap) -> Unit,
+	homeViewModel: HomeViewModel = koinViewModel()
 ) {
 	NavHost(
 		navController = navController,
 		startDestination = AppRoute.OnBoardingScreen.route,
-		modifier = Modifier.padding(paddingValues)
+		modifier = modifier.padding(paddingValues)
 	) {
-		animatedComposable(AppRoute.HomeScreen.route) {
-			HomeScreen(navigate = navActions::navigate )
+		composable(AppRoute.HomeScreen.route) {
+			HomeScreen(
+				savedSketches = homeViewModel.savedSketches,
+				navigate = navActions::navigate
+			)
 		}
 		animatedComposable(
 			route = AppRoute.SketchPad.route,

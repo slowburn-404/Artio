@@ -9,14 +9,13 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
-import dev.borisochieng.sketchpad.R
 import dev.borisochieng.sketchpad.ui.components.NavBar
 import dev.borisochieng.sketchpad.ui.navigation.AppRoute
 import dev.borisochieng.sketchpad.ui.navigation.NavActions
-import dev.borisochieng.sketchpad.drawingpad.Root
-import dev.borisochieng.sketchpad.drawingpad.data.activityChooser
-import dev.borisochieng.sketchpad.drawingpad.data.checkAndAskPermission
-import dev.borisochieng.sketchpad.drawingpad.data.saveImage
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.Root
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.activityChooser
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.checkAndAskPermission
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.saveImage
 import dev.borisochieng.sketchpad.ui.theme.AppTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,7 +24,6 @@ import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        setTheme(R.style.Theme_SketchPad)
         super.onCreate(savedInstanceState)
         //   enableEdgeToEdge()
         setContent {

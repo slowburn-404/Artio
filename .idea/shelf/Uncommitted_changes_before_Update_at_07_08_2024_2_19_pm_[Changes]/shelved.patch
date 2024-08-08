@@ -1,0 +1,381 @@
+Index: app/src/main/java/dev/borisochieng/sketchpad/database/repository/SketchRepositoryImpl.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/dev/borisochieng/sketchpad/database/repository/SketchRepositoryImpl.kt b/app/src/main/java/dev/borisochieng/sketchpad/database/repository/SketchRepositoryImpl.kt
+new file mode 100644
+--- /dev/null	(date 1723033452604)
++++ b/app/src/main/java/dev/borisochieng/sketchpad/database/repository/SketchRepositoryImpl.kt	(date 1723033452604)
+@@ -0,0 +1,41 @@
++package dev.borisochieng.sketchpad.database.repository
++
++import dev.borisochieng.sketchpad.database.Sketch
++import dev.borisochieng.sketchpad.database.SketchDao
++import kotlinx.coroutines.flow.Flow
++import org.koin.core.component.KoinComponent
++import org.koin.core.component.inject
++import java.util.Calendar
++
++class SketchRepositoryImpl : SketchRepository, KoinComponent {
++
++	private val sketchDao by inject<SketchDao>()
++
++	override fun getAllSketches(): Flow<List<Sketch>> {
++		return sketchDao.getAllSketches()
++	}
++
++	override fun getSketch(sketchId: String): Flow<Sketch> {
++		return sketchDao.getSketch(sketchId)
++	}
++
++	override suspend fun saveSketch(sketch: Sketch) {
++		return sketchDao.saveSketch(sketch)
++	}
++
++	override suspend fun updateSketch(sketch: Sketch) {
++		val updatedSketch = Sketch(
++			id = sketch.id,
++			name = sketch.name,
++			dateCreated = sketch.dateCreated,
++			lastModified = Calendar.getInstance().time,
++			paths = sketch.paths
++		)
++		return sketchDao.updateSketch(updatedSketch)
++	}
++
++	override suspend fun deleteSketch(sketch: Sketch) {
++		return sketchDao.deleteSketch(sketch)
++	}
++
++}
+Index: app/src/main/java/dev/borisochieng/sketchpad/database/repository/SketchRepository.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/dev/borisochieng/sketchpad/database/repository/SketchRepository.kt b/app/src/main/java/dev/borisochieng/sketchpad/database/repository/SketchRepository.kt
+new file mode 100644
+--- /dev/null	(date 1723031814414)
++++ b/app/src/main/java/dev/borisochieng/sketchpad/database/repository/SketchRepository.kt	(date 1723031814414)
+@@ -0,0 +1,18 @@
++package dev.borisochieng.sketchpad.database.repository
++
++import dev.borisochieng.sketchpad.database.Sketch
++import kotlinx.coroutines.flow.Flow
++
++interface SketchRepository {
++
++	fun getAllSketches(): Flow<List<Sketch>>
++
++	fun getSketch(sketchId: String): Flow<Sketch>
++
++	suspend fun saveSketch(sketch: Sketch)
++
++	suspend fun updateSketch(sketch: Sketch)
++
++	suspend fun deleteSketch(sketch: Sketch)
++
++}
+\ No newline at end of file
+Index: app/src/main/java/dev/borisochieng/sketchpad/di/PersistenceModule.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/dev/borisochieng/sketchpad/di/PersistenceModule.kt b/app/src/main/java/dev/borisochieng/sketchpad/di/PersistenceModule.kt
+new file mode 100644
+--- /dev/null	(date 1723031814237)
++++ b/app/src/main/java/dev/borisochieng/sketchpad/di/PersistenceModule.kt	(date 1723031814237)
+@@ -0,0 +1,31 @@
++package dev.borisochieng.sketchpad.di
++
++import android.content.Context
++import androidx.room.Room
++import dev.borisochieng.sketchpad.database.AppDatabase
++import dev.borisochieng.sketchpad.database.SketchDao
++import dev.borisochieng.sketchpad.database.repository.SketchRepository
++import dev.borisochieng.sketchpad.database.repository.SketchRepositoryImpl
++import org.koin.dsl.module
++
++object PersistenceModule {
++
++	private fun provideDatabase(context: Context): AppDatabase {
++		return Room.databaseBuilder(
++			context = context,
++			klass = AppDatabase::class.java,
++			name = "sketch-app-database"
++		).build()
++	}
++
++	private fun provideSketchDao(appDatabase: AppDatabase): SketchDao {
++		return appDatabase.sketchDao()
++	}
++
++	val persistenceModule = module {
++		single { provideDatabase(get<Context>().applicationContext) }
++		single { provideSketchDao(get()) }
++		factory<SketchRepository> { SketchRepositoryImpl() }
++	}
++
++}
+\ No newline at end of file
+Index: app/src/main/java/dev/borisochieng/sketchpad/database/TypeConverter.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/dev/borisochieng/sketchpad/database/TypeConverter.kt b/app/src/main/java/dev/borisochieng/sketchpad/database/TypeConverter.kt
+new file mode 100644
+--- /dev/null	(date 1723035719381)
++++ b/app/src/main/java/dev/borisochieng/sketchpad/database/TypeConverter.kt	(date 1723035719381)
+@@ -0,0 +1,35 @@
++package dev.borisochieng.sketchpad.database
++
++import androidx.room.TypeConverter
++import com.google.gson.Gson
++import com.google.gson.reflect.TypeToken
++import java.util.Date
++
++class TypeConverter {
++
++	@TypeConverter
++	fun fromDate(date: Date?): Long? {
++		return date?.time
++	}
++
++	@TypeConverter
++	fun toDate(millisSinceEpoch: Long?): Date? {
++		return millisSinceEpoch?.let {
++			Date(it)
++		}
++	}
++
++	@TypeConverter
++	fun fromPathProperties(paths: List<PathProperties>): String {
++		val gson = Gson()
++		return gson.toJson(paths)
++	}
++
++	@TypeConverter
++	fun toPathProperties(pathJson: String): List<PathProperties> {
++		val gson = Gson()
++		val type = object : TypeToken<List<PathProperties>>() {}.type
++		return gson.fromJson(pathJson, type)
++	}
++
++}
+\ No newline at end of file
+Index: app/src/main/java/dev/borisochieng/sketchpad/ui/navigation/AppRoute.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package dev.borisochieng.sketchpad.ui.navigation\r\n\r\nimport androidx.compose.foundation.layout.PaddingValues\r\nimport androidx.compose.foundation.layout.padding\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.runtime.LaunchedEffect\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.navigation.NavHostController\r\nimport androidx.navigation.compose.NavHost\r\nimport androidx.navigation.compose.composable\r\nimport dev.borisochieng.sketchpad.ui.screens.drawing_board.SketchPad\r\nimport dev.borisochieng.sketchpad.ui.screens.home.HomeScreen\r\nimport dev.borisochieng.sketchpad.ui.screens.profile.ProfileScreen\r\nimport dev.borisochieng.sketchpad.ui.screens.settings.SettingsScreen\r\nimport dev.borisochieng.sketchpad.utils.AnimationDirection\r\nimport dev.borisochieng.sketchpad.utils.animatedComposable\r\n\r\n@Composable\r\nfun AppRoute(\r\n\tnavActions: NavActions,\r\n\tnavController: NavHostController,\r\n\tpaddingValues: PaddingValues\r\n) {\r\n\tNavHost(\r\n\t\tnavController = navController,\r\n\t\tstartDestination = AppRoute.HomeScreen.route,\r\n\t\tmodifier = Modifier.padding(paddingValues)\r\n\t) {\r\n\t\tcomposable(AppRoute.HomeScreen.route) {\r\n\t\t\tHomeScreen(navigate = navActions::navigate)\r\n\t\t}\r\n\t\tanimatedComposable(\r\n\t\t\troute = AppRoute.SketchPad.route,\r\n\t\t\tanimationDirection = AnimationDirection.UpDown\r\n\t\t) { backStackEntry ->\r\n\t\t\tval sketchId = backStackEntry.arguments?.getInt(\"sketchId\") ?: 0\r\n\t\t\tLaunchedEffect(true) {\r\n\t\t\t\t// fetch sketch from database using id\r\n\t\t\t}\r\n\r\n\t\t\tSketchPad(navigate = navActions::navigate)\r\n\t\t}\r\n\t\tcomposable(AppRoute.SettingsScreen.route) {\r\n\t\t\tSettingsScreen(navigate = navActions::navigate)\r\n\t\t}\r\n\t\tcomposable(AppRoute.ProfileScreen.route) {\r\n\t\t\tProfileScreen(navigate = navActions::navigate)\r\n\t\t}\r\n\t}\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/dev/borisochieng/sketchpad/ui/navigation/AppRoute.kt b/app/src/main/java/dev/borisochieng/sketchpad/ui/navigation/AppRoute.kt
+--- a/app/src/main/java/dev/borisochieng/sketchpad/ui/navigation/AppRoute.kt	(revision 03054acd46eccdb0ef18a019230e0a3a342f7837)
++++ b/app/src/main/java/dev/borisochieng/sketchpad/ui/navigation/AppRoute.kt	(date 1723034073907)
+@@ -33,8 +33,9 @@
+ 			route = AppRoute.SketchPad.route,
+ 			animationDirection = AnimationDirection.UpDown
+ 		) { backStackEntry ->
+-			val sketchId = backStackEntry.arguments?.getInt("sketchId") ?: 0
++			val sketchId = backStackEntry.arguments?.getInt("sketchId")
+ 			LaunchedEffect(true) {
++				if (sketchId == null) return@LaunchedEffect
+ 				// fetch sketch from database using id
+ 			}
+ 
+Index: app/src/main/java/dev/borisochieng/sketchpad/SketchPadApp.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package dev.borisochieng.sketchpad\r\n\r\nimport android.app.Application\r\nimport dev.borisochieng.sketchpad.di.AppModule.appModule\r\nimport org.koin.android.ext.koin.androidContext\r\nimport org.koin.android.ext.koin.androidLogger\r\nimport org.koin.core.context.startKoin\r\nimport org.koin.core.logger.Level\r\n\r\nclass SketchPadApp: Application() {\r\n    override fun onCreate() {\r\n        super.onCreate()\r\n        startKoin {\r\n            androidContext(this@SketchPadApp)\r\n            androidLogger(Level.INFO)\r\n            modules(appModule)\r\n        }\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/dev/borisochieng/sketchpad/SketchPadApp.kt b/app/src/main/java/dev/borisochieng/sketchpad/SketchPadApp.kt
+--- a/app/src/main/java/dev/borisochieng/sketchpad/SketchPadApp.kt	(revision 03054acd46eccdb0ef18a019230e0a3a342f7837)
++++ b/app/src/main/java/dev/borisochieng/sketchpad/SketchPadApp.kt	(date 1723031814279)
+@@ -2,6 +2,7 @@
+ 
+ import android.app.Application
+ import dev.borisochieng.sketchpad.di.AppModule.appModule
++import dev.borisochieng.sketchpad.di.PersistenceModule.persistenceModule
+ import org.koin.android.ext.koin.androidContext
+ import org.koin.android.ext.koin.androidLogger
+ import org.koin.core.context.startKoin
+@@ -13,7 +14,7 @@
+         startKoin {
+             androidContext(this@SketchPadApp)
+             androidLogger(Level.INFO)
+-            modules(appModule)
++            modules(appModule, persistenceModule)
+         }
+     }
+ }
+\ No newline at end of file
+Index: app/src/main/java/dev/borisochieng/sketchpad/MainActivity.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package dev.borisochieng.sketchpad\r\n\r\nimport android.os.Bundle\r\nimport androidx.activity.ComponentActivity\r\nimport androidx.activity.compose.setContent\r\nimport androidx.activity.enableEdgeToEdge\r\nimport androidx.compose.foundation.layout.WindowInsets\r\nimport androidx.compose.foundation.layout.systemBars\r\nimport androidx.compose.foundation.layout.windowInsetsPadding\r\nimport androidx.compose.material3.MaterialTheme.colorScheme\r\nimport androidx.compose.material3.Scaffold\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.navigation.compose.rememberNavController\r\nimport dev.borisochieng.sketchpad.ui.components.NavBar\r\nimport dev.borisochieng.sketchpad.ui.navigation.AppRoute\r\nimport dev.borisochieng.sketchpad.ui.navigation.NavActions\r\nimport dev.borisochieng.sketchpad.ui.theme.AppTheme\r\n\r\nclass MainActivity : ComponentActivity() {\r\n    override fun onCreate(savedInstanceState: Bundle?) {\r\n        super.onCreate(savedInstanceState)\r\n        enableEdgeToEdge()\r\n        setContent {\r\n            val navController = rememberNavController()\r\n            val navActions = NavActions(navController)\r\n\r\n            AppTheme {\r\n                Scaffold(\r\n                    containerColor = colorScheme.background,\r\n                    modifier = Modifier.windowInsetsPadding(WindowInsets.systemBars),\r\n                    bottomBar = { NavBar(navController) },\r\n                ) { paddingValues ->\r\n                    AppRoute(\r\n                        navActions = navActions,\r\n                        navController = navController,\r\n                        paddingValues = paddingValues,\r\n                    )\r\n                }\r\n            }\r\n        }\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/dev/borisochieng/sketchpad/MainActivity.kt b/app/src/main/java/dev/borisochieng/sketchpad/MainActivity.kt
+--- a/app/src/main/java/dev/borisochieng/sketchpad/MainActivity.kt	(revision 03054acd46eccdb0ef18a019230e0a3a342f7837)
++++ b/app/src/main/java/dev/borisochieng/sketchpad/MainActivity.kt	(date 1723026943131)
+@@ -18,6 +18,7 @@
+ 
+ class MainActivity : ComponentActivity() {
+     override fun onCreate(savedInstanceState: Bundle?) {
++        setTheme(R.style.Theme_SketchPad)
+         super.onCreate(savedInstanceState)
+         enableEdgeToEdge()
+         setContent {
+Index: app/src/main/java/dev/borisochieng/sketchpad/database/AppDatabase.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/dev/borisochieng/sketchpad/database/AppDatabase.kt b/app/src/main/java/dev/borisochieng/sketchpad/database/AppDatabase.kt
+new file mode 100644
+--- /dev/null	(date 1723031814088)
++++ b/app/src/main/java/dev/borisochieng/sketchpad/database/AppDatabase.kt	(date 1723031814088)
+@@ -0,0 +1,13 @@
++package dev.borisochieng.sketchpad.database
++
++import androidx.room.Database
++import androidx.room.RoomDatabase
++import androidx.room.TypeConverters
++
++@Database(entities = [Sketch::class], version = 1)
++@TypeConverters(TypeConverter::class)
++abstract class AppDatabase : RoomDatabase() {
++
++	abstract fun sketchDao(): SketchDao
++
++}
+\ No newline at end of file
+Index: .idea/misc.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><project version=\"4\">\r\n  <component name=\"ExternalStorageConfigurationManager\" enabled=\"true\" />\r\n  <component name=\"ProjectRootManager\" version=\"2\" languageLevel=\"JDK_17\" default=\"true\" project-jdk-name=\"jbr-17\" project-jdk-type=\"JavaSDK\">\r\n    <output url=\"file://$PROJECT_DIR$/build/classes\" />\r\n  </component>\r\n  <component name=\"ProjectType\">\r\n    <option name=\"id\" value=\"Android\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/misc.xml b/.idea/misc.xml
+--- a/.idea/misc.xml	(revision 03054acd46eccdb0ef18a019230e0a3a342f7837)
++++ b/.idea/misc.xml	(date 1723036688340)
+@@ -1,4 +1,10 @@
++<?xml version="1.0" encoding="UTF-8"?>
+ <project version="4">
++  <component name="EntryPointsManager">
++    <list size="1">
++      <item index="0" class="java.lang.String" itemvalue="androidx.room.TypeConverter" />
++    </list>
++  </component>
+   <component name="ExternalStorageConfigurationManager" enabled="true" />
+   <component name="ProjectRootManager" version="2" languageLevel="JDK_17" default="true" project-jdk-name="jbr-17" project-jdk-type="JavaSDK">
+     <output url="file://$PROJECT_DIR$/build/classes" />
+Index: app/src/main/java/dev/borisochieng/sketchpad/database/Dao.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/dev/borisochieng/sketchpad/database/Dao.kt b/app/src/main/java/dev/borisochieng/sketchpad/database/Dao.kt
+new file mode 100644
+--- /dev/null	(date 1723030406342)
++++ b/app/src/main/java/dev/borisochieng/sketchpad/database/Dao.kt	(date 1723030406342)
+@@ -0,0 +1,27 @@
++package dev.borisochieng.sketchpad.database
++
++import androidx.room.Dao
++import androidx.room.Delete
++import androidx.room.Insert
++import androidx.room.Query
++import kotlinx.coroutines.flow.Flow
++
++@Dao
++interface SketchDao {
++
++	@Query("SELECT * FROM sketch")
++	fun getAllSketches(): Flow<List<Sketch>>
++
++	@Query("SELECT * FROM sketch WHERE id LIKE :sketchId")
++	fun getSketch(sketchId: String): Flow<Sketch>
++
++	@Insert
++	suspend fun saveSketch(sketch: Sketch)
++
++	@Insert
++	suspend fun updateSketch(sketch: Sketch)
++
++	@Delete
++	suspend fun deleteSketch(sketch: Sketch)
++
++}
+\ No newline at end of file
+Index: app/build.gradle.kts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>plugins {\r\n    alias(libs.plugins.android.application)\r\n    alias(libs.plugins.compose.compiler)\r\n    alias(libs.plugins.jetbrains.kotlin.android)\r\n    alias(libs.plugins.ksp)\r\n}\r\n\r\nandroid {\r\n    namespace = \"dev.borisochieng.sketchpad\"\r\n    compileSdk = 34\r\n\r\n    defaultConfig {\r\n        applicationId = \"dev.borisochieng.sketchpad\"\r\n        minSdk = 24\r\n        targetSdk = 34\r\n        versionCode = 1\r\n        versionName = \"1.0\"\r\n\r\n        testInstrumentationRunner = \"androidx.test.runner.AndroidJUnitRunner\"\r\n        vectorDrawables {\r\n            useSupportLibrary = true\r\n        }\r\n    }\r\n\r\n    buildTypes {\r\n        release {\r\n            isMinifyEnabled = false\r\n            proguardFiles(\r\n                getDefaultProguardFile(\"proguard-android-optimize.txt\"),\r\n                \"proguard-rules.pro\"\r\n            )\r\n        }\r\n    }\r\n    compileOptions {\r\n        sourceCompatibility = JavaVersion.VERSION_1_8\r\n        targetCompatibility = JavaVersion.VERSION_1_8\r\n    }\r\n    kotlinOptions {\r\n        jvmTarget = \"1.8\"\r\n    }\r\n    buildFeatures {\r\n        compose = true\r\n    }\r\n    composeOptions {\r\n        kotlinCompilerExtensionVersion = \"1.5.1\"\r\n    }\r\n    packaging {\r\n        resources {\r\n            excludes += \"/META-INF/{AL2.0,LGPL2.1}\"\r\n        }\r\n    }\r\n}\r\n\r\ndependencies {\r\n\r\n    // android\r\n    implementation(libs.androidx.core.ktx)\r\n    implementation(libs.androidx.lifecycle.runtime.ktx)\r\n\r\n    // compose\r\n    implementation(libs.androidx.activity.compose)\r\n    implementation(platform(libs.androidx.compose.bom))\r\n    implementation(libs.androidx.compose.navigation)\r\n    implementation(libs.androidx.ui)\r\n    implementation(libs.androidx.ui.graphics)\r\n    implementation(libs.androidx.ui.tooling.preview)\r\n    implementation(libs.androidx.material.icons)\r\n    implementation(libs.androidx.material3)\r\n\r\n    // gson\r\n    implementation(libs.gson)\r\n\r\n    //koin\r\n    implementation(libs.koin.android)\r\n    implementation(platform(libs.koin.bom))\r\n    implementation(libs.koin.core)\r\n    implementation(libs.koin.androidx.compose)\r\n\r\n    // room\r\n    implementation(libs.room.ktx)\r\n    implementation(libs.room.runtime)\r\n    ksp(libs.room.compiler)\r\n\r\n    // splashscreen\r\n    implementation(libs.splash)\r\n\r\n    testImplementation(libs.junit)\r\n    androidTestImplementation(libs.androidx.junit)\r\n    androidTestImplementation(libs.androidx.espresso.core)\r\n    androidTestImplementation(platform(libs.androidx.compose.bom))\r\n    androidTestImplementation(libs.androidx.ui.test.junit4)\r\n    debugImplementation(libs.androidx.ui.tooling)\r\n    debugImplementation(libs.androidx.ui.test.manifest)\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/build.gradle.kts b/app/build.gradle.kts
+--- a/app/build.gradle.kts	(revision 03054acd46eccdb0ef18a019230e0a3a342f7837)
++++ b/app/build.gradle.kts	(date 1723030871189)
+@@ -16,6 +16,10 @@
+         versionCode = 1
+         versionName = "1.0"
+ 
++//        room {
++//            schemaDirectory(path = "$projectDir/schemas")
++//        }
++
+         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+         vectorDrawables {
+             useSupportLibrary = true
+Index: app/src/main/java/dev/borisochieng/sketchpad/database/Model.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/dev/borisochieng/sketchpad/database/Model.kt b/app/src/main/java/dev/borisochieng/sketchpad/database/Model.kt
+new file mode 100644
+--- /dev/null	(date 1723034073841)
++++ b/app/src/main/java/dev/borisochieng/sketchpad/database/Model.kt	(date 1723034073841)
+@@ -0,0 +1,31 @@
++package dev.borisochieng.sketchpad.database
++
++import androidx.compose.ui.geometry.Offset
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.graphics.StrokeCap
++import androidx.compose.ui.graphics.StrokeJoin
++import androidx.room.Entity
++import androidx.room.PrimaryKey
++import java.util.Calendar
++import java.util.Date
++
++@Entity
++data class Sketch(
++	@PrimaryKey(autoGenerate = true)
++	val id: Int = 0,
++	val name: String = "",
++	val dateCreated: Date = Calendar.getInstance().time,
++	val lastModified: Date = Calendar.getInstance().time,
++	val paths: List<PathProperties> = emptyList()
++)
++
++data class PathProperties(
++	var alpha: Float = 1f,
++	var color: Color = Color.Black,
++	var eraseMode: Boolean = false,
++	val start: Offset = Offset.Zero,
++	val end: Offset = Offset.Zero,
++	var strokeCap: StrokeCap = StrokeCap.Round,
++	var strokeJoin: StrokeJoin = StrokeJoin.Round,
++	var strokeWidth: Float = 10f
++)
+\ No newline at end of file
