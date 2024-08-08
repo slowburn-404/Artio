@@ -9,14 +9,13 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
-import dev.borisochieng.sketchpad.R
 import dev.borisochieng.sketchpad.ui.components.NavBar
 import dev.borisochieng.sketchpad.ui.navigation.AppRoute
 import dev.borisochieng.sketchpad.ui.navigation.NavActions
-import dev.borisochieng.sketchpad.toby.Root
-import dev.borisochieng.sketchpad.toby.data.activityChooser
-import dev.borisochieng.sketchpad.toby.data.checkAndAskPermission
-import dev.borisochieng.sketchpad.toby.data.saveImage
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.Root
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.activityChooser
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.checkAndAskPermission
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.saveImage
 import dev.borisochieng.sketchpad.ui.theme.AppTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,7 +24,6 @@ import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        setTheme(R.style.Theme_SketchPad)
         super.onCreate(savedInstanceState)
         //   enableEdgeToEdge()
         setContent {
@@ -34,10 +32,10 @@ class MainActivity : ComponentActivity() {
                 val navActions = NavActions(navController)
                 AppTheme {
                     Scaffold(
-                        modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars),
                         bottomBar = { NavBar(navController) },
                     ) { paddingValues ->
                         AppRoute(
+                            modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars),
                             navActions = navActions,
                             navController = navController,
                             paddingValues = paddingValues,

@@ -1,0 +1,39 @@
+Index: app/src/main/java/dev/borisochieng/sketchpad/toby/CustomViews.kt
+===================================================================
+diff --git a/app/src/main/java/dev/borisochieng/sketchpad/toby/CustomViews.kt b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/CustomViews.kt
+rename from app/src/main/java/dev/borisochieng/sketchpad/toby/CustomViews.kt
+rename to app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/CustomViews.kt
+--- a/app/src/main/java/dev/borisochieng/sketchpad/toby/CustomViews.kt	
++++ b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/CustomViews.kt	
+@@ -1,4 +1,4 @@
+-package dev.borisochieng.sketchpad.toby
++package dev.borisochieng.sketchpad.ui.screens.drawingboard
+ 
+ import android.view.Window
+ import android.widget.SeekBar
+Index: app/src/main/java/dev/borisochieng/sketchpad/toby/data/Helper.kt
+===================================================================
+diff --git a/app/src/main/java/dev/borisochieng/sketchpad/toby/data/Helper.kt b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/data/Helper.kt
+rename from app/src/main/java/dev/borisochieng/sketchpad/toby/data/Helper.kt
+rename to app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/data/Helper.kt
+--- a/app/src/main/java/dev/borisochieng/sketchpad/toby/data/Helper.kt	
++++ b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/data/Helper.kt	
+@@ -1,4 +1,4 @@
+-package dev.borisochieng.sketchpad.toby.data
++package dev.borisochieng.sketchpad.ui.screens.drawingboard.data
+ 
+ import android.app.Activity
+ import android.content.ContentValues
+Index: app/src/main/java/dev/borisochieng/sketchpad/toby/data/dataStore.kt
+===================================================================
+diff --git a/app/src/main/java/dev/borisochieng/sketchpad/toby/data/dataStore.kt b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/data/dataStore.kt
+rename from app/src/main/java/dev/borisochieng/sketchpad/toby/data/dataStore.kt
+rename to app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/data/dataStore.kt
+--- a/app/src/main/java/dev/borisochieng/sketchpad/toby/data/dataStore.kt	
++++ b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/data/dataStore.kt	
+@@ -1,4 +1,4 @@
+-package dev.borisochieng.sketchpad.toby.data
++package dev.borisochieng.sketchpad.ui.screens.drawingboard.data
+ 
+ import android.Manifest
+ import android.content.Context

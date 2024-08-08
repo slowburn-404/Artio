@@ -5,10 +5,10 @@ import android.os.Build
 import android.view.Window
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.collectAsState
@@ -16,13 +16,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowInsetsControllerCompat
-import dev.borisochieng.sketchpad.toby.data.dataStore
-import dev.borisochieng.sketchpad.toby.data.isDarkThemeOn
-import dev.borisochieng.sketchpad.toby.data.themePreferenceKey
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.dataStore
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.isDarkThemeOn
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.themePreferenceKey
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 
- val lightScheme = lightColorScheme(
+val lightScheme = lightColorScheme(
     primary = primaryLight,
     onPrimary = onPrimaryLight,
     primaryContainer = primaryContainerLight,

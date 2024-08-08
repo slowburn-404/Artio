@@ -1,4 +1,4 @@
-package dev.borisochieng.sketchpad.toby
+package dev.borisochieng.sketchpad.ui.screens.drawingboard
 
 import android.view.Window
 import android.widget.SeekBar
@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,6 +40,7 @@ import dev.borisochieng.sketchpad.R
 import dev.borisochieng.sketchpad.ui.theme.AppTheme
 import dev.borisochieng.sketchpad.ui.theme.StatusBarConfig
 import dev.borisochieng.sketchpad.ui.theme.isSystemInDarkThemeCustom
+import dev.borisochieng.sketchpad.ui.theme.lightScheme
 import io.ak1.drawbox.DrawController
 
 
@@ -61,38 +61,38 @@ fun ControlsBar(
         MenuItems(
             R.drawable.ic_download,
             "download",
-            if (undoVisibility.value) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.primary
+            if (undoVisibility.value) lightScheme.onBackground else lightScheme.primary
         ) {
             if (undoVisibility.value) onDownloadClick()
         }
         MenuItems(
             R.drawable.ic_undo,
             "undo",
-            if (undoVisibility.value) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.inversePrimary
+            if (undoVisibility.value) lightScheme.primary else lightScheme.inversePrimary
         ) {
             if (undoVisibility.value) drawController.unDo()
         }
         MenuItems(
             R.drawable.ic_redo,
             "redo",
-            if (redoVisibility.value) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.inversePrimary
+            if (redoVisibility.value) lightScheme.primary else lightScheme.inversePrimary
         ) {
             if (redoVisibility.value) drawController.reDo()
         }
         MenuItems(
             R.drawable.ic_refresh,
             "reset",
-            if (redoVisibility.value || undoVisibility.value) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.inversePrimary
+            if (redoVisibility.value || undoVisibility.value) lightScheme.primary else lightScheme.inversePrimary
         ) {
             drawController.reset()
         }
-        MenuItems(R.drawable.icons8_color_wheel_24, "background color", bgColorValue.value, bgColorValue.value == MaterialTheme.colorScheme.background ) {
+        MenuItems(R.drawable.icons8_color_wheel_24, "background color", bgColorValue.value, bgColorValue.value == lightScheme.background ) {
             onBgColorClick()
         }
         MenuItems(R.drawable.palette_2, "stroke color", colorValue.value) {
             onColorClick()
         }
-        MenuItems(R.drawable.pen, "stroke size", MaterialTheme.colorScheme.primary) {
+        MenuItems(R.drawable.pen, "stroke size", lightScheme.primary) {
             onSizeClick()
         }
     }
@@ -192,7 +192,7 @@ fun Root(window: Window, content: @Composable () -> Unit) {
     val isDark = isSystemInDarkThemeCustom()
     AppTheme(isDark) {
         window.StatusBarConfig(isDark)
-        Surface(color = MaterialTheme.colorScheme.background) {
+        Surface(color = lightScheme.surface) {
             content.invoke()
         }
     }

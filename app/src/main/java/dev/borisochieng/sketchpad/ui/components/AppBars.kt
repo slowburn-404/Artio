@@ -6,6 +6,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,13 +18,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.NavigationBarDefaults
@@ -35,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -42,23 +42,17 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import dev.borisochieng.sketchpad.R
 import dev.borisochieng.sketchpad.ui.navigation.AppRoute
-import dev.borisochieng.sketchpad.ui.navigation.Screens
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar(
-	title: String,
-	navigate: (Screens) -> Unit
-) {
+fun HomeTopBar() {
 	TopAppBar(
-		title = { Text(title) },
+		title = {},
 		navigationIcon = {
-			IconButton(onClick = { navigate(Screens.Back) }) {
-				Icon(
-					imageVector = Icons.Rounded.ArrowBackIosNew,
-					contentDescription = stringResource(R.string.back)
-				)
-			}
+			Image(
+				painter = painterResource(R.drawable.logo),
+				contentDescription = stringResource(R.string.app_name)
+			)
 		}
 	)
 }

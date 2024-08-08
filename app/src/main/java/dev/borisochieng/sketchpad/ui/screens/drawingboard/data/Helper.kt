@@ -1,4 +1,4 @@
-package dev.borisochieng.sketchpad.toby.data
+package dev.borisochieng.sketchpad.ui.screens.drawingboard.data
 
 import android.app.Activity
 import android.content.ContentValues

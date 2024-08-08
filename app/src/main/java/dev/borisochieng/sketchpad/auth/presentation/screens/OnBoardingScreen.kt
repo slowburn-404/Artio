@@ -12,6 +12,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,19 +24,29 @@ import dev.borisochieng.sketchpad.R
 import dev.borisochieng.sketchpad.auth.domain.model.PagerItem
 import dev.borisochieng.sketchpad.auth.presentation.components.HorizontalPagerIndicator
 import dev.borisochieng.sketchpad.auth.presentation.components.HorizontalPagerItem
+import dev.borisochieng.sketchpad.auth.presentation.viewmodels.AuthViewModel
 import dev.borisochieng.sketchpad.ui.navigation.Screens
 import dev.borisochieng.sketchpad.ui.theme.AppTheme
 import dev.borisochieng.sketchpad.ui.theme.AppTypography
 import dev.borisochieng.sketchpad.ui.theme.lightScheme
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnBoardingScreen(
-    navigate: (Screens) -> Unit
+    navigate: (Screens) -> Unit,
+    viewModel: AuthViewModel = koinViewModel()
 ) {
     val pagerState = rememberPagerState(pageCount = { 3 })
     val scope = rememberCoroutineScope()
+    val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(uiState) {
+        if(uiState.user != null) {
+            navigate(Screens.HomeScreen)
+        }
+    }
 
     val pagerItem = when(pagerState.currentPage) {
         0 -> {
