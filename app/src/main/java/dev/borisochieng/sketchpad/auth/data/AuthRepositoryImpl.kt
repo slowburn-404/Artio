@@ -108,7 +108,7 @@ class AuthRepositoryImpl : AuthRepository {
                     user = User(
                         uid = it.uid,
                         email = it.email!!,
-                        displayName = it.displayName!!,
+                        displayName = it.displayName ?: "",
                         imageUrl = it.photoUrl.toString()
                     )
                 }
