@@ -1,8 +1,9 @@
 package dev.borisochieng.sketchpad.database
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import androidx.room.TypeConverter
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import java.io.ByteArrayOutputStream
 import java.util.Date
 
 class TypeConverter {
@@ -20,16 +21,16 @@ class TypeConverter {
 	}
 
 	@TypeConverter
-	fun fromPathProperties(paths: List<PathProperties>): String {
-		val gson = Gson()
-		return gson.toJson(paths)
+	fun fromBitmap(bitmap: Bitmap): ByteArray {
+		val stream = ByteArrayOutputStream()
+		bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+		return stream.toByteArray()
 	}
 
 	@TypeConverter
-	fun toPathProperties(pathJson: String): List<PathProperties> {
-		val gson = Gson()
-		val type = object : TypeToken<List<PathProperties>>() {}.type
-		return gson.fromJson(pathJson, type)
+	fun toBitmap(byteArray: ByteArray): Bitmap {
+		val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+		return bitmap
 	}
 
 }

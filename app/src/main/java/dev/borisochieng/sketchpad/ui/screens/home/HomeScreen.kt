@@ -1,5 +1,8 @@
 package dev.borisochieng.sketchpad.ui.screens.home
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,6 +15,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.borisochieng.sketchpad.database.Sketch
@@ -26,31 +30,33 @@ fun HomeScreen(
 	Scaffold(
 		topBar = { HomeTopBar() }
 	) { paddingValues ->
-		LazyVerticalGrid(
-			columns = GridCells.Adaptive(150.dp),
+		Column(
 			modifier = Modifier
 				.fillMaxSize()
-				.padding(start = 10.dp),
-			contentPadding = paddingValues
+				.padding(paddingValues),
+			horizontalAlignment = Alignment.CenterHorizontally
 		) {
-			item {
-				OutlinedButton(
-					onClick = { navigate(Screens.SketchPad(null)) },
-					modifier = Modifier
-						.fillMaxWidth()
-						.padding(20.dp, 16.dp)
-				) {
-					Icon(Icons.Rounded.Add, null, Modifier.padding(vertical = 14.dp))
-					Text("Create New Sketch", Modifier.padding(start = 10.dp))
-				}
+			OutlinedButton(
+				onClick = { navigate(Screens.SketchPad(null)) },
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(20.dp, 16.dp)
+			) {
+				Icon(Icons.Rounded.Add, null, Modifier.padding(vertical = 14.dp))
+				Text("Create New Sketch", Modifier.padding(start = 10.dp))
 			}
-
-			items(savedSketches.size) { index ->
-				val sketch = savedSketches[index]
-				SketchPoster(
-					sketch = sketch,
-					onClick = { navigate(Screens.SketchPad(it)) }
-				)
+			LazyVerticalGrid(
+				columns = GridCells.Adaptive(150.dp),
+				modifier = Modifier.padding(start = 10.dp),
+				contentPadding = PaddingValues(bottom = 40.dp)
+			) {
+				items(savedSketches.size) { index ->
+					val sketch = savedSketches[index]
+					SketchPoster(
+						sketch = sketch,
+						onClick = { navigate(Screens.SketchPad(it)) }
+					)
+				}
 			}
 		}
 	}

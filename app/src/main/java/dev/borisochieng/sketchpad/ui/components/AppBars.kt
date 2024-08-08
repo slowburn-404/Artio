@@ -6,6 +6,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -46,8 +47,9 @@ import dev.borisochieng.sketchpad.ui.navigation.AppRoute
 @Composable
 fun HomeTopBar() {
 	TopAppBar(
-		title = {
-			Icon(
+		title = {},
+		navigationIcon = {
+			Image(
 				painter = painterResource(R.drawable.logo),
 				contentDescription = stringResource(R.string.app_name)
 			)
