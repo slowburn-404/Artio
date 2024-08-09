@@ -7,5 +7,6 @@ import dev.borisochieng.sketchpad.auth.domain.model.User
 data class UiState(
     val user: User? = null,
     val isLoading: Boolean = false,
+    val isLoggedIn: Boolean = false,
     val error: String = ""
 )

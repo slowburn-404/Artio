@@ -43,7 +43,7 @@ fun OnBoardingScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(uiState) {
-        if(uiState.user.uid != null) {
+        if(uiState.isLoggedIn) {
             navigate(Screens.HomeScreen)
         }
     }

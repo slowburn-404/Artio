@@ -1,6 +1,7 @@
 package dev.borisochieng.sketchpad.auth.data
 
 import android.net.Uri
+import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -28,28 +29,26 @@ class AuthRepositoryImpl : AuthRepository {
                     firebaseAuth.createUserWithEmailAndPassword(email, password).await()
                 val firebaseUser: FirebaseUser? = authResult.user
 
-                val newUser = firebaseUser?.photoUrl?.let {
+                val newUser =
                     User(
-                        uid = firebaseUser.uid,
+                        uid = firebaseUser?.uid!!,
                         displayName = firebaseUser.displayName ?: "",
-                        email = firebaseUser.email ?: "",
-                        imageUrl = it
+                        email = firebaseUser.email!!,
+                        imageUrl = firebaseUser.photoUrl,
+                        isLoggedIn = checkIfUserIsLoggedIn()
                     )
-                }
                 FirebaseResponse.Success(newUser)
 
             } catch (e: Exception) {
+                e.printStackTrace()
                 val error = when (e) {
-                    is FirebaseAuthWeakPasswordException -> FirebaseResponse.Error("${e.reason}", e)
-                    is FirebaseAuthUserCollisionException -> FirebaseResponse.Error(
-                        "An account registered with the same email already exists!",
-                        e
-                    )
+                    is FirebaseAuthWeakPasswordException -> "Choose a stronger password"
+                    is FirebaseAuthUserCollisionException -> "An account registered with the same email already exists!"
 
-                    is FirebaseAuthException -> FirebaseResponse.Error("${e.message}", e)
-                    else -> FirebaseResponse.Error("Something went wrong please try again", e)
+                    is FirebaseAuthException -> "Something went wrong please try again later"
+                    else -> "Something went wrong please try again later"
                 }
-                error
+                FirebaseResponse.Error(error)
             }
         }
 
@@ -58,42 +57,30 @@ class AuthRepositoryImpl : AuthRepository {
             try {
                 val authResult = firebaseAuth.signInWithEmailAndPassword(email, password).await()
                 val firebaseUser: FirebaseUser? = authResult.user
-                var user: User? = null
+                val user =
+                    User(
+                        uid = firebaseUser?.uid!!,
+                        email =firebaseUser.email!!,
+                        displayName = firebaseUser.displayName,
+                        imageUrl = firebaseUser.photoUrl,
+                        isLoggedIn = checkIfUserIsLoggedIn()
 
-                firebaseUser?.let {
-                    user = it.photoUrl?.let { photoUrl ->
-                        User(
-                            uid = it.uid,
-                            email = it.email!!,
-                            displayName = it.displayName!!,
-                            imageUrl = photoUrl
-                        )
-                    }
-                }
-
+                    )
                 FirebaseResponse.Success(user)
             } catch (e: Exception) {
+                e.printStackTrace()
                 val error = when (e) {
-                    is FirebaseAuthInvalidUserException -> FirebaseResponse.Error(
-                        "Invalid username or email.",
-                        e
-                    )
+                    is FirebaseAuthInvalidUserException -> "The user does not exist"
 
-                    is FirebaseAuthInvalidCredentialsException -> FirebaseResponse.Error(
-                        "Invalid credentials.",
-                        e
-                    )
+                    is FirebaseAuthInvalidCredentialsException -> "Invalid credentials"
 
-                    is FirebaseAuthUserCollisionException -> FirebaseResponse.Error(
-                        "An account with this email already exists!",
-                        e
-                    )
+                    is FirebaseAuthUserCollisionException -> "An account with these credentials already exists!"
 
-                    is FirebaseAuthException -> FirebaseResponse.Error("${e.message}", e)
+                    is FirebaseAuthException -> "Something went wrong please try again later"
 
-                    else -> FirebaseResponse.Error("Something went wrong, please try again.", e)
+                    else -> "Something went wrong, please try again."
                 }
-                error
+                FirebaseResponse.Error(error)
             }
         }
 
@@ -102,30 +89,9 @@ class AuthRepositoryImpl : AuthRepository {
             firebaseAuth.signOut()
         }
 
-    override suspend fun checkIfUserIsLoggedIn(): FirebaseResponse<User> =
+    override suspend fun checkIfUserIsLoggedIn(): Boolean =
         withContext(Dispatchers.IO) {
-            try {
-                val currentUser = firebaseAuth.currentUser
-                var user: User? = null
-
-                currentUser?.let {
-                    user = it.photoUrl?.let { imageUrl ->
-                        User(
-                            uid = it.uid,
-                            email = it.email!!,
-                            displayName = it.displayName ?: "",
-                            imageUrl = imageUrl
-                        )
-                    }
-                }
-
-                FirebaseResponse.Success(user)
-
-
-            } catch (e: Exception) {
-                e.printStackTrace()
-                FirebaseResponse.Error(e.message.toString(), e)
-            }
+            return@withContext firebaseAuth.currentUser != null
         }
 
     override suspend fun updateUserProfile(
@@ -136,23 +102,23 @@ class AuthRepositoryImpl : AuthRepository {
             try {
                 val firebaseUser = firebaseAuth.currentUser
 
-                if(firebaseUser != null) {
+                if (firebaseUser != null) {
                     val profileUpdates =
                         UserProfileChangeRequest
                             .Builder()
                             .setDisplayName(displayName)
-                            .setPhotoUri(imageUrl).build()
+                            .setPhotoUri(imageUrl)
+                            .build()
 
                     firebaseUser.updateProfile(profileUpdates).await()
 
-                    val updatedUser = firebaseUser.photoUrl?.let {
-                        User(
-                            uid = firebaseUser.uid,
-                            email = firebaseUser.email ?: "",
-                            displayName = firebaseUser.displayName ?: "",
-                            imageUrl = it
-                        )
-                    }
+                    val updatedUser = User(
+                        uid = firebaseUser.uid,
+                        displayName = firebaseUser.displayName,
+                        imageUrl = firebaseUser.photoUrl,
+                        email = firebaseUser.email!!, //cannot be null since account was created with an emal
+                        isLoggedIn = checkIfUserIsLoggedIn()
+                    )
                     FirebaseResponse.Success(updatedUser)
                 } else {
                     FirebaseResponse.Error("No user is logged in")
@@ -160,33 +126,29 @@ class AuthRepositoryImpl : AuthRepository {
             } catch (e: Exception) {
                 e.printStackTrace()
 
-                FirebaseResponse.Error("${e.message}", e)
+                FirebaseResponse.Error("Failed to update profile, please try again")
 
             }
         }
 
     override suspend fun uploadImageToFireStore(
         uri: Uri,
-        onUploadSuccess: (String) -> Unit,
-        onUploadFailure: (Exception) -> Unit
-    ) {
-     val storageReference = FirebaseStorage.getInstance().reference.child("images/${randomUUID()}")
-        val uploadTask = storageReference.putFile(uri)
+    ): FirebaseResponse<Uri> =
+        withContext(Dispatchers.IO) {
+            try {
+                val storageReference =
+                    FirebaseStorage.getInstance().reference.child("images/${randomUUID()}")
+                storageReference.putFile(uri).await()
 
-        uploadTask.continueWithTask { task ->
-            if(!task.isSuccessful) {
-                task.exception?.let{ throw it}
-            }
-            storageReference.downloadUrl
-        }.addOnCompleteListener { task ->
-            if(task.isSuccessful) {
-                val downloadUri = task.result
-                onUploadSuccess(downloadUri.toString())
-            } else {
-                task.exception?.let {onUploadFailure(it)}
+                val downloadUrl = storageReference.downloadUrl.await()
+
+                FirebaseResponse.Success(downloadUrl)
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                FirebaseResponse.Error("Image upload failed please try again")
+
             }
         }
-    }
-
 
 }

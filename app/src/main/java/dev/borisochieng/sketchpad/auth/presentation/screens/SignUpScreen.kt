@@ -125,27 +125,25 @@ fun SignUpScreen(
     val uiState = viewModel.uiState.collectAsState()
     showProgressIndicator = uiState.value.isLoading
 
-    //listen for error messages
+    //listen for error or success messages
     LaunchedEffect(Unit) {
-        viewModel.uiEvent.collectLatest { _ ->
-            snackBarHostState.showSnackbar(message = uiState.value.error)
+        viewModel.uiEvent.collectLatest { message ->
+            snackBarHostState.showSnackbar(message = message.toString())
         }
     }
 
     //navigate when sign up is successful
     LaunchedEffect(uiState.value) {
-        if (!uiState.value.isLoading && uiState.value.error.isEmpty() && uiState.value.user != null) {
+        if (!uiState.value.isLoading && uiState.value.error.isEmpty() && uiState.value.isLoggedIn) {
             navigate(Screens.HomeScreen)
-        } else if (uiState.value.error.isNotEmpty()) {
-            snackBarHostState.showSnackbar(message = uiState.value.error)
         }
     }
 
-    LaunchedEffect(uiState.value.user) {
-        if (uiState.value.user != null) {
+    //navigate to home screen if user is already logged in
+    LaunchedEffect(uiState.value.isLoggedIn) {
+        if (uiState.value.isLoggedIn) {
             navigate(Screens.HomeScreen)
         }
-
     }
 
     Scaffold(
