@@ -1,0 +1,214 @@
+Index: app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/alt/DrawingBoard.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package dev.borisochieng.sketchpad.ui.screens.drawingboard.alt\r\n\r\nimport android.widget.Toast\r\nimport androidx.compose.foundation.Canvas\r\nimport androidx.compose.foundation.background\r\nimport androidx.compose.foundation.gestures.detectDragGestures\r\nimport androidx.compose.foundation.gestures.rememberTransformableState\r\nimport androidx.compose.foundation.gestures.transformable\r\nimport androidx.compose.foundation.layout.BoxWithConstraints\r\nimport androidx.compose.foundation.layout.fillMaxSize\r\nimport androidx.compose.foundation.layout.padding\r\nimport androidx.compose.material3.Scaffold\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.runtime.LaunchedEffect\r\nimport androidx.compose.runtime.getValue\r\nimport androidx.compose.runtime.mutableFloatStateOf\r\nimport androidx.compose.runtime.mutableStateListOf\r\nimport androidx.compose.runtime.mutableStateOf\r\nimport androidx.compose.runtime.remember\r\nimport androidx.compose.runtime.saveable.rememberSaveable\r\nimport androidx.compose.runtime.setValue\r\nimport androidx.compose.ui.Alignment\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.geometry.Offset\r\nimport androidx.compose.ui.graphics.Color\r\nimport androidx.compose.ui.graphics.StrokeCap\r\nimport androidx.compose.ui.graphics.graphicsLayer\r\nimport androidx.compose.ui.input.pointer.pointerInput\r\nimport androidx.compose.ui.platform.LocalContext\r\nimport dev.borisochieng.sketchpad.database.Sketch\r\nimport dev.borisochieng.sketchpad.ui.navigation.Screens\r\nimport dev.borisochieng.sketchpad.ui.screens.dialog.NameSketchDialog\r\nimport dev.borisochieng.sketchpad.ui.screens.dialog.Sizes\r\nimport dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadActions\r\n\r\n@Composable\r\nfun DrawingBoard(\r\n\tsketch: Sketch?,\r\n\tactions: (SketchPadActions) -> Unit,\r\n\tnavigate: (Screens) -> Unit\r\n) {\r\n\tval absolutePaths = remember { mutableStateListOf<PathProperties>() }\r\n\tvar paths by remember { mutableStateOf(sketch?.pathList ?: emptyList()) }\r\n\tvar drawMode by remember { mutableStateOf(DrawMode.Draw) }\r\n\tvar pencilSize by remember { mutableFloatStateOf(Sizes.Small.strokeWidth) }\r\n\tvar color by remember { mutableStateOf(Color.Black) }\r\n\tvar scale by remember { mutableFloatStateOf(1f) }\r\n\tvar offset by remember { mutableStateOf(Offset.Zero) }\r\n\tval openNameSketchDialog = rememberSaveable { mutableStateOf(false) }\r\n\tval context = LocalContext.current\r\n\tval save: (String?) -> Unit = { name ->\r\n\t\tval action = if (name == null) {\r\n\t\t\tSketchPadActions.UpdateSketch(paths)\r\n\t\t} else {\r\n\t\t\tval newSketch = Sketch(name = name, pathList = paths)\r\n\t\t\tSketchPadActions.SaveSketch(newSketch)\r\n\t\t}\r\n\t\tactions(action)\r\n\t\tToast.makeText(context, \"Sketch saved\", Toast.LENGTH_SHORT).show()\r\n\t\tnavigate(Screens.Back)\r\n\t}\r\n\r\n\tScaffold(\r\n\t\ttopBar = {\r\n\t\t\tPaletteTopBar(\r\n\t\t\t\tcanUndo = paths.isNotEmpty(),\r\n\t\t\t\tcanRedo = paths.size < absolutePaths.size,\r\n\t\t\t\tunUndoClicked = { paths -= paths.last() },\r\n\t\t\t\tunRedoClicked = {\r\n\t\t\t\t\tval nextPath = absolutePaths[paths.size]\r\n\t\t\t\t\tpaths += nextPath\r\n\t\t\t\t},\r\n\t\t\t\tonSaveClicked = {\r\n\t\t\t\t\tif (sketch == null) {\r\n\t\t\t\t\t\topenNameSketchDialog.value = true\r\n\t\t\t\t\t} else {\r\n\t\t\t\t\t\tsave(null)\r\n\t\t\t\t\t}\r\n\t\t\t\t}\r\n\t\t\t)\r\n\t\t}\r\n\t) { paddingValues ->\r\n\t\tLaunchedEffect(Unit) {\r\n\t\t\tsketch?.let {\r\n\t\t\t\tabsolutePaths.clear(); paths = emptyList()\r\n\t\t\t\tabsolutePaths.addAll(sketch.pathList)\r\n\t\t\t\tpaths = sketch.pathList\r\n\t\t\t}\r\n\t\t}\r\n\r\n\t\tBoxWithConstraints(\r\n\t\t\tmodifier = Modifier\r\n\t\t\t\t.fillMaxSize()\r\n\t\t\t\t.padding(paddingValues),\r\n\t\t\tcontentAlignment = Alignment.BottomCenter\r\n\t\t) {\r\n\t\t\tval state = rememberTransformableState { zoomChange, panChange, _ ->\r\n\t\t\t\tscale = (scale * zoomChange).coerceIn(1f, 5f)\r\n\r\n\t\t\t\tval extraWidth = (scale - 1) * constraints.maxWidth\r\n\t\t\t\tval extraHeight = (scale - 1) * constraints.maxHeight\r\n\r\n\t\t\t\tval maxX = extraWidth / 2\r\n\t\t\t\tval maxY = extraHeight / 2\r\n\r\n\t\t\t\toffset = Offset(\r\n\t\t\t\t\tx = (offset.x + scale * panChange.x).coerceIn(-maxX, maxX),\r\n\t\t\t\t\ty = (offset.y + scale * panChange.y).coerceIn(-maxY, maxY)\r\n\t\t\t\t)\r\n\t\t\t}\r\n\r\n\t\t\tCanvas(\r\n\t\t\t\tmodifier = Modifier\r\n\t\t\t\t\t.fillMaxSize()\r\n\t\t\t\t\t.background(Color.White)\r\n\t\t\t\t\t.graphicsLayer {\r\n\t\t\t\t\t\tscaleX = scale\r\n\t\t\t\t\t\tscaleY = scale\r\n\t\t\t\t\t\ttranslationX = offset.x\r\n\t\t\t\t\t\ttranslationY = offset.y\r\n\t\t\t\t\t}\r\n\t\t\t\t\t.transformable(state)\r\n\t\t\t\t\t.pointerInput(true) {\r\n\t\t\t\t\t\tif (drawMode == DrawMode.Touch) return@pointerInput\r\n\t\t\t\t\t\tdetectDragGestures { change, dragAmount ->\r\n\t\t\t\t\t\t\tchange.consume()\r\n\t\t\t\t\t\t\tval eraseMode = drawMode == DrawMode.Erase\r\n\t\t\t\t\t\t\tval path = PathProperties(\r\n\t\t\t\t\t\t\t\tcolor = when (drawMode) {\r\n\t\t\t\t\t\t\t\t\tDrawMode.Erase -> Color.White\r\n\t\t\t\t\t\t\t\t\tDrawMode.Draw -> color\r\n\t\t\t\t\t\t\t\t\telse -> Color.Transparent\r\n\t\t\t\t\t\t\t\t},\r\n\t\t\t\t\t\t\t\teraseMode = eraseMode,\r\n\t\t\t\t\t\t\t\tstart = change.position - dragAmount,\r\n\t\t\t\t\t\t\t\tend = change.position,\r\n\t\t\t\t\t\t\t\tstrokeWidth = pencilSize\r\n\t\t\t\t\t\t\t)\r\n\r\n\t\t\t\t\t\t\tpaths += path\r\n\t\t\t\t\t\t\tabsolutePaths.clear()\r\n\t\t\t\t\t\t\tabsolutePaths.addAll(paths)\r\n\t\t\t\t\t\t}\r\n\t\t\t\t\t}\r\n\t\t\t) {\r\n\t\t\t\tpaths.forEach { path ->\r\n\t\t\t\t\tdrawLine(\r\n\t\t\t\t\t\tcolor = path.color,\r\n\t\t\t\t\t\tstart = path.start,\r\n\t\t\t\t\t\tend = path.end,\r\n\t\t\t\t\t\tstrokeWidth = path.strokeWidth,\r\n\t\t\t\t\t\tcap = StrokeCap.Round\r\n\t\t\t\t\t)\r\n\t\t\t\t}\r\n\t\t\t}\r\n\r\n\t\t\tPaletteMenu(\r\n\t\t\t\tdrawMode = drawMode,\r\n\t\t\t\tselectedColor = color,\r\n\t\t\t\tpencilSize = pencilSize,\r\n\t\t\t\tonColorChanged = { color = it },\r\n\t\t\t\tonSizeChanged = { pencilSize = it },\r\n\t\t\t\tonDrawModeChanged = { drawMode = it }\r\n\t\t\t)\r\n\t\t}\r\n\r\n\t\tif (openNameSketchDialog.value) {\r\n\t\t\tNameSketchDialog(\r\n\t\t\t\tonNamed = { name -> save(name) },\r\n\t\t\t\tonDismiss = { openNameSketchDialog.value = false }\r\n\t\t\t)\r\n\t\t}\r\n\t}\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/alt/DrawingBoard.kt b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/alt/DrawingBoard.kt
+--- a/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/alt/DrawingBoard.kt	(revision 025067e89fd8158bae3165b1a21f05bfdbfa95c8)
++++ b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/alt/DrawingBoard.kt	(date 1723153087384)
+@@ -52,6 +52,7 @@
+ 		val action = if (name == null) {
+ 			SketchPadActions.UpdateSketch(paths)
+ 		} else {
++			openNameSketchDialog.value = false
+ 			val newSketch = Sketch(name = name, pathList = paths)
+ 			SketchPadActions.SaveSketch(newSketch)
+ 		}
+@@ -78,7 +79,8 @@
+ 					}
+ 				}
+ 			)
+-		}
++		},
++		containerColor = Color.White
+ 	) { paddingValues ->
+ 		LaunchedEffect(Unit) {
+ 			sketch?.let {
+Index: app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/alt/Menus.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package dev.borisochieng.sketchpad.ui.screens.drawingboard.alt\r\n\r\nimport androidx.compose.foundation.background\r\nimport androidx.compose.foundation.border\r\nimport androidx.compose.foundation.clickable\r\nimport androidx.compose.foundation.layout.Arrangement\r\nimport androidx.compose.foundation.layout.Box\r\nimport androidx.compose.foundation.layout.Row\r\nimport androidx.compose.foundation.layout.fillMaxWidth\r\nimport androidx.compose.foundation.layout.padding\r\nimport androidx.compose.foundation.layout.size\r\nimport androidx.compose.foundation.shape.CircleShape\r\nimport androidx.compose.material.icons.Icons\r\nimport androidx.compose.material.icons.rounded.Brush\r\nimport androidx.compose.material.icons.rounded.LineWeight\r\nimport androidx.compose.material.icons.rounded.TouchApp\r\nimport androidx.compose.material3.Icon\r\nimport androidx.compose.material3.IconButton\r\nimport androidx.compose.material3.MaterialTheme\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.runtime.mutableStateOf\r\nimport androidx.compose.runtime.remember\r\nimport androidx.compose.ui.Alignment\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.draw.clip\r\nimport androidx.compose.ui.draw.scale\r\nimport androidx.compose.ui.graphics.Color\r\nimport androidx.compose.ui.res.painterResource\r\nimport androidx.compose.ui.unit.dp\r\nimport dev.borisochieng.sketchpad.R\r\nimport dev.borisochieng.sketchpad.ui.screens.dialog.ColorPickerDialog\r\nimport dev.borisochieng.sketchpad.ui.screens.dialog.SizePickerDialog\r\n\r\n@Composable\r\nfun PaletteMenu(\r\n\tmodifier: Modifier = Modifier,\r\n\tdrawMode: DrawMode,\r\n\tselectedColor: Color,\r\n\tpencilSize: Float,\r\n\tonColorChanged: (Color) -> Unit,\r\n\tonSizeChanged: (Float) -> Unit,\r\n\tonDrawModeChanged: (DrawMode) -> Unit\r\n) {\r\n\tvar currentDrawMode = drawMode\r\n\tval openColorPickerDialog = remember { mutableStateOf(false) }\r\n\tval openSizePickerDialog = remember { mutableStateOf(false) }\r\n\r\n\tRow(\r\n\t\tmodifier = modifier\r\n\t\t\t.fillMaxWidth()\r\n\t\t\t.padding(16.dp)\r\n\t\t\t.clip(MaterialTheme.shapes.large)\r\n\t\t\t.background(Color.LightGray)\r\n\t\t\t.padding(8.dp),\r\n\t\thorizontalArrangement = Arrangement.SpaceAround,\r\n\t\tverticalAlignment = Alignment.CenterVertically\r\n\t) {\r\n\t\tIconButton(\r\n\t\t\tonClick = {\r\n\t\t\t\tcurrentDrawMode = if (currentDrawMode == DrawMode.Touch) DrawMode.Draw else DrawMode.Touch\r\n\t\t\t\tonDrawModeChanged(currentDrawMode)\r\n\t\t\t}\r\n\t\t) {\r\n\t\t\tIcon(\r\n\t\t\t\timageVector = Icons.Rounded.TouchApp,\r\n\t\t\t\tcontentDescription = \"Touch mode\",\r\n\t\t\t\ttint = if (currentDrawMode == DrawMode.Touch) Color.Black else Color.White\r\n\t\t\t)\r\n\t\t}\r\n\t\tPencil(\r\n\t\t\tcurrentDrawMode = currentDrawMode,\r\n\t\t\tselectedColor = selectedColor,\r\n\t\t\tonColorButtonClicked = { openColorPickerDialog.value = true },\r\n\t\t\tonDrawModeChanged = onDrawModeChanged,\r\n\t\t\tonSizeButtonClicked = { openSizePickerDialog.value = true }\r\n\t\t)\r\n\t\tIconButton(\r\n\t\t\tonClick = {\r\n\t\t\t\tcurrentDrawMode = if (currentDrawMode == DrawMode.Erase) DrawMode.Draw else DrawMode.Erase\r\n\t\t\t\tonDrawModeChanged(currentDrawMode)\r\n\t\t\t}\r\n\t\t) {\r\n\t\t\tIcon(\r\n\t\t\t\tpainter = painterResource(R.drawable.eraser_icon),\r\n\t\t\t\tcontentDescription = \"Erase mode\",\r\n\t\t\t\tmodifier = Modifier.scale(0.5f),\r\n\t\t\t\ttint = if (currentDrawMode == DrawMode.Erase) Color.Black else Color.White\r\n\t\t\t)\r\n\t\t}\r\n\t}\r\n\r\n\tif (openSizePickerDialog.value) {\r\n\t\tSizePickerDialog(\r\n\t\t\tselectedSize = pencilSize,\r\n\t\t\tcolor = selectedColor,\r\n\t\t\tonSelected = onSizeChanged,\r\n\t\t\tonDismiss = { openSizePickerDialog.value = false }\r\n\t\t)\r\n\t}\r\n\r\n\tif (openColorPickerDialog.value) {\r\n\t\tColorPickerDialog(\r\n\t\t\tselectedColor = selectedColor,\r\n\t\t\tonSelected = onColorChanged,\r\n\t\t\tonDismiss = { openColorPickerDialog.value = false }\r\n\t\t)\r\n\t}\r\n}\r\n\r\n@Composable\r\nfun PaletteTopBar(\r\n\tmodifier: Modifier = Modifier,\r\n\tcanUndo: Boolean,\r\n\tcanRedo: Boolean,\r\n\tunUndoClicked: () -> Unit,\r\n\tunRedoClicked: () -> Unit,\r\n\tonSaveClicked: () -> Unit\r\n) {\r\n\tRow(\r\n\t\tmodifier = modifier\r\n\t\t\t.fillMaxWidth()\r\n\t\t\t.padding(16.dp)\r\n\t\t\t.clip(MaterialTheme.shapes.large)\r\n\t\t\t.background(Color.LightGray)\r\n\t\t\t.padding(8.dp),\r\n\t\thorizontalArrangement = Arrangement.SpaceAround,\r\n\t\tverticalAlignment = Alignment.CenterVertically\r\n\t) {\r\n\t\tIconButton(\r\n\t\t\tonClick = onSaveClicked,\r\n\t\t\tenabled = canUndo\r\n\t\t) {\r\n\t\t\tIcon(\r\n\t\t\t\tpainter = painterResource(R.drawable.ic_download),\r\n\t\t\t\tcontentDescription = \"Save sketch\"\r\n\t\t\t)\r\n\t\t}\r\n\t\tIconButton(onClick = unUndoClicked) {\r\n\t\t\tIcon(\r\n\t\t\t\tpainter = painterResource(R.drawable.ic_undo),\r\n\t\t\t\tcontentDescription = \"Undo\",\r\n\t\t\t\ttint = if (canUndo) Color.Black else Color.White\r\n\t\t\t)\r\n\t\t}\r\n\t\tIconButton(onClick = unRedoClicked) {\r\n\t\t\tIcon(\r\n\t\t\t\tpainter = painterResource(R.drawable.ic_redo),\r\n\t\t\t\tcontentDescription = \"Redo\",\r\n\t\t\t\ttint = if (canRedo) Color.Black else Color.White\r\n\t\t\t)\r\n\t\t}\r\n\t}\r\n}\r\n\r\n@Composable\r\nprivate fun Pencil(\r\n\tcurrentDrawMode: DrawMode,\r\n\tselectedColor: Color,\r\n\tonColorButtonClicked: () -> Unit,\r\n\tonDrawModeChanged: (DrawMode) -> Unit,\r\n\tonSizeButtonClicked: () -> Unit\r\n) {\r\n\tvar drawMode = currentDrawMode\r\n\r\n\tRow(\r\n\t\tmodifier = Modifier\r\n\t\t\t.clip(MaterialTheme.shapes.large)\r\n\t\t\t.background(Color.Gray)\r\n\t\t\t.padding(4.dp),\r\n\t\thorizontalArrangement = Arrangement.spacedBy(6.dp),\r\n\t\tverticalAlignment = Alignment.CenterVertically\r\n\t) {\r\n\t\tIconButton(\r\n\t\t\tonClick = {\r\n\t\t\t\tif (drawMode == DrawMode.Draw) return@IconButton\r\n\t\t\t\tdrawMode = DrawMode.Draw\r\n\t\t\t\tonDrawModeChanged(drawMode)\r\n\t\t\t}\r\n\t\t) {\r\n\t\t\tIcon(\r\n\t\t\t\timageVector = Icons.Rounded.Brush,\r\n\t\t\t\tcontentDescription = \"Drawing mode\",\r\n\t\t\t\ttint = if (drawMode == DrawMode.Draw) Color.Black else Color.White\r\n\t\t\t)\r\n\t\t}\r\n\t\tBox(\r\n\t\t\tModifier\r\n\t\t\t\t.size(24.dp)\r\n\t\t\t\t.clip(CircleShape)\r\n\t\t\t\t.background(selectedColor)\r\n\t\t\t\t.border(1.dp, Color.White, CircleShape)\r\n\t\t\t\t.clickable { onColorButtonClicked() }\r\n\t\t)\r\n\t\tIconButton(onClick = { onSizeButtonClicked() }) {\r\n\t\t\tIcon(\r\n\t\t\t\timageVector = Icons.Rounded.LineWeight,\r\n\t\t\t\tcontentDescription = \"Pencil size\",\r\n\t\t\t\ttint = Color.Black\r\n\t\t\t)\r\n\t\t}\r\n\t}\r\n}\r\n\r\nenum class DrawMode {\r\n\tDraw, Erase, Touch\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/alt/Menus.kt b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/alt/Menus.kt
+--- a/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/alt/Menus.kt	(revision 025067e89fd8158bae3165b1a21f05bfdbfa95c8)
++++ b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/alt/Menus.kt	(date 1723151987467)
+@@ -119,7 +119,7 @@
+ 	Row(
+ 		modifier = modifier
+ 			.fillMaxWidth()
+-			.padding(16.dp)
++			.padding(horizontal = 16.dp)
+ 			.clip(MaterialTheme.shapes.large)
+ 			.background(Color.LightGray)
+ 			.padding(8.dp),
+@@ -135,18 +135,22 @@
+ 				contentDescription = "Save sketch"
+ 			)
+ 		}
+-		IconButton(onClick = unUndoClicked) {
++		IconButton(
++			onClick = unUndoClicked,
++			enabled = canUndo
++		) {
+ 			Icon(
+ 				painter = painterResource(R.drawable.ic_undo),
+-				contentDescription = "Undo",
+-				tint = if (canUndo) Color.Black else Color.White
++				contentDescription = "Undo"
+ 			)
+ 		}
+-		IconButton(onClick = unRedoClicked) {
++		IconButton(
++			onClick = unRedoClicked,
++			enabled = canRedo
++		) {
+ 			Icon(
+ 				painter = painterResource(R.drawable.ic_redo),
+-				contentDescription = "Redo",
+-				tint = if (canRedo) Color.Black else Color.White
++				contentDescription = "Redo"
+ 			)
+ 		}
+ 	}
+Index: app/src/main/java/dev/borisochieng/sketchpad/ui/screens/dialog/NameSketchDialog.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package dev.borisochieng.sketchpad.ui.screens.dialog\r\n\r\nimport androidx.compose.foundation.layout.fillMaxWidth\r\nimport androidx.compose.material3.AlertDialog\r\nimport androidx.compose.material3.Button\r\nimport androidx.compose.material3.OutlinedButton\r\nimport androidx.compose.material3.OutlinedTextField\r\nimport androidx.compose.material3.Text\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.runtime.getValue\r\nimport androidx.compose.runtime.mutableStateOf\r\nimport androidx.compose.runtime.saveable.rememberSaveable\r\nimport androidx.compose.runtime.setValue\r\nimport androidx.compose.ui.Modifier\r\n\r\n@Composable\r\nfun NameSketchDialog(\r\n\tonNamed: (String) -> Unit,\r\n\tonDismiss: () -> Unit\r\n) {\r\n\tvar name by rememberSaveable { mutableStateOf(\"\") }\r\n\r\n\tAlertDialog(\r\n\t\tonDismissRequest = onDismiss,\r\n\t\ttitle = { Text(\"Save as\") },\r\n\t\ttext = {\r\n\t\t\tOutlinedTextField(\r\n\t\t\t\tvalue = name,\r\n\t\t\t\tonValueChange = { name = it },\r\n\t\t\t\tmodifier = Modifier.fillMaxWidth()\r\n\t\t\t)\r\n\t\t},\r\n\t\tdismissButton = {\r\n\t\t\tOutlinedButton(\r\n\t\t\t\tonClick = onDismiss,\r\n\t\t\t\tmodifier = Modifier.fillMaxWidth(0.5f)\r\n\t\t\t) {\r\n\t\t\t\tText(\"Cancel\")\r\n\t\t\t}\r\n\t\t},\r\n\t\tconfirmButton = {\r\n\t\t\tButton(\r\n\t\t\t\tonClick = { onNamed(name) },\r\n\t\t\t\tmodifier = Modifier.fillMaxWidth(0.5f),\r\n\t\t\t\tenabled = name.isNotEmpty()\r\n\t\t\t) {\r\n\t\t\t\tText(\"Save\")\r\n\t\t\t}\r\n\t\t}\r\n\t)\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/dialog/NameSketchDialog.kt b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/dialog/NameSketchDialog.kt
+--- a/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/dialog/NameSketchDialog.kt	(revision 025067e89fd8158bae3165b1a21f05bfdbfa95c8)
++++ b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/dialog/NameSketchDialog.kt	(date 1723151986981)
+@@ -27,25 +27,26 @@
+ 			OutlinedTextField(
+ 				value = name,
+ 				onValueChange = { name = it },
+-				modifier = Modifier.fillMaxWidth()
++				modifier = Modifier.fillMaxWidth(),
++				singleLine = true
+ 			)
+-		},
+-		dismissButton = {
+-			OutlinedButton(
+-				onClick = onDismiss,
+-				modifier = Modifier.fillMaxWidth(0.5f)
+-			) {
+-				Text("Cancel")
+-			}
+ 		},
+ 		confirmButton = {
+ 			Button(
+ 				onClick = { onNamed(name) },
+-				modifier = Modifier.fillMaxWidth(0.5f),
++//				modifier = Modifier.fillMaxWidth(0.5f),
+ 				enabled = name.isNotEmpty()
+ 			) {
+ 				Text("Save")
+ 			}
++		},
++		dismissButton = {
++			OutlinedButton(
++				onClick = onDismiss,
++//				modifier = Modifier.fillMaxWidth(0.5f)
++			) {
++				Text("Cancel")
++			}
+ 		}
+ 	)
+ }
+\ No newline at end of file
+Index: app/src/main/java/dev/borisochieng/sketchpad/ui/components/AppBars.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package dev.borisochieng.sketchpad.ui.components\r\n\r\nimport android.annotation.SuppressLint\r\nimport androidx.annotation.StringRes\r\nimport androidx.compose.animation.AnimatedVisibility\r\nimport androidx.compose.animation.ExitTransition\r\nimport androidx.compose.animation.core.tween\r\nimport androidx.compose.animation.slideInVertically\r\nimport androidx.compose.foundation.Image\r\nimport androidx.compose.foundation.background\r\nimport androidx.compose.foundation.clickable\r\nimport androidx.compose.foundation.layout.Arrangement\r\nimport androidx.compose.foundation.layout.Box\r\nimport androidx.compose.foundation.layout.Column\r\nimport androidx.compose.foundation.layout.Row\r\nimport androidx.compose.foundation.layout.fillMaxWidth\r\nimport androidx.compose.foundation.layout.padding\r\nimport androidx.compose.material.icons.Icons\r\nimport androidx.compose.material.icons.outlined.Home\r\nimport androidx.compose.material.icons.outlined.Person\r\nimport androidx.compose.material.icons.outlined.Settings\r\nimport androidx.compose.material.icons.rounded.Home\r\nimport androidx.compose.material.icons.rounded.Person\r\nimport androidx.compose.material.icons.rounded.Settings\r\nimport androidx.compose.material3.ExperimentalMaterial3Api\r\nimport androidx.compose.material3.Icon\r\nimport androidx.compose.material3.MaterialTheme\r\nimport androidx.compose.material3.MaterialTheme.colorScheme\r\nimport androidx.compose.material3.NavigationBarDefaults\r\nimport androidx.compose.material3.Text\r\nimport androidx.compose.material3.TopAppBar\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.runtime.collectAsState\r\nimport androidx.compose.ui.Alignment\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.draw.clip\r\nimport androidx.compose.ui.graphics.vector.ImageVector\r\nimport androidx.compose.ui.res.painterResource\r\nimport androidx.compose.ui.res.stringResource\r\nimport androidx.compose.ui.unit.dp\r\nimport androidx.navigation.NavController\r\nimport androidx.navigation.NavGraph.Companion.findStartDestination\r\nimport androidx.navigation.compose.currentBackStackEntryAsState\r\nimport dev.borisochieng.sketchpad.R\r\nimport dev.borisochieng.sketchpad.ui.navigation.AppRoute\r\n\r\n@OptIn(ExperimentalMaterial3Api::class)\r\n@Composable\r\nfun HomeTopBar() {\r\n\tTopAppBar(\r\n\t\ttitle = {\r\n\t\t\tBox(\r\n\t\t\t\tmodifier = Modifier.fillMaxWidth(),\r\n\t\t\t\tcontentAlignment = Alignment.Center\r\n\t\t\t) {\r\n\t\t\t\tImage(\r\n\t\t\t\t\tpainter = painterResource(R.drawable.logo),\r\n\t\t\t\t\tcontentDescription = stringResource(R.string.app_name)\r\n\t\t\t\t)\r\n\t\t\t}\r\n\t\t}\r\n\t)\r\n}\r\n\r\n@Composable\r\nfun NavBar(\r\n\tnavController: NavController,\r\n\tmodifier: Modifier = Modifier\r\n) {\r\n\tval navBackStackEntry = navController.currentBackStackEntryAsState()\r\n\tval currentRoute = navBackStackEntry.value?.destination?.route\r\n\tval homeScreens = setOf(AppRoute.HomeScreen, AppRoute.SettingsScreen, AppRoute.ProfileScreen).map { it.route }\r\n\tval inHomeScreens = currentRoute in homeScreens\r\n\tAnimatedVisibility(\r\n\t\tvisible = inHomeScreens,\r\n\t\tenter = slideInVertically(tween(durationMillis = 350, delayMillis = 1000)) { it },\r\n\t\texit = ExitTransition.None\r\n\t) {\r\n\t\tNavBarVisuals(navController, modifier)\r\n\t}\r\n}\r\n\r\n@SuppressLint(\"RestrictedApi\")\r\n@Composable\r\nprivate fun NavBarVisuals(\r\n\tnavController: NavController,\r\n\tmodifier: Modifier = Modifier\r\n) {\r\n\tval navBackStackEntry = navController.currentBackStackEntryAsState()\r\n\tval currentRoute = navBackStackEntry.value?.destination?.route\r\n\tval backStack = navController.currentBackStack.collectAsState().value.map { it.destination.route }\r\n\r\n\tRow(\r\n\t\tmodifier = modifier\r\n\t\t\t.fillMaxWidth()\r\n\t\t\t.padding(16.dp)\r\n\t\t\t.clip(MaterialTheme.shapes.large)\r\n\t\t\t.background(NavigationBarDefaults.containerColor),\r\n\t\thorizontalArrangement = Arrangement.Center,\r\n\t\tverticalAlignment = Alignment.CenterVertically\r\n\t) {\r\n\t\tNavBarItems.entries.forEach { item ->\r\n\t\t\tval inBackStack = item.route == currentRoute || item.route in backStack\r\n\t\t\tval selected = when (item) {\r\n\t\t\t\tNavBarItems.Home -> {\r\n\t\t\t\t\tval noHomeScreenInStack = NavBarItems.entries.filter { it != NavBarItems.Home }\r\n\t\t\t\t\t\t.all { it.route !in backStack }\r\n\t\t\t\t\tinBackStack && noHomeScreenInStack\r\n\t\t\t\t}\r\n\t\t\t\telse -> inBackStack\r\n\t\t\t}\r\n\r\n\t\t\tNavigationBarItem(\r\n\t\t\t\tselected = selected,\r\n\t\t\t\tselectedIcon = item.selectedIcon,\r\n\t\t\t\tunselectedIcon = item.unselectedIcon,\r\n\t\t\t\tlabel = stringResource(item.title),\r\n\t\t\t\tmodifier = Modifier.weight(1f),\r\n\t\t\t\tonClick = {\r\n\t\t\t\t\tnavController.navigate(item.route) {\r\n\t\t\t\t\t\tpopUpTo(navController.graph.findStartDestination().id) {\r\n\t\t\t\t\t\t\tsaveState = item.route != currentRoute\r\n\t\t\t\t\t\t}\r\n\t\t\t\t\t\tlaunchSingleTop = true\r\n\t\t\t\t\t\trestoreState = true\r\n\t\t\t\t\t}\r\n\t\t\t\t}\r\n\t\t\t)\r\n\t\t}\r\n\t}\r\n}\r\n\r\n@Composable\r\nprivate fun NavigationBarItem(\r\n\tselected: Boolean,\r\n\tselectedIcon: ImageVector,\r\n\tunselectedIcon: ImageVector,\r\n\tlabel: String,\r\n\tmodifier: Modifier = Modifier,\r\n\tonClick: () -> Unit\r\n) {\r\n\tval color = if (selected) colorScheme.primary else colorScheme.onBackground\r\n\r\n\tColumn(\r\n\t\tmodifier = modifier\r\n\t\t\t.fillMaxWidth()\r\n\t\t\t.clickable { onClick() }\r\n\t\t\t.padding(vertical = 6.dp),\r\n\t\thorizontalAlignment = Alignment.CenterHorizontally\r\n\t) {\r\n\t\tIcon(\r\n\t\t\timageVector = if (selected) selectedIcon else unselectedIcon,\r\n\t\t\tcontentDescription = label,\r\n\t\t\tmodifier = Modifier.padding(start = 12.5.dp, end = 12.5.dp, bottom = 4.dp),\r\n\t\t\ttint = color\r\n\t\t)\r\n\t\tText(text = label, color = color)\r\n\t}\r\n}\r\n\r\nprivate enum class NavBarItems(\r\n\t@StringRes val title: Int,\r\n\tval selectedIcon: ImageVector,\r\n\tval unselectedIcon: ImageVector,\r\n\tval route: String\r\n) {\r\n\tHome(\r\n\t\ttitle = R.string.home,\r\n\t\tselectedIcon = Icons.Rounded.Home,\r\n\t\tunselectedIcon = Icons.Outlined.Home,\r\n\t\troute = AppRoute.HomeScreen.route\r\n\t),\r\n\tProfile(\r\n\t\ttitle = R.string.profile,\r\n\t\tselectedIcon = Icons.Rounded.Person,\r\n\t\tunselectedIcon = Icons.Outlined.Person,\r\n\t\troute = AppRoute.ProfileScreen.route\r\n\t),\r\n\tSettings(\r\n\t\ttitle = R.string.settings,\r\n\t\tselectedIcon = Icons.Rounded.Settings,\r\n\t\tunselectedIcon = Icons.Outlined.Settings,\r\n\t\troute = AppRoute.SettingsScreen.route\r\n\t)\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/dev/borisochieng/sketchpad/ui/components/AppBars.kt b/app/src/main/java/dev/borisochieng/sketchpad/ui/components/AppBars.kt
+--- a/app/src/main/java/dev/borisochieng/sketchpad/ui/components/AppBars.kt	(revision 025067e89fd8158bae3165b1a21f05bfdbfa95c8)
++++ b/app/src/main/java/dev/borisochieng/sketchpad/ui/components/AppBars.kt	(date 1723153957278)
+@@ -176,10 +176,10 @@
+ 		unselectedIcon = Icons.Outlined.Person,
+ 		route = AppRoute.ProfileScreen.route
+ 	),
+-	Settings(
+-		title = R.string.settings,
+-		selectedIcon = Icons.Rounded.Settings,
+-		unselectedIcon = Icons.Outlined.Settings,
+-		route = AppRoute.SettingsScreen.route
+-	)
++//	Settings(
++//		title = R.string.settings,
++//		selectedIcon = Icons.Rounded.Settings,
++//		unselectedIcon = Icons.Outlined.Settings,
++//		route = AppRoute.SettingsScreen.route
++//	)
+ }
+\ No newline at end of file
+Index: app/src/main/res/values/themes.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<resources>\r\n\r\n    <style name=\"Theme.SketchPad\" parent=\"android:Theme.Material.Light.NoActionBar\" />\r\n\r\n\r\n    <!--Splash screen-->\r\n    <style name=\"Theme.Splash\" parent=\"Theme.SplashScreen\">\r\n      <item name = \"windowSplashScreenBackground\">@color/white</item>\r\n        <item name=\"windowSplashScreenAnimatedIcon\">@drawable/logo</item>\r\n        <item name=\"windowSplashScreenAnimationDuration\">1000</item>\r\n        <item name=\"postSplashScreenTheme\">@style/Theme.SketchPad</item>\r\n    </style>\r\n\r\n\r\n</resources>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/values/themes.xml b/app/src/main/res/values/themes.xml
+--- a/app/src/main/res/values/themes.xml	(revision 025067e89fd8158bae3165b1a21f05bfdbfa95c8)
++++ b/app/src/main/res/values/themes.xml	(date 1723153087259)
+@@ -1,7 +1,7 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <resources>
+ 
+-    <style name="Theme.SketchPad" parent="android:Theme.Material.Light.NoActionBar" />
++    <style name="Theme.SketchPad" parent="Theme.AppCompat.Light.NoActionBar" />
+ 
+ 
+     <!--Splash screen-->
+Index: app/build.gradle.kts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>plugins {\r\n    alias(libs.plugins.android.application)\r\n    alias(libs.plugins.compose.compiler)\r\n    alias(libs.plugins.jetbrains.kotlin.android)\r\n    alias(libs.plugins.ksp)\r\n    alias(libs.plugins.google.services)\r\n}\r\n\r\nandroid {\r\n    namespace = \"dev.borisochieng.sketchpad\"\r\n    compileSdk = 34\r\n\r\n    defaultConfig {\r\n        applicationId = \"dev.borisochieng.sketchpad\"\r\n        minSdk = 24\r\n        targetSdk = 34\r\n        versionCode = 1\r\n        versionName = \"1.0\"\r\n\r\n//        room {\r\n//            schemaDirectory(path = \"$projectDir/schemas\")\r\n//        }\r\n\r\n        testInstrumentationRunner = \"androidx.test.runner.AndroidJUnitRunner\"\r\n        vectorDrawables {\r\n            useSupportLibrary = true\r\n        }\r\n    }\r\n\r\n    buildTypes {\r\n        release {\r\n            isMinifyEnabled = false\r\n            proguardFiles(\r\n                getDefaultProguardFile(\"proguard-android-optimize.txt\"),\r\n                \"proguard-rules.pro\"\r\n            )\r\n        }\r\n    }\r\n    compileOptions {\r\n        sourceCompatibility = JavaVersion.VERSION_1_8\r\n        targetCompatibility = JavaVersion.VERSION_1_8\r\n    }\r\n    kotlinOptions {\r\n        jvmTarget = \"1.8\"\r\n    }\r\n    buildFeatures {\r\n        compose = true\r\n    }\r\n    composeOptions {\r\n        kotlinCompilerExtensionVersion = \"1.5.1\"\r\n    }\r\n    packaging {\r\n        resources {\r\n            excludes += \"/META-INF/{AL2.0,LGPL2.1}\"\r\n        }\r\n    }\r\n}\r\n\r\ndependencies {\r\n\r\n    // android\r\n    implementation(libs.androidx.core.ktx)\r\n    implementation(libs.androidx.lifecycle.runtime.ktx)\r\n\r\n    // compose\r\n    implementation(libs.androidx.activity.compose)\r\n    implementation(platform(libs.androidx.compose.bom))\r\n    implementation(libs.androidx.compose.navigation)\r\n    implementation(libs.androidx.ui)\r\n    implementation(libs.androidx.ui.graphics)\r\n    implementation(libs.androidx.ui.tooling.preview)\r\n    implementation(libs.androidx.material.icons)\r\n    implementation(libs.androidx.material3)\r\n\r\n    // gson\r\n    implementation(libs.gson)\r\n\r\n    //koin\r\n    implementation(libs.koin.android)\r\n    implementation(platform(libs.koin.bom))\r\n    implementation(libs.koin.core)\r\n    implementation(libs.koin.androidx.compose)\r\n\r\n    // room\r\n    implementation(libs.room.ktx)\r\n    implementation(libs.room.runtime)\r\n    ksp(libs.room.compiler)\r\n\r\n    // splashscreen\r\n    implementation(libs.splash)\r\n\r\n    //firebase\r\n    implementation(platform(libs.firebase.bom))\r\n    implementation(libs.firebase.auth)\r\n\r\n    testImplementation(libs.junit)\r\n    androidTestImplementation(libs.androidx.junit)\r\n    androidTestImplementation(libs.androidx.espresso.core)\r\n    androidTestImplementation(platform(libs.androidx.compose.bom))\r\n    androidTestImplementation(libs.androidx.ui.test.junit4)\r\n    debugImplementation(libs.androidx.ui.tooling)\r\n    debugImplementation(libs.androidx.ui.test.manifest)\r\n\r\n    //SketchPad Lib\r\n    implementation  (libs.drawbox)\r\n    implementation  (libs.rang.vikalp)\r\n    //dataStore\r\n    implementation (libs.androidx.datastore.preferences)\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/build.gradle.kts b/app/build.gradle.kts
+--- a/app/build.gradle.kts	(revision 025067e89fd8158bae3165b1a21f05bfdbfa95c8)
++++ b/app/build.gradle.kts	(date 1723153329644)
+@@ -10,6 +10,15 @@
+     namespace = "dev.borisochieng.sketchpad"
+     compileSdk = 34
+ 
++    signingConfigs {
++        create("release") {
++            keyAlias = "nnamdo"
++            keyPassword = "rolinsnnamodi9570"
++            storeFile = file("C:\\Users\\Martins\\keystores\\app-keystore.jks")
++            storePassword = "rolinsnnamodi9570"
++        }
++    }
++
+     defaultConfig {
+         applicationId = "dev.borisochieng.sketchpad"
+         minSdk = 24
+@@ -28,12 +37,16 @@
+     }
+ 
+     buildTypes {
++        debug {
++            signingConfig = signingConfigs.getByName("release")
++        }
+         release {
+             isMinifyEnabled = false
+             proguardFiles(
+                 getDefaultProguardFile("proguard-android-optimize.txt"),
+                 "proguard-rules.pro"
+             )
++            signingConfig = signingConfigs.getByName("release")
+         }
+     }
+     compileOptions {

@@ -10,18 +10,24 @@ import androidx.core.graphics.green
 import androidx.core.graphics.red
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 // DataStore Instance
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 // Preference Keys
 val themePreferenceKey = intPreferencesKey("list_theme")
+val firstLaunchKey = booleanPreferencesKey("first_launch")
 
-internal val permissions = arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-internal const val PERMISSION_CODE = 100
+val permissions = arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+const val PERMISSION_CODE = 100
 
 // Retrieving functions
 /**
@@ -42,4 +48,21 @@ fun Color.convertToOldColor(): Int {
         color.green,
         color.blue
     )
+}
+
+
+class KeyValueStore : KoinComponent {
+    private val dataStore by inject<DataStore<Preferences>>()
+
+    fun getLaunchStatus(): Flow<Boolean> {
+        return dataStore.data.map {
+            it[firstLaunchKey] ?: false
+        }
+    }
+
+    suspend fun saveLaunchStatus() {
+        dataStore.edit {
+            it[firstLaunchKey] = true
+        }
+    }
 }

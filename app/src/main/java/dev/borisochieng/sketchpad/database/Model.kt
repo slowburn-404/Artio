@@ -1,9 +1,8 @@
 package dev.borisochieng.sketchpad.database
 
-import android.graphics.Bitmap
-import androidx.compose.ui.graphics.Color
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.alt.PathProperties
 import java.util.Calendar
 import java.util.Date
 
@@ -14,14 +13,5 @@ data class Sketch(
 	val name: String,
 	val dateCreated: Date = Calendar.getInstance().time,
 	val lastModified: Date = Calendar.getInstance().time,
-	val art: Bitmap,
-	val backgroundColor: Color,
-	val pathList: List<Path>
-)
-
-data class Path(
-	var points: String, // list of Offsets saved as String
-	val strokeWidth: Float,
-	val strokeColor: Int,
-	val alpha: Float
+	val pathList: List<PathProperties>
 )
