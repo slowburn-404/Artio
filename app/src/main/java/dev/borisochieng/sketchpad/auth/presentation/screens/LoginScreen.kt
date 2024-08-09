@@ -100,17 +100,15 @@ fun LoginScreen(
 
     //listen for error messages
     LaunchedEffect(Unit) {
-        viewModel.uiEvent.collectLatest { _ ->
-            snackBarHostState.showSnackbar(message = uiState.value.error)
+        viewModel.uiEvent.collectLatest { messsage ->
+            snackBarHostState.showSnackbar(message = messsage.toString())
         }
     }
 
     //navigate when login is successful
     LaunchedEffect(uiState.value) {
-        if (!uiState.value.isLoading && uiState.value.error.isEmpty() && uiState.value.user != null) {
+        if (!uiState.value.isLoading && uiState.value.error.isEmpty() && uiState.value.isLoggedIn) {
             navigate(Screens.HomeScreen)
-        } else if (uiState.value.error.isNotEmpty()) {
-            snackBarHostState.showSnackbar(message = uiState.value.error)
         }
     }
 
