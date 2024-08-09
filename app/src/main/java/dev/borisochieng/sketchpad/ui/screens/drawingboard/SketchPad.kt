@@ -41,10 +41,7 @@ import dev.borisochieng.sketchpad.ui.navigation.Screens
 import dev.borisochieng.sketchpad.ui.screens.dialog.NameSketchDialog
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.DrawMode
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.convertToOldColor
-import dev.borisochieng.sketchpad.utils.Extensions.toPath
-import dev.borisochieng.sketchpad.utils.Extensions.toPathWrapper
 import io.ak1.drawbox.DrawBox
-import io.ak1.drawbox.DrawBoxPayLoad
 import io.ak1.drawbox.rememberDrawController
 import io.ak1.rangvikalp.RangVikalp
 import io.ak1.rangvikalp.defaultSelectedColor

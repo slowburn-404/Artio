@@ -1,7 +1,6 @@
 package dev.borisochieng.sketchpad.ui.screens.dialog
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,9 +12,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -28,7 +30,6 @@ import dev.borisochieng.sketchpad.ui.theme.errorLight
 import dev.borisochieng.sketchpad.ui.theme.errorLightMediumContrast
 import dev.borisochieng.sketchpad.ui.theme.inversePrimaryDarkHighContrast
 import dev.borisochieng.sketchpad.ui.theme.inversePrimaryLight
-import dev.borisochieng.sketchpad.ui.theme.inverseSurfaceLight
 import dev.borisochieng.sketchpad.ui.theme.onBackgroundLight
 import dev.borisochieng.sketchpad.ui.theme.onErrorContainerLight
 import dev.borisochieng.sketchpad.ui.theme.onPrimaryContainerLight
@@ -39,17 +40,11 @@ import dev.borisochieng.sketchpad.ui.theme.outlineLight
 import dev.borisochieng.sketchpad.ui.theme.outlineVariantLight
 import dev.borisochieng.sketchpad.ui.theme.primaryContainerLight
 import dev.borisochieng.sketchpad.ui.theme.primaryLight
-import dev.borisochieng.sketchpad.ui.theme.scrimLight
 import dev.borisochieng.sketchpad.ui.theme.secondaryLight
 import dev.borisochieng.sketchpad.ui.theme.surfaceBrightDarkHighContrast
-import dev.borisochieng.sketchpad.ui.theme.surfaceContainerDarkHighContrast
-import dev.borisochieng.sketchpad.ui.theme.surfaceContainerHighDarkHighContrast
-import dev.borisochieng.sketchpad.ui.theme.surfaceContainerHighestDarkHighContrast
-import dev.borisochieng.sketchpad.ui.theme.surfaceContainerLowDarkHighContrast
 import dev.borisochieng.sketchpad.ui.theme.surfaceContainerLowestDarkHighContrast
 import dev.borisochieng.sketchpad.ui.theme.surfaceDimDarkHighContrast
 import dev.borisochieng.sketchpad.ui.theme.tertiaryContainerDarkHighContrast
-import dev.borisochieng.sketchpad.ui.theme.tertiaryContainerLight
 import dev.borisochieng.sketchpad.ui.theme.tertiaryLight
 import dev.borisochieng.sketchpad.utils.Extensions.transformList
 
@@ -71,7 +66,6 @@ fun ColorPickerDialog(
 		Column(
 			modifier = Modifier
 				.fillMaxWidth()
-				.padding(horizontal = 8.dp)
 				.verticalScroll(rememberScrollState()),
 		) {
 			val colors = colorsPalette.transformList()
@@ -108,29 +102,32 @@ private fun ColorRow(
 	) {
 		repeat(colors.size) { index ->
 			val color = colors[index]
-			val borderColor = if (color == selectedColor) Color.Blue else Color.Transparent
 
 			Box(
 				Modifier
-					.size(24.dp)
+					.size(48.dp)
 					.clip(CircleShape)
-					.background(selectedColor)
-					.border(1.dp, borderColor, CircleShape)
-					.clickable { onSelected(color) }
-			)
+					.background(color)
+					.clickable { onSelected(color) },
+				contentAlignment = Alignment.Center
+			) {
+				if (color == selectedColor) {
+					Icon(Icons.Rounded.Done, null, tint = Color.White)
+				}
+			}
 		}
 	}
 }
 
 val colorsPalette = listOf(
-	primaryLight,
-	primaryContainerLight,
-	onPrimaryContainerLight,
 	secondaryLight,
-	tertiaryLight,
-	tertiaryContainerLight,
-	tertiaryContainerDarkHighContrast,
+	primaryLight,
+	onPrimaryContainerLight,
+	primaryContainerLight,
 	onTertiaryContainerLight,
+	tertiaryLight,
+	Color.Green,
+	tertiaryContainerDarkHighContrast,
 	errorContainerLightMediumContrast,
 	errorLight,
 	errorLightMediumContrast,
@@ -140,15 +137,19 @@ val colorsPalette = listOf(
 	onSurfaceVariantLight,
 	outlineLight,
 	outlineVariantLight,
-	scrimLight,
+	Color.Yellow.copy(alpha = 0.2f),
 	inversePrimaryLight,
-	inverseSurfaceLight,
+	Color.Yellow,
 	inversePrimaryDarkHighContrast,
 	surfaceDimDarkHighContrast,
 	surfaceBrightDarkHighContrast,
 	surfaceContainerLowestDarkHighContrast,
-	surfaceContainerLowDarkHighContrast,
-	surfaceContainerDarkHighContrast,
-	surfaceContainerHighDarkHighContrast,
-	surfaceContainerHighestDarkHighContrast,
+	Color.Blue,
+	Color.Blue.copy(alpha = 0.7f),
+	Color.Blue.copy(alpha = 0.3f),
+	Color.Blue.copy(alpha = 0.1f),
+	Color.Magenta,
+	Color.Magenta.copy(alpha = 0.7f),
+	Color.Magenta.copy(alpha = 0.3f),
+	Color.Magenta.copy(alpha = 0.1f)
 )

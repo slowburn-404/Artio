@@ -27,24 +27,21 @@ fun NameSketchDialog(
 			OutlinedTextField(
 				value = name,
 				onValueChange = { name = it },
-				modifier = Modifier.fillMaxWidth()
+				modifier = Modifier.fillMaxWidth(),
+				singleLine = true
 			)
-		},
-		dismissButton = {
-			OutlinedButton(
-				onClick = onDismiss,
-				modifier = Modifier.fillMaxWidth(0.5f)
-			) {
-				Text("Cancel")
-			}
 		},
 		confirmButton = {
 			Button(
 				onClick = { onNamed(name) },
-				modifier = Modifier.fillMaxWidth(0.5f),
 				enabled = name.isNotEmpty()
 			) {
 				Text("Save")
+			}
+		},
+		dismissButton = {
+			OutlinedButton(onClick = onDismiss) {
+				Text("Cancel")
 			}
 		}
 	)

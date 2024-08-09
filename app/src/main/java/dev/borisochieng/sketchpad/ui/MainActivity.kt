@@ -1,13 +1,10 @@
 package dev.borisochieng.sketchpad.ui
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Scaffold
-import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import dev.borisochieng.sketchpad.ui.components.NavBar
 import dev.borisochieng.sketchpad.ui.navigation.AppRoute
@@ -23,6 +20,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
+    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         //   enableEdgeToEdge()
@@ -32,12 +30,11 @@ class MainActivity : ComponentActivity() {
                 val navActions = NavActions(navController)
                 AppTheme {
                     Scaffold(
-                        bottomBar = { NavBar(navController) },
-                    ) { paddingValues ->
+                        bottomBar = { NavBar(navController) }
+                    ) { _ ->
                         AppRoute(
                             navActions = navActions,
                             navController = navController,
-                            paddingValues = paddingValues,
                             saveImage = {
                                 checkAndAskPermission {
                                     CoroutineScope(Dispatchers.IO).launch {
@@ -51,10 +48,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 }
-
             }
-
-
         }
     }
 }

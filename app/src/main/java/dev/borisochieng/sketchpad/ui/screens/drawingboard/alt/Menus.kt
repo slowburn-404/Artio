@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Brush
 import androidx.compose.material.icons.rounded.LineWeight
+import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material.icons.rounded.TouchApp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -64,7 +65,7 @@ fun PaletteMenu(
 			Icon(
 				imageVector = Icons.Rounded.TouchApp,
 				contentDescription = "Touch mode",
-				tint = if (currentDrawMode == DrawMode.Touch) Color.Black else Color.White
+				tint = if (currentDrawMode == DrawMode.Touch) Color.Black else Color.Gray
 			)
 		}
 		Pencil(
@@ -84,7 +85,7 @@ fun PaletteMenu(
 				painter = painterResource(R.drawable.eraser_icon),
 				contentDescription = "Erase mode",
 				modifier = Modifier.scale(0.5f),
-				tint = if (currentDrawMode == DrawMode.Erase) Color.Black else Color.White
+				tint = if (currentDrawMode == DrawMode.Erase) Color.Black else Color.Gray
 			)
 		}
 	}
@@ -112,14 +113,15 @@ fun PaletteTopBar(
 	modifier: Modifier = Modifier,
 	canUndo: Boolean,
 	canRedo: Boolean,
+	onSaveClicked: () -> Unit,
 	unUndoClicked: () -> Unit,
 	unRedoClicked: () -> Unit,
-	onSaveClicked: () -> Unit
+	onExportClicked: () -> Unit
 ) {
 	Row(
 		modifier = modifier
 			.fillMaxWidth()
-			.padding(16.dp)
+			.padding(horizontal = 16.dp)
 			.clip(MaterialTheme.shapes.large)
 			.background(Color.LightGray)
 			.padding(8.dp),
@@ -131,22 +133,35 @@ fun PaletteTopBar(
 			enabled = canUndo
 		) {
 			Icon(
-				painter = painterResource(R.drawable.ic_download),
+				imageVector = Icons.Rounded.Save,
 				contentDescription = "Save sketch"
 			)
 		}
-		IconButton(onClick = unUndoClicked) {
+		IconButton(
+			onClick = unUndoClicked,
+			enabled = canUndo
+		) {
 			Icon(
 				painter = painterResource(R.drawable.ic_undo),
-				contentDescription = "Undo",
-				tint = if (canUndo) Color.Black else Color.White
+				contentDescription = "Undo"
 			)
 		}
-		IconButton(onClick = unRedoClicked) {
+		IconButton(
+			onClick = unRedoClicked,
+			enabled = canRedo
+		) {
 			Icon(
 				painter = painterResource(R.drawable.ic_redo),
-				contentDescription = "Redo",
-				tint = if (canRedo) Color.Black else Color.White
+				contentDescription = "Redo"
+			)
+		}
+		IconButton(
+			onClick = onExportClicked,
+			enabled = canUndo
+		) {
+			Icon(
+				painter = painterResource(R.drawable.ic_download),
+				contentDescription = "Export sketch"
 			)
 		}
 	}
@@ -180,7 +195,7 @@ private fun Pencil(
 			Icon(
 				imageVector = Icons.Rounded.Brush,
 				contentDescription = "Drawing mode",
-				tint = if (drawMode == DrawMode.Draw) Color.Black else Color.White
+				tint = if (drawMode == DrawMode.Draw) Color.Black else Color.LightGray
 			)
 		}
 		Box(

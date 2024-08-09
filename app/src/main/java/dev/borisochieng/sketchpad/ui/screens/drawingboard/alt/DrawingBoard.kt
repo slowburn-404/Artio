@@ -1,5 +1,6 @@
 package dev.borisochieng.sketchpad.ui.screens.drawingboard.alt
 
+import android.graphics.Bitmap
 import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -36,6 +37,7 @@ import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadActions
 @Composable
 fun DrawingBoard(
 	sketch: Sketch?,
+	exportSketch: (Bitmap) -> Unit,
 	actions: (SketchPadActions) -> Unit,
 	navigate: (Screens) -> Unit
 ) {
@@ -52,6 +54,7 @@ fun DrawingBoard(
 		val action = if (name == null) {
 			SketchPadActions.UpdateSketch(paths)
 		} else {
+			openNameSketchDialog.value = false
 			val newSketch = Sketch(name = name, pathList = paths)
 			SketchPadActions.SaveSketch(newSketch)
 		}
@@ -65,22 +68,26 @@ fun DrawingBoard(
 			PaletteTopBar(
 				canUndo = paths.isNotEmpty(),
 				canRedo = paths.size < absolutePaths.size,
-				unUndoClicked = { paths -= paths.last() },
-				unRedoClicked = {
-					val nextPath = absolutePaths[paths.size]
-					paths += nextPath
-				},
 				onSaveClicked = {
 					if (sketch == null) {
 						openNameSketchDialog.value = true
 					} else {
 						save(null)
 					}
+				},
+				unUndoClicked = { paths -= paths.last() },
+				unRedoClicked = {
+					val nextPath = absolutePaths[paths.size]
+					paths += nextPath
+				},
+				onExportClicked = {
+					Toast.makeText(context, "Export sketch coming soon", Toast.LENGTH_SHORT).show()
 				}
 			)
-		}
+		},
+		containerColor = Color.White
 	) { paddingValues ->
-		LaunchedEffect(Unit) {
+		LaunchedEffect(sketch) {
 			sketch?.let {
 				absolutePaths.clear(); paths = emptyList()
 				absolutePaths.addAll(sketch.pathList)
@@ -95,6 +102,7 @@ fun DrawingBoard(
 			contentAlignment = Alignment.BottomCenter
 		) {
 			val state = rememberTransformableState { zoomChange, panChange, _ ->
+				if (drawMode != DrawMode.Touch) return@rememberTransformableState
 				scale = (scale * zoomChange).coerceIn(1f, 5f)
 
 				val extraWidth = (scale - 1) * constraints.maxWidth

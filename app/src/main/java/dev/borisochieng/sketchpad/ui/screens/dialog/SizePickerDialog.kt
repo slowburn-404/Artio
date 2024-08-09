@@ -40,7 +40,7 @@ fun SizePickerDialog(
 				.padding(horizontal = 8.dp)
 		) {
 			Sizes.entries.forEach { size ->
-				val borderColor = if (size.strokeWidth == selectedSize) Color.Blue else Color.Transparent
+				val borderColor = if (size.strokeWidth == selectedSize) Color.Gray else Color.Transparent
 
 				Box(
 					modifier = Modifier
