@@ -10,6 +10,7 @@ A Jetpack Compose App that lets users draw on a canvas.
 - Change Canvas background color
 - Change brush color
 - Change brush size
+- Erase drawing
 - Canvas Management (Update, Save and Delete)
 - Local data persistence of a canvas
 
@@ -27,8 +28,8 @@ A Jetpack Compose App that lets users draw on a canvas.
 ![Sign up](./screenshots/signup.png)
 ![Login](./screenshots/login.png)
 ![Onboarding](./screenshots/onboarding.png)
-![Home](./screenshots/home.png)
-![Canvas](./screenshots/canvas.png)
+![Home](./screenshots/homescreen.png)
+![Canvas](./screenshots/drawingcanvas.png)
 ![Color picker](./screenshots/colorpicker.png)
 ![Brush](./screenshots/bursh.png)
 ![Profile](./screenshots/profile.png)
