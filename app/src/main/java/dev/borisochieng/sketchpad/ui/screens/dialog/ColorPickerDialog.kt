@@ -30,7 +30,6 @@ import dev.borisochieng.sketchpad.ui.theme.errorLight
 import dev.borisochieng.sketchpad.ui.theme.errorLightMediumContrast
 import dev.borisochieng.sketchpad.ui.theme.inversePrimaryDarkHighContrast
 import dev.borisochieng.sketchpad.ui.theme.inversePrimaryLight
-import dev.borisochieng.sketchpad.ui.theme.onBackgroundLight
 import dev.borisochieng.sketchpad.ui.theme.onErrorContainerLight
 import dev.borisochieng.sketchpad.ui.theme.onPrimaryContainerLight
 import dev.borisochieng.sketchpad.ui.theme.onSurfaceLight
@@ -132,10 +131,10 @@ val colorsPalette = listOf(
 	errorLight,
 	errorLightMediumContrast,
 	onErrorContainerLight,
-	onBackgroundLight,
+	Color.Black,
 	onSurfaceLight,
 	onSurfaceVariantLight,
-	outlineLight,
+	surfaceContainerLowestDarkHighContrast,
 	outlineVariantLight,
 	Color.Yellow.copy(alpha = 0.2f),
 	inversePrimaryLight,
@@ -143,7 +142,7 @@ val colorsPalette = listOf(
 	inversePrimaryDarkHighContrast,
 	surfaceDimDarkHighContrast,
 	surfaceBrightDarkHighContrast,
-	surfaceContainerLowestDarkHighContrast,
+	outlineLight,
 	Color.Blue,
 	Color.Blue.copy(alpha = 0.7f),
 	Color.Blue.copy(alpha = 0.3f),

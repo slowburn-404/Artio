@@ -111,6 +111,7 @@ fun PaletteMenu(
 @Composable
 fun PaletteTopBar(
 	modifier: Modifier = Modifier,
+	canSave: Boolean,
 	canUndo: Boolean,
 	canRedo: Boolean,
 	onSaveClicked: () -> Unit,
@@ -130,7 +131,7 @@ fun PaletteTopBar(
 	) {
 		IconButton(
 			onClick = onSaveClicked,
-			enabled = canUndo
+			enabled = canSave && canUndo
 		) {
 			Icon(
 				imageVector = Icons.Rounded.Save,

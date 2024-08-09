@@ -57,7 +57,7 @@ fun HomeScreen(
 			LazyVerticalGrid(
 				columns = GridCells.Adaptive(150.dp),
 				modifier = Modifier.padding(start = 10.dp),
-				contentPadding = PaddingValues(bottom = 40.dp)
+				contentPadding = PaddingValues(bottom = 100.dp)
 			) {
 				items(savedSketches.size) { index ->
 					val sketch = savedSketches[index]

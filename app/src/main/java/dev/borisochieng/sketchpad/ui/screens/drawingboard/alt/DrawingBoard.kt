@@ -18,6 +18,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -27,12 +28,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.viewinterop.AndroidView
 import dev.borisochieng.sketchpad.database.Sketch
 import dev.borisochieng.sketchpad.ui.navigation.Screens
 import dev.borisochieng.sketchpad.ui.screens.dialog.NameSketchDialog
 import dev.borisochieng.sketchpad.ui.screens.dialog.Sizes
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadActions
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.BitmapFactory.getBitmap
 
 @Composable
 fun DrawingBoard(
@@ -49,7 +53,9 @@ fun DrawingBoard(
 	var scale by remember { mutableFloatStateOf(1f) }
 	var offset by remember { mutableStateOf(Offset.Zero) }
 	val openNameSketchDialog = rememberSaveable { mutableStateOf(false) }
+	val scope = rememberCoroutineScope()
 	val context = LocalContext.current
+	var sketchBitmap: Bitmap? = null
 	val save: (String?) -> Unit = { name ->
 		val action = if (name == null) {
 			SketchPadActions.UpdateSketch(paths)
@@ -66,6 +72,7 @@ fun DrawingBoard(
 	Scaffold(
 		topBar = {
 			PaletteTopBar(
+				canSave = paths != sketch?.pathList,
 				canUndo = paths.isNotEmpty(),
 				canRedo = paths.size < absolutePaths.size,
 				onSaveClicked = {
@@ -81,7 +88,9 @@ fun DrawingBoard(
 					paths += nextPath
 				},
 				onExportClicked = {
-					Toast.makeText(context, "Export sketch coming soon", Toast.LENGTH_SHORT).show()
+					sketchBitmap?.let {
+						exportSketch(it)
+					} ?: Toast.makeText(context, "Oops... Unable to export sketch", Toast.LENGTH_SHORT).show()
 				}
 			)
 		},
@@ -117,50 +126,68 @@ fun DrawingBoard(
 				)
 			}
 
-			Canvas(
-				modifier = Modifier
-					.fillMaxSize()
-					.background(Color.White)
-					.graphicsLayer {
-						scaleX = scale
-						scaleY = scale
-						translationX = offset.x
-						translationY = offset.y
-					}
-					.transformable(state)
-					.pointerInput(true) {
-						if (drawMode == DrawMode.Touch) return@pointerInput
-						detectDragGestures { change, dragAmount ->
-							change.consume()
-							val eraseMode = drawMode == DrawMode.Erase
-							val path = PathProperties(
-								color = when (drawMode) {
-									DrawMode.Erase -> Color.White
-									DrawMode.Draw -> color
-									else -> Color.Transparent
-								},
-								eraseMode = eraseMode,
-								start = change.position - dragAmount,
-								end = change.position,
-								strokeWidth = pencilSize
-							)
+			AndroidView(
+				factory = {
+					ComposeView(context).apply {
+						setContent {
+							Canvas(
+								modifier = Modifier
+									.fillMaxSize()
+									.background(Color.White)
+									.graphicsLayer {
+										scaleX = scale
+										scaleY = scale
+										translationX = offset.x
+										translationY = offset.y
+									}
+									.transformable(state)
+									.pointerInput(true) {
+										if (drawMode == DrawMode.Touch) return@pointerInput
+										detectDragGestures { change, dragAmount ->
+											change.consume()
+											val eraseMode = drawMode == DrawMode.Erase
+											val path = PathProperties(
+												color = when (drawMode) {
+													DrawMode.Erase -> Color.White
+													DrawMode.Draw -> color
+													else -> Color.Transparent
+												},
+												eraseMode = eraseMode,
+												start = change.position - dragAmount,
+												end = change.position,
+												strokeWidth = pencilSize
+											)
 
-							paths += path
-							absolutePaths.clear()
-							absolutePaths.addAll(paths)
+											paths += path
+											absolutePaths.clear()
+											absolutePaths.addAll(paths)
+										}
+									}
+							) {
+								paths.forEach { path ->
+									drawLine(
+										color = path.color,
+										start = path.start,
+										end = path.end,
+										strokeWidth = path.strokeWidth,
+										cap = StrokeCap.Round
+									)
+								}
+							}
+
+							LaunchedEffect(paths) {
+								this@apply.getBitmap(scope) { bitmap, error ->
+									sketchBitmap = bitmap
+									error?.let {
+										Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
+									}
+								}
+							}
 						}
 					}
-			) {
-				paths.forEach { path ->
-					drawLine(
-						color = path.color,
-						start = path.start,
-						end = path.end,
-						strokeWidth = path.strokeWidth,
-						cap = StrokeCap.Round
-					)
-				}
-			}
+				},
+				modifier = Modifier.fillMaxSize()
+			)
 
 			PaletteMenu(
 				drawMode = drawMode,

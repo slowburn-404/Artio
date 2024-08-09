@@ -1,0 +1,275 @@
+Index: app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/alt/DrawingBoard.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package dev.borisochieng.sketchpad.ui.screens.drawingboard.alt\r\n\r\nimport android.graphics.Bitmap\r\nimport android.widget.Toast\r\nimport androidx.compose.foundation.Canvas\r\nimport androidx.compose.foundation.background\r\nimport androidx.compose.foundation.gestures.detectDragGestures\r\nimport androidx.compose.foundation.gestures.rememberTransformableState\r\nimport androidx.compose.foundation.gestures.transformable\r\nimport androidx.compose.foundation.layout.BoxWithConstraints\r\nimport androidx.compose.foundation.layout.fillMaxSize\r\nimport androidx.compose.foundation.layout.padding\r\nimport androidx.compose.material3.Scaffold\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.runtime.LaunchedEffect\r\nimport androidx.compose.runtime.getValue\r\nimport androidx.compose.runtime.mutableFloatStateOf\r\nimport androidx.compose.runtime.mutableStateListOf\r\nimport androidx.compose.runtime.mutableStateOf\r\nimport androidx.compose.runtime.remember\r\nimport androidx.compose.runtime.saveable.rememberSaveable\r\nimport androidx.compose.runtime.setValue\r\nimport androidx.compose.ui.Alignment\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.geometry.Offset\r\nimport androidx.compose.ui.graphics.Color\r\nimport androidx.compose.ui.graphics.StrokeCap\r\nimport androidx.compose.ui.graphics.graphicsLayer\r\nimport androidx.compose.ui.input.pointer.pointerInput\r\nimport androidx.compose.ui.platform.LocalContext\r\nimport dev.borisochieng.sketchpad.database.Sketch\r\nimport dev.borisochieng.sketchpad.ui.navigation.Screens\r\nimport dev.borisochieng.sketchpad.ui.screens.dialog.NameSketchDialog\r\nimport dev.borisochieng.sketchpad.ui.screens.dialog.Sizes\r\nimport dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadActions\r\n\r\n@Composable\r\nfun DrawingBoard(\r\n\tsketch: Sketch?,\r\n\texportSketch: (Bitmap) -> Unit,\r\n\tactions: (SketchPadActions) -> Unit,\r\n\tnavigate: (Screens) -> Unit\r\n) {\r\n\tval absolutePaths = remember { mutableStateListOf<PathProperties>() }\r\n\tvar paths by remember { mutableStateOf(sketch?.pathList ?: emptyList()) }\r\n\tvar drawMode by remember { mutableStateOf(DrawMode.Draw) }\r\n\tvar pencilSize by remember { mutableFloatStateOf(Sizes.Small.strokeWidth) }\r\n\tvar color by remember { mutableStateOf(Color.Black) }\r\n\tvar scale by remember { mutableFloatStateOf(1f) }\r\n\tvar offset by remember { mutableStateOf(Offset.Zero) }\r\n\tval openNameSketchDialog = rememberSaveable { mutableStateOf(false) }\r\n\tval context = LocalContext.current\r\n\tval save: (String?) -> Unit = { name ->\r\n\t\tval action = if (name == null) {\r\n\t\t\tSketchPadActions.UpdateSketch(paths)\r\n\t\t} else {\r\n\t\t\topenNameSketchDialog.value = false\r\n\t\t\tval newSketch = Sketch(name = name, pathList = paths)\r\n\t\t\tSketchPadActions.SaveSketch(newSketch)\r\n\t\t}\r\n\t\tactions(action)\r\n\t\tToast.makeText(context, \"Sketch saved\", Toast.LENGTH_SHORT).show()\r\n\t\tnavigate(Screens.Back)\r\n\t}\r\n\r\n\tScaffold(\r\n\t\ttopBar = {\r\n\t\t\tPaletteTopBar(\r\n\t\t\t\tcanUndo = paths.isNotEmpty(),\r\n\t\t\t\tcanRedo = paths.size < absolutePaths.size,\r\n\t\t\t\tonSaveClicked = {\r\n\t\t\t\t\tif (sketch == null) {\r\n\t\t\t\t\t\topenNameSketchDialog.value = true\r\n\t\t\t\t\t} else {\r\n\t\t\t\t\t\tsave(null)\r\n\t\t\t\t\t}\r\n\t\t\t\t},\r\n\t\t\t\tunUndoClicked = { paths -= paths.last() },\r\n\t\t\t\tunRedoClicked = {\r\n\t\t\t\t\tval nextPath = absolutePaths[paths.size]\r\n\t\t\t\t\tpaths += nextPath\r\n\t\t\t\t},\r\n\t\t\t\tonExportClicked = {\r\n\t\t\t\t\tToast.makeText(context, \"Export sketch coming soon\", Toast.LENGTH_SHORT).show()\r\n\t\t\t\t}\r\n\t\t\t)\r\n\t\t},\r\n\t\tcontainerColor = Color.White\r\n\t) { paddingValues ->\r\n\t\tLaunchedEffect(sketch) {\r\n\t\t\tsketch?.let {\r\n\t\t\t\tabsolutePaths.clear(); paths = emptyList()\r\n\t\t\t\tabsolutePaths.addAll(sketch.pathList)\r\n\t\t\t\tpaths = sketch.pathList\r\n\t\t\t}\r\n\t\t}\r\n\r\n\t\tBoxWithConstraints(\r\n\t\t\tmodifier = Modifier\r\n\t\t\t\t.fillMaxSize()\r\n\t\t\t\t.padding(paddingValues),\r\n\t\t\tcontentAlignment = Alignment.BottomCenter\r\n\t\t) {\r\n\t\t\tval state = rememberTransformableState { zoomChange, panChange, _ ->\r\n\t\t\t\tif (drawMode != DrawMode.Touch) return@rememberTransformableState\r\n\t\t\t\tscale = (scale * zoomChange).coerceIn(1f, 5f)\r\n\r\n\t\t\t\tval extraWidth = (scale - 1) * constraints.maxWidth\r\n\t\t\t\tval extraHeight = (scale - 1) * constraints.maxHeight\r\n\r\n\t\t\t\tval maxX = extraWidth / 2\r\n\t\t\t\tval maxY = extraHeight / 2\r\n\r\n\t\t\t\toffset = Offset(\r\n\t\t\t\t\tx = (offset.x + scale * panChange.x).coerceIn(-maxX, maxX),\r\n\t\t\t\t\ty = (offset.y + scale * panChange.y).coerceIn(-maxY, maxY)\r\n\t\t\t\t)\r\n\t\t\t}\r\n\r\n\t\t\tCanvas(\r\n\t\t\t\tmodifier = Modifier\r\n\t\t\t\t\t.fillMaxSize()\r\n\t\t\t\t\t.background(Color.White)\r\n\t\t\t\t\t.graphicsLayer {\r\n\t\t\t\t\t\tscaleX = scale\r\n\t\t\t\t\t\tscaleY = scale\r\n\t\t\t\t\t\ttranslationX = offset.x\r\n\t\t\t\t\t\ttranslationY = offset.y\r\n\t\t\t\t\t}\r\n\t\t\t\t\t.transformable(state)\r\n\t\t\t\t\t.pointerInput(true) {\r\n\t\t\t\t\t\tif (drawMode == DrawMode.Touch) return@pointerInput\r\n\t\t\t\t\t\tdetectDragGestures { change, dragAmount ->\r\n\t\t\t\t\t\t\tchange.consume()\r\n\t\t\t\t\t\t\tval eraseMode = drawMode == DrawMode.Erase\r\n\t\t\t\t\t\t\tval path = PathProperties(\r\n\t\t\t\t\t\t\t\tcolor = when (drawMode) {\r\n\t\t\t\t\t\t\t\t\tDrawMode.Erase -> Color.White\r\n\t\t\t\t\t\t\t\t\tDrawMode.Draw -> color\r\n\t\t\t\t\t\t\t\t\telse -> Color.Transparent\r\n\t\t\t\t\t\t\t\t},\r\n\t\t\t\t\t\t\t\teraseMode = eraseMode,\r\n\t\t\t\t\t\t\t\tstart = change.position - dragAmount,\r\n\t\t\t\t\t\t\t\tend = change.position,\r\n\t\t\t\t\t\t\t\tstrokeWidth = pencilSize\r\n\t\t\t\t\t\t\t)\r\n\r\n\t\t\t\t\t\t\tpaths += path\r\n\t\t\t\t\t\t\tabsolutePaths.clear()\r\n\t\t\t\t\t\t\tabsolutePaths.addAll(paths)\r\n\t\t\t\t\t\t}\r\n\t\t\t\t\t}\r\n\t\t\t) {\r\n\t\t\t\tpaths.forEach { path ->\r\n\t\t\t\t\tdrawLine(\r\n\t\t\t\t\t\tcolor = path.color,\r\n\t\t\t\t\t\tstart = path.start,\r\n\t\t\t\t\t\tend = path.end,\r\n\t\t\t\t\t\tstrokeWidth = path.strokeWidth,\r\n\t\t\t\t\t\tcap = StrokeCap.Round\r\n\t\t\t\t\t)\r\n\t\t\t\t}\r\n\t\t\t}\r\n\r\n\t\t\tPaletteMenu(\r\n\t\t\t\tdrawMode = drawMode,\r\n\t\t\t\tselectedColor = color,\r\n\t\t\t\tpencilSize = pencilSize,\r\n\t\t\t\tonColorChanged = { color = it },\r\n\t\t\t\tonSizeChanged = { pencilSize = it },\r\n\t\t\t\tonDrawModeChanged = { drawMode = it }\r\n\t\t\t)\r\n\t\t}\r\n\r\n\t\tif (openNameSketchDialog.value) {\r\n\t\t\tNameSketchDialog(\r\n\t\t\t\tonNamed = { name -> save(name) },\r\n\t\t\t\tonDismiss = { openNameSketchDialog.value = false }\r\n\t\t\t)\r\n\t\t}\r\n\t}\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/alt/DrawingBoard.kt b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/alt/DrawingBoard.kt
+--- a/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/alt/DrawingBoard.kt	(revision 320ec92a36be4e89977589aa9a311d364bf0ed46)
++++ b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/alt/DrawingBoard.kt	(date 1723190755597)
+@@ -18,6 +18,7 @@
+ import androidx.compose.runtime.mutableStateListOf
+ import androidx.compose.runtime.mutableStateOf
+ import androidx.compose.runtime.remember
++import androidx.compose.runtime.rememberCoroutineScope
+ import androidx.compose.runtime.saveable.rememberSaveable
+ import androidx.compose.runtime.setValue
+ import androidx.compose.ui.Alignment
+@@ -27,12 +28,14 @@
+ import androidx.compose.ui.graphics.StrokeCap
+ import androidx.compose.ui.graphics.graphicsLayer
+ import androidx.compose.ui.input.pointer.pointerInput
++import androidx.compose.ui.platform.ComposeView
+ import androidx.compose.ui.platform.LocalContext
+ import dev.borisochieng.sketchpad.database.Sketch
+ import dev.borisochieng.sketchpad.ui.navigation.Screens
+ import dev.borisochieng.sketchpad.ui.screens.dialog.NameSketchDialog
+ import dev.borisochieng.sketchpad.ui.screens.dialog.Sizes
+ import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadActions
++import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.BitmapFactory.getBitmap
+ 
+ @Composable
+ fun DrawingBoard(
+@@ -49,7 +52,9 @@
+ 	var scale by remember { mutableFloatStateOf(1f) }
+ 	var offset by remember { mutableStateOf(Offset.Zero) }
+ 	val openNameSketchDialog = rememberSaveable { mutableStateOf(false) }
++	val scope = rememberCoroutineScope()
+ 	val context = LocalContext.current
++	var sketchBitmap: Bitmap? = null
+ 	val save: (String?) -> Unit = { name ->
+ 		val action = if (name == null) {
+ 			SketchPadActions.UpdateSketch(paths)
+@@ -117,51 +122,61 @@
+ 				)
+ 			}
+ 
+-			Canvas(
+-				modifier = Modifier
+-					.fillMaxSize()
+-					.background(Color.White)
+-					.graphicsLayer {
+-						scaleX = scale
+-						scaleY = scale
+-						translationX = offset.x
+-						translationY = offset.y
+-					}
+-					.transformable(state)
+-					.pointerInput(true) {
+-						if (drawMode == DrawMode.Touch) return@pointerInput
+-						detectDragGestures { change, dragAmount ->
+-							change.consume()
+-							val eraseMode = drawMode == DrawMode.Erase
+-							val path = PathProperties(
+-								color = when (drawMode) {
+-									DrawMode.Erase -> Color.White
+-									DrawMode.Draw -> color
+-									else -> Color.Transparent
+-								},
+-								eraseMode = eraseMode,
+-								start = change.position - dragAmount,
+-								end = change.position,
+-								strokeWidth = pencilSize
+-							)
++//			ComposeView(context).apply {
++//				setContent {
++					Canvas(
++						modifier = Modifier
++							.fillMaxSize()
++							.background(Color.White)
++							.graphicsLayer {
++								scaleX = scale
++								scaleY = scale
++								translationX = offset.x
++								translationY = offset.y
++							}
++							.transformable(state)
++							.pointerInput(true) {
++								if (drawMode == DrawMode.Touch) return@pointerInput
++								detectDragGestures { change, dragAmount ->
++									change.consume()
++									val eraseMode = drawMode == DrawMode.Erase
++									val path = PathProperties(
++										color = when (drawMode) {
++											DrawMode.Erase -> Color.White
++											DrawMode.Draw -> color
++											else -> Color.Transparent
++										},
++										eraseMode = eraseMode,
++										start = change.position - dragAmount,
++										end = change.position,
++										strokeWidth = pencilSize
++									)
+ 
+-							paths += path
+-							absolutePaths.clear()
+-							absolutePaths.addAll(paths)
+-						}
+-					}
+-			) {
+-				paths.forEach { path ->
+-					drawLine(
+-						color = path.color,
+-						start = path.start,
+-						end = path.end,
+-						strokeWidth = path.strokeWidth,
+-						cap = StrokeCap.Round
+-					)
+-				}
+-			}
++									paths += path
++									absolutePaths.clear()
++									absolutePaths.addAll(paths)
++								}
++							}
++					) {
++						paths.forEach { path ->
++							drawLine(
++								color = path.color,
++								start = path.start,
++								end = path.end,
++								strokeWidth = path.strokeWidth,
++								cap = StrokeCap.Round
++							)
++						}
++					}
+ 
++//					LaunchedEffect(paths) {
++//						this@apply.getBitmap(scope) { bitmap, _ ->
++//							sketchBitmap = bitmap
++//						}
++//					}
++//				}
++//			}
++
+ 			PaletteMenu(
+ 				drawMode = drawMode,
+ 				selectedColor = color,
+Index: app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/data/BitmapFactory.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/data/BitmapFactory.kt b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/data/BitmapFactory.kt
+new file mode 100644
+--- /dev/null	(date 1723174263792)
++++ b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/data/BitmapFactory.kt	(date 1723174263792)
+@@ -0,0 +1,74 @@
++package dev.borisochieng.sketchpad.ui.screens.drawingboard.data
++
++import android.app.Activity
++import android.graphics.Bitmap
++import android.os.Build
++import android.os.Handler
++import android.os.Looper
++import android.view.PixelCopy
++import android.view.View
++import androidx.core.view.doOnLayout
++import androidx.core.view.drawToBitmap
++import kotlinx.coroutines.CoroutineScope
++import kotlinx.coroutines.flow.MutableSharedFlow
++import kotlinx.coroutines.flow.asSharedFlow
++import kotlinx.coroutines.flow.catch
++import kotlinx.coroutines.flow.launchIn
++import kotlinx.coroutines.flow.mapNotNull
++import kotlinx.coroutines.flow.onEach
++import kotlin.coroutines.resume
++import kotlin.coroutines.resumeWithException
++import kotlin.coroutines.suspendCoroutine
++
++object BitmapFactory {
++	private val _bitmapGenerators = MutableSharedFlow<Bitmap.Config>(extraBufferCapacity = 1)
++	private val bitmapGenerators = _bitmapGenerators.asSharedFlow()
++
++	fun View.getBitmap(
++		coroutineScope: CoroutineScope,
++		onCaptured: (Bitmap?, Throwable?) -> Unit
++	) = bitmapGenerators
++		.mapNotNull { config -> drawBitmapFromView(config) }
++		.onEach { bitmap -> onCaptured(bitmap, null) }
++		.catch { error -> onCaptured(null, error) }
++		.launchIn(coroutineScope)
++}
++
++private suspend fun View.drawBitmapFromView(
++	config: Bitmap.Config,
++): Bitmap = suspendCoroutine { continuation ->
++	doOnLayout { view ->
++		if (Build.VERSION_CODES.O > Build.VERSION.SDK_INT) {
++			continuation.resume(view.drawToBitmap(config))
++			return@doOnLayout
++		}
++
++		val window = (context as? Activity)?.window
++			?: error("Can't get window from the Context")
++
++		Bitmap.createBitmap(width, height, config).apply {
++			val (x, y) = IntArray(2).apply { view.getLocationInWindow(this) }
++			PixelCopy.request(
++				/* source = */ window,
++				/* srcRect = */ getRect(x, y),
++				/* dest = */ this,
++				/* listener = */ { copyResult ->
++					if (copyResult == PixelCopy.SUCCESS) {
++						continuation.resume(this)
++					} else {
++						continuation.resumeWithException(
++							RuntimeException("Bitmap generation failed")
++						)
++					}
++				},
++				/* listenerThread = */ Handler(Looper.getMainLooper())
++			)
++		}
++	}
++}
++
++private fun View.getRect(x: Int, y: Int): android.graphics.Rect {
++	val viewWidth = this.width
++	val viewHeight = this.height
++	return android.graphics.Rect(x, y, viewWidth + x, viewHeight + y)
++}
+Index: app/build.gradle.kts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>plugins {\r\n    alias(libs.plugins.android.application)\r\n    alias(libs.plugins.compose.compiler)\r\n    alias(libs.plugins.jetbrains.kotlin.android)\r\n    alias(libs.plugins.ksp)\r\n    alias(libs.plugins.google.services)\r\n}\r\n\r\nandroid {\r\n    namespace = \"dev.borisochieng.sketchpad\"\r\n    compileSdk = 34\r\n\r\n    defaultConfig {\r\n        applicationId = \"dev.borisochieng.sketchpad\"\r\n        minSdk = 24\r\n        targetSdk = 34\r\n        versionCode = 1\r\n        versionName = \"1.0\"\r\n\r\n//        room {\r\n//            schemaDirectory(path = \"$projectDir/schemas\")\r\n//        }\r\n\r\n        testInstrumentationRunner = \"androidx.test.runner.AndroidJUnitRunner\"\r\n        vectorDrawables {\r\n            useSupportLibrary = true\r\n        }\r\n    }\r\n\r\n    buildTypes {\r\n        release {\r\n            isMinifyEnabled = false\r\n            proguardFiles(\r\n                getDefaultProguardFile(\"proguard-android-optimize.txt\"),\r\n                \"proguard-rules.pro\"\r\n            )\r\n        }\r\n    }\r\n    compileOptions {\r\n        sourceCompatibility = JavaVersion.VERSION_1_8\r\n        targetCompatibility = JavaVersion.VERSION_1_8\r\n    }\r\n    kotlinOptions {\r\n        jvmTarget = \"1.8\"\r\n    }\r\n    buildFeatures {\r\n        compose = true\r\n    }\r\n    composeOptions {\r\n        kotlinCompilerExtensionVersion = \"1.5.1\"\r\n    }\r\n    packaging {\r\n        resources {\r\n            excludes += \"/META-INF/{AL2.0,LGPL2.1}\"\r\n        }\r\n    }\r\n}\r\n\r\ndependencies {\r\n\r\n    // android\r\n    implementation(libs.androidx.core.ktx)\r\n    implementation(libs.androidx.lifecycle.runtime.ktx)\r\n\r\n    // compose\r\n    implementation(libs.androidx.activity.compose)\r\n    implementation(platform(libs.androidx.compose.bom))\r\n    implementation(libs.androidx.compose.navigation)\r\n    implementation(libs.androidx.ui)\r\n    implementation(libs.androidx.ui.graphics)\r\n    implementation(libs.androidx.ui.tooling.preview)\r\n    implementation(libs.androidx.material.icons)\r\n    implementation(libs.androidx.material3)\r\n\r\n    // gson\r\n    implementation(libs.gson)\r\n\r\n    //koin\r\n    implementation(libs.koin.android)\r\n    implementation(platform(libs.koin.bom))\r\n    implementation(libs.koin.core)\r\n    implementation(libs.koin.androidx.compose)\r\n\r\n    // room\r\n    implementation(libs.room.ktx)\r\n    implementation(libs.room.runtime)\r\n    ksp(libs.room.compiler)\r\n\r\n    // splashscreen\r\n    implementation(libs.splash)\r\n\r\n    //firebase\r\n    implementation(platform(libs.firebase.bom))\r\n    implementation(libs.firebase.auth)\r\n    implementation(libs.firebase.storage)\r\n\r\n    //coil\r\n    implementation(libs.coil)\r\n    implementation(libs.coil.compose)\r\n\r\n    testImplementation(libs.junit)\r\n    androidTestImplementation(libs.androidx.junit)\r\n    androidTestImplementation(libs.androidx.espresso.core)\r\n    androidTestImplementation(platform(libs.androidx.compose.bom))\r\n    androidTestImplementation(libs.androidx.ui.test.junit4)\r\n    debugImplementation(libs.androidx.ui.tooling)\r\n    debugImplementation(libs.androidx.ui.test.manifest)\r\n\r\n    //SketchPad Lib\r\n    implementation  (libs.drawbox)\r\n    implementation  (libs.rang.vikalp)\r\n    //dataStore\r\n    implementation (libs.androidx.datastore.preferences)\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/build.gradle.kts b/app/build.gradle.kts
+--- a/app/build.gradle.kts	(revision b3a07d925214fa43d0a959fe227dfdb19fa3ac88)
++++ b/app/build.gradle.kts	(date 1723165698673)
+@@ -10,6 +10,15 @@
+     namespace = "dev.borisochieng.sketchpad"
+     compileSdk = 34
+ 
++    signingConfigs {
++        create("release") {
++            keyAlias = "nnamdo"
++            keyPassword = "rolinsnnamodi9570"
++            storeFile = file("C:\\Users\\Martins\\keystores\\app-keystore.jks")
++            storePassword = "rolinsnnamodi9570"
++        }
++    }
++
+     defaultConfig {
+         applicationId = "dev.borisochieng.sketchpad"
+         minSdk = 24
+@@ -28,12 +37,16 @@
+     }
+ 
+     buildTypes {
++        debug {
++            signingConfig = signingConfigs.getByName("release")
++        }
+         release {
+             isMinifyEnabled = false
+             proguardFiles(
+                 getDefaultProguardFile("proguard-android-optimize.txt"),
+                 "proguard-rules.pro"
+             )
++            signingConfig = signingConfigs.getByName("release")
+         }
+     }
+     compileOptions {
