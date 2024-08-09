@@ -25,6 +25,8 @@ import org.koin.core.component.inject
 
 class AuthViewModel : ViewModel(), KoinComponent {
     private val authRepository: AuthRepository by inject()
+    
+    private val keyValueStore: KeyValueStore by inject()
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> get() = _uiState.asStateFlow()
@@ -32,8 +34,32 @@ class AuthViewModel : ViewModel(), KoinComponent {
     private val _eventFlow = MutableSharedFlow<UiEvent>()
     val uiEvent: SharedFlow<UiEvent> get() = _eventFlow.asSharedFlow()
 
+    var startScreen by mutableStateOf(
+        AppRoute.HomeScreen.route
+    ); private set
+
     init {
+        checkIfFirstLaunch()
         isLoggedIn()
+    }
+    
+    private fun checkIfFirstLaunch() {
+        viewModelScope.launch {
+            keyValueStore.getLaunchStatus().collect {
+                startScreen = (if (it) {
+                    AppRoute.HomeScreen
+                }else if(!authRepository.checkIfUserIsLoggedIn()) {
+                    AppRoute.SignUpScreen
+                }
+                else AppRoute.OnBoardingScreen).route
+            }
+        }
+    }
+
+    fun saveLaunchStatus() {
+        viewModelScope.launch {
+            keyValueStore.saveLaunchStatus()
+        }
     }
 
 

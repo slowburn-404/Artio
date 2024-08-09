@@ -4,7 +4,11 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Scaffold
+import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import dev.borisochieng.sketchpad.ui.components.NavBar
 import dev.borisochieng.sketchpad.ui.navigation.AppRoute
@@ -30,9 +34,11 @@ class MainActivity : ComponentActivity() {
                 val navActions = NavActions(navController)
                 AppTheme {
                     Scaffold(
+                        modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars),
                         bottomBar = { NavBar(navController) }
-                    ) { _ ->
+                    ) { innerPadding ->
                         AppRoute(
+                            paddingValues = innerPadding,
                             navActions = navActions,
                             navController = navController,
                             saveImage = {

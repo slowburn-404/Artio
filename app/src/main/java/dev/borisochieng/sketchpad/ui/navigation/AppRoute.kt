@@ -1,8 +1,11 @@
 package dev.borisochieng.sketchpad.ui.navigation
 
 import android.graphics.Bitmap
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -23,6 +26,7 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun AppRoute(
+	paddingValues: PaddingValues,
 	navActions: NavActions,
 	navController: NavHostController,
 	saveImage: (Bitmap) -> Unit,
@@ -31,6 +35,7 @@ fun AppRoute(
 	sketchPadViewModel: SketchPadViewModel = koinViewModel()
 ) {
 	NavHost(
+		modifier = Modifier.padding(paddingValues),
 		navController = navController,
 		startDestination = authViewModel.startScreen
 	) {

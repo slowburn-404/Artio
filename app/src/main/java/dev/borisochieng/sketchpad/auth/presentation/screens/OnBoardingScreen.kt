@@ -40,13 +40,6 @@ fun OnBoardingScreen(
 ) {
     val pagerState = rememberPagerState(pageCount = { 3 })
     val scope = rememberCoroutineScope()
-    val uiState by viewModel.uiState.collectAsState()
-
-    LaunchedEffect(uiState) {
-        if(uiState.isLoggedIn) {
-            navigate(Screens.HomeScreen)
-        }
-    }
 
     val pagerItem = when(pagerState.currentPage) {
         0 -> {
