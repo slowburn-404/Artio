@@ -25,7 +25,7 @@ import org.koin.core.component.inject
 
 class AuthViewModel : ViewModel(), KoinComponent {
     private val authRepository: AuthRepository by inject()
-    
+
     private val keyValueStore: KeyValueStore by inject()
 
     private val _uiState = MutableStateFlow(UiState())
@@ -42,16 +42,16 @@ class AuthViewModel : ViewModel(), KoinComponent {
         checkIfFirstLaunch()
         isLoggedIn()
     }
-    
+
     private fun checkIfFirstLaunch() {
         viewModelScope.launch {
-            keyValueStore.getLaunchStatus().collect {
-                startScreen = (if (it) {
-                    AppRoute.HomeScreen
-                }else if(!authRepository.checkIfUserIsLoggedIn()) {
-                    AppRoute.SignUpScreen
-                }
-                else AppRoute.OnBoardingScreen).route
+            val isLoggedIn = authRepository.checkIfUserIsLoggedIn()
+            keyValueStore.getLaunchStatus().collect { hasFinishedOnboarding ->
+                startScreen = when {
+                    !hasFinishedOnboarding -> AppRoute.OnBoardingScreen
+                    !isLoggedIn -> AppRoute.SignUpScreen
+                    else -> AppRoute.HomeScreen
+                }.route
             }
         }
     }
@@ -254,27 +254,27 @@ class AuthViewModel : ViewModel(), KoinComponent {
                             imageUrl = imageUrl
                         )
 
-                    when (updateProfileTask) {
-                        is FirebaseResponse.Success -> {
-                            _uiState.update {
-                                it.copy(
-                                    user = updateProfileTask.data,
-                                    error = ""
-                                )
+                        when (updateProfileTask) {
+                            is FirebaseResponse.Success -> {
+                                _uiState.update {
+                                    it.copy(
+                                        user = updateProfileTask.data,
+                                        error = ""
+                                    )
+                                }
+                                _eventFlow.emit(UiEvent.SnackBarEvent("Profile updated successfully"))
                             }
-                            _eventFlow.emit(UiEvent.SnackBarEvent("Profile updated successfully"))
-                        }
 
-                        is FirebaseResponse.Error -> {
-                            _eventFlow.emit(UiEvent.SnackBarEvent(updateProfileTask.message))
-                            _uiState.update {
-                                it.copy(
-                                    error = updateProfileTask.message
-                                )
+                            is FirebaseResponse.Error -> {
+                                _eventFlow.emit(UiEvent.SnackBarEvent(updateProfileTask.message))
+                                _uiState.update {
+                                    it.copy(
+                                        error = updateProfileTask.message
+                                    )
+                                }
                             }
                         }
                     }
-                }
                 }
 
                 is FirebaseResponse.Error -> {

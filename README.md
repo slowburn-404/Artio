@@ -18,7 +18,6 @@ A Jetpack Compose App that lets users draw on a canvas.
 - **[Jetpack Compose](https://developer.android.com/develop/ui/compose)**: A modern UI toolkit for building Android applications in Kotlin.
 - **[Coil](https://coil-kt.github.io/coil/)**: A lightweight image loading library.
 - **[Koin](https://insert-koin.io/)**: Dependency Injection Framework.
-- **[Drawbox](https://github.com/akshay2211/DrawBox)**: Canvas drawing library.
 - **[Firebase](https://firebase.google.com/)**: Backend service for authentication and photo storage.
 - **[ViewModel](https://developer.android.com/topic/libraries/architecture/viewmodel)**: A lifecycle-aware Android Architecture Component for holding state.
 - **[Room Persistence Library](https://developer.android.com/training/data-storage/room)**: Android Jetpack Library for local data caching.
@@ -27,9 +26,11 @@ A Jetpack Compose App that lets users draw on a canvas.
 ![Splash](./screenshots/splash.png)
 ![Sign up](./screenshots/signup.png)
 ![Login](./screenshots/login.png)
+![Onboarding](./screenshots/onboarding.png)
 ![Home](./screenshots/home.png)
 ![Canvas](./screenshots/canvas.png)
 ![Color picker](./screenshots/colorpicker.png)
+![Brush](./screenshots/bursh.png)
 ![Profile](./screenshots/profile.png)
 ![Update Profile](./screenshots/updateprofile.png)
 ## Setup Instructions
