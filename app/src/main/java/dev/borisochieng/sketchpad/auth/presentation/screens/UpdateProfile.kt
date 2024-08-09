@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.AccountBox
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -52,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import dev.borisochieng.sketchpad.auth.presentation.state.UiEvent
 import dev.borisochieng.sketchpad.auth.presentation.viewmodels.AuthViewModel
 import dev.borisochieng.sketchpad.ui.navigation.Screens
 import dev.borisochieng.sketchpad.ui.theme.AppTheme
@@ -65,6 +67,7 @@ import org.koin.androidx.compose.koinViewModel
 fun UpdateProfileScreen(navigate: (Screens) -> Unit, viewModel: AuthViewModel = koinViewModel()) {
 
     val uiState by viewModel.uiState.collectAsState()
+    val uiEvent by viewModel.uiEvent.collectAsState(initial = null)
 
     var photoUri: Uri? by remember {
         mutableStateOf(null)
@@ -91,9 +94,17 @@ fun UpdateProfileScreen(navigate: (Screens) -> Unit, viewModel: AuthViewModel = 
 
     showProgressIndicator = uiState.isLoading
 
-    LaunchedEffect(Unit) {
-        viewModel.uiEvent.collectLatest { message ->
-            snackBarHostState.showSnackbar(message.toString())
+
+
+    LaunchedEffect(uiEvent) {
+        uiEvent?.let { event ->
+            when (event) {
+                is UiEvent.SnackBarEvent -> {
+                    // Showing Snackbar with the message
+                    snackBarHostState.showSnackbar(event.message)
+                }
+                // Handle other events if any
+            }
         }
     }
 
@@ -233,14 +244,23 @@ fun UpdateProfileScreen(navigate: (Screens) -> Unit, viewModel: AuthViewModel = 
                         viewModel.uploadImageAndUpdateProfile(uri = photoUri!!, username = username)
                     }
                 },
-                enabled = username.isNotEmpty()
+                enabled = username.isNotEmpty() && photoUri != null
             ) {
 
-                Text(
-                    text = "Update Profile",
-                    style = AppTypography.labelLarge,
-                    color = lightScheme.onPrimary,
-                )
+                if (showProgressIndicator) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = lightScheme.onPrimary,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+
+                    Text(
+                        text = "Update Profile",
+                        style = AppTypography.labelLarge,
+                        color = lightScheme.onPrimary,
+                    )
+                }
             }
 
 

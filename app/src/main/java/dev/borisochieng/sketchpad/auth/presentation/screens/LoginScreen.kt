@@ -47,6 +47,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import dev.borisochieng.sketchpad.auth.presentation.state.UiEvent
 import dev.borisochieng.sketchpad.auth.presentation.viewmodels.AuthViewModel
 import dev.borisochieng.sketchpad.ui.navigation.Screens
 import dev.borisochieng.sketchpad.ui.theme.AppTypography
@@ -95,13 +96,20 @@ fun LoginScreen(
     }
 
     val snackBarHostState = remember { SnackbarHostState() }
+    val uiEvent by viewModel.uiEvent.collectAsState(initial = null)
     val uiState = viewModel.uiState.collectAsState()
     showProgressIndicator = uiState.value.isLoading
 
     //listen for error messages
-    LaunchedEffect(Unit) {
-        viewModel.uiEvent.collectLatest { messsage ->
-            snackBarHostState.showSnackbar(message = messsage.toString())
+    LaunchedEffect(uiEvent) {
+        uiEvent?.let { event ->
+            when (event) {
+                is UiEvent.SnackBarEvent -> {
+                    // Showing Snackbar with the message
+                    snackBarHostState.showSnackbar(event.message)
+                }
+                // Handle other events if any
+            }
         }
     }
 

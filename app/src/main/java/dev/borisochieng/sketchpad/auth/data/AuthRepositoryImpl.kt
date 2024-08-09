@@ -1,7 +1,6 @@
 package dev.borisochieng.sketchpad.auth.data
 
 import android.net.Uri
-import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -100,9 +99,9 @@ class AuthRepositoryImpl : AuthRepository {
     ): FirebaseResponse<User> =
         withContext(Dispatchers.IO) {
             try {
-                val firebaseUser = firebaseAuth.currentUser
+                val currentUser = firebaseAuth.currentUser
 
-                if (firebaseUser != null) {
+                if (currentUser != null) {
                     val profileUpdates =
                         UserProfileChangeRequest
                             .Builder()
@@ -110,13 +109,13 @@ class AuthRepositoryImpl : AuthRepository {
                             .setPhotoUri(imageUrl)
                             .build()
 
-                    firebaseUser.updateProfile(profileUpdates).await()
+                    currentUser.updateProfile(profileUpdates).await()
 
                     val updatedUser = User(
-                        uid = firebaseUser.uid,
-                        displayName = firebaseUser.displayName,
-                        imageUrl = firebaseUser.photoUrl,
-                        email = firebaseUser.email!!, //cannot be null since account was created with an emal
+                        uid = currentUser.uid,
+                        displayName = currentUser.displayName,
+                        imageUrl = currentUser.photoUrl,
+                        email = currentUser.email!!, //cannot be null since account was created with an email
                         isLoggedIn = checkIfUserIsLoggedIn()
                     )
                     FirebaseResponse.Success(updatedUser)

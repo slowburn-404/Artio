@@ -106,7 +106,7 @@ fun ProfileScreen(
                         contentDescription = "Avatar",
                         model = ImageRequest
                             .Builder(LocalContext.current)
-                            .data(uiState.user?.imageUrl)
+                            .data(uiState.user!!.imageUrl)
                             .build(),
                         contentScale = ContentScale.Crop
                     )

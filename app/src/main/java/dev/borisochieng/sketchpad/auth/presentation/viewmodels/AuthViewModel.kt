@@ -89,6 +89,8 @@ class AuthViewModel : ViewModel(), KoinComponent {
                         )
                     }
 
+                    _eventFlow.emit(UiEvent.SnackBarEvent("Account created successfully"))
+
                 }
 
                 is FirebaseResponse.Error -> {
@@ -131,6 +133,7 @@ class AuthViewModel : ViewModel(), KoinComponent {
                             isLoggedIn = true
                         )
                     }
+                    _eventFlow.emit(UiEvent.SnackBarEvent("Log in successful"))
 
                 }
 
@@ -239,6 +242,13 @@ class AuthViewModel : ViewModel(), KoinComponent {
 
     fun uploadImageAndUpdateProfile(uri: Uri, username: String) =
         viewModelScope.launch {
+
+            _uiState.update {
+                it.copy(
+                    isLoading = true,
+                    error = ""
+                )
+            }
             // Step 1: Upload the image and get the download URL
             val uploadImageTask = authRepository.uploadImageToFireStore(uri = uri)
 
@@ -259,7 +269,8 @@ class AuthViewModel : ViewModel(), KoinComponent {
                                 _uiState.update {
                                     it.copy(
                                         user = updateProfileTask.data,
-                                        error = ""
+                                        error = "",
+                                        isLoading = false
                                     )
                                 }
                                 _eventFlow.emit(UiEvent.SnackBarEvent("Profile updated successfully"))
