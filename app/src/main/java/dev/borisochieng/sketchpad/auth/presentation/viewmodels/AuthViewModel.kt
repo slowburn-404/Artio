@@ -53,7 +53,8 @@ class AuthViewModel : ViewModel(), KoinComponent {
                 is FirebaseResponse.Success -> {
                     _uiState.update {
                         it.copy(
-                            user = response.data
+                            user = response.data,
+                            error = ""
                         )
                     }
 
@@ -61,9 +62,6 @@ class AuthViewModel : ViewModel(), KoinComponent {
 
                 is FirebaseResponse.Error -> {
                     val errorMessage: String = response.message
-                    val exception: Exception? = response.exception
-                    exception?.printStackTrace()
-
                     _uiState.update {
                         it.copy(
                             isLoading = false,
@@ -89,7 +87,7 @@ class AuthViewModel : ViewModel(), KoinComponent {
             _uiState.update {
                 it.copy(
                     isLoading = false,
-                    error = ""
+                    error = "",
                 )
             }
 
@@ -97,7 +95,9 @@ class AuthViewModel : ViewModel(), KoinComponent {
                 is FirebaseResponse.Success -> {
                     _uiState.update {
                         it.copy(
-                            user = response.data
+                            user = response.data,
+                            error = "",
+                            isLoggedIn = true
                         )
                     }
 
@@ -105,22 +105,20 @@ class AuthViewModel : ViewModel(), KoinComponent {
 
                 is FirebaseResponse.Error -> {
                     val errorMessage: String = response.message
-                    val exception: Exception? = response.exception
-                    exception?.printStackTrace()
 
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            error = errorMessage
+                            error = errorMessage,
+                            isLoggedIn = false
                         )
                     }
-
                     _eventFlow.emit(UiEvent.SnackBarEvent(errorMessage))
                 }
             }
         }
 
-    fun logoutUser()  =
+    fun logoutUser() =
         viewModelScope.launch {
             _uiState.update {
                 it.copy(
@@ -134,49 +132,44 @@ class AuthViewModel : ViewModel(), KoinComponent {
                 it.copy(
                     isLoading = false,
                     error = "",
-                    user = null
+                    user = null,
+                    isLoggedIn = false
                 )
             }
 
         }
 
-   private fun isLoggedIn() =
+    private fun isLoggedIn() =
         viewModelScope.launch {
             val response = authRepository.checkIfUserIsLoggedIn()
 
-            when(response) {
-                is FirebaseResponse.Success -> {
-                    _uiState.update {
-                        it.copy(
-                            user = response.data
-                        )
-                    }
-                }
-                is FirebaseResponse.Error -> {
-                    _eventFlow.emit(UiEvent.SnackBarEvent(response.message))
-                }
+            _uiState.update {
+                it.copy(
+                    isLoggedIn = response
+                )
             }
         }
 
-    fun updateProfile(imageUrl: String, username: String) =
+    fun updateProfile(imageUrl: Uri, username: String) =
         viewModelScope.launch {
-            val updateProfile = authRepository.updateUserProfile(displayName = username, imageUrl = imageUrl)
+            val updateProfileTask  =
+                authRepository.updateUserProfile(displayName = username, imageUrl = imageUrl)
 
-            when(updateProfile) {
+            when (updateProfileTask) {
                 is FirebaseResponse.Success -> {
                     _uiState.update {
                         it.copy(
-                            user = updateProfile.data
+                            user = updateProfileTask.data
                         )
                     }
                     _eventFlow.emit(UiEvent.SnackBarEvent("Profile Update Successfully"))
                 }
 
                 is FirebaseResponse.Error -> {
-                    _eventFlow.emit(UiEvent.SnackBarEvent(updateProfile.message))
+                    _eventFlow.emit(UiEvent.SnackBarEvent(updateProfileTask.message))
                     _uiState.update {
                         it.copy(
-                            error = updateProfile.message
+                            error = updateProfileTask.message
                         )
                     }
                 }
@@ -185,21 +178,31 @@ class AuthViewModel : ViewModel(), KoinComponent {
 
     fun uploadImage(uri: Uri) =
         viewModelScope.launch {
-           authRepository.uploadImageToFireStore(
-                uri,
-                onUploadFailure = {
-                    viewModelScope.launch {
-                        _eventFlow.emit(UiEvent.SnackBarEvent("Image uploaded successfully"))
-                    }
-                },
-                onUploadSuccess = {
-                    viewModelScope.launch {
-                        _eventFlow.emit(UiEvent.SnackBarEvent(it))
+            val uploadTask = authRepository.uploadImageToFireStore(uri = uri)
+
+            when (uploadTask) {
+                is FirebaseResponse.Success -> {
+                    val imageUrl = uploadTask.data
+
+                    if (imageUrl != null) {
+                        _uiState.update {
+                            it.copy(
+                                user = it.user?.copy(
+                                    imageUrl = imageUrl
+                                )
+                            )
+                        }
                     }
                 }
-            )
 
-
+                is FirebaseResponse.Error -> {
+                    _uiState.update {
+                        it.copy(
+                            error = uploadTask.message
+                        )
+                    }
+                    _eventFlow.emit(UiEvent.SnackBarEvent(uploadTask.message))
+                }
+            }
         }
-
 }

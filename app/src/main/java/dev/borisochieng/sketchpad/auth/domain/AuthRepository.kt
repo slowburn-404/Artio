@@ -12,10 +12,10 @@ interface AuthRepository {
 
     suspend fun logout()
 
-    suspend fun checkIfUserIsLoggedIn(): FirebaseResponse<User>
+    suspend fun checkIfUserIsLoggedIn(): Boolean
 
-    suspend fun updateUserProfile(displayName: String, imageUrl: String,): FirebaseResponse<User>
+    suspend fun updateUserProfile(displayName: String, imageUrl: Uri,): FirebaseResponse<User>
 
-    suspend fun uploadImageToFireStore(uri: Uri, onUploadSuccess: (String) -> Unit, onUploadFailure: (Exception) -> Unit)
+    suspend fun uploadImageToFireStore(uri: Uri): FirebaseResponse<Uri>
 
 }
