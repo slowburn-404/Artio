@@ -1,12 +1,17 @@
 package dev.borisochieng.sketchpad.auth.presentation.viewmodels
 
 import android.net.Uri
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.borisochieng.sketchpad.auth.data.FirebaseResponse
 import dev.borisochieng.sketchpad.auth.domain.AuthRepository
 import dev.borisochieng.sketchpad.auth.presentation.state.UiEvent
 import dev.borisochieng.sketchpad.auth.presentation.state.UiState
+import dev.borisochieng.sketchpad.ui.navigation.AppRoute
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.KeyValueStore
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -150,59 +155,111 @@ class AuthViewModel : ViewModel(), KoinComponent {
             }
         }
 
-    fun updateProfile(imageUrl: Uri, username: String) =
+//    fun updateProfile(imageUrl: Uri, username: String) =
+//        viewModelScope.launch {
+//            val updateProfileTask =
+//                authRepository.updateUserProfile(displayName = username, imageUrl = imageUrl)
+//
+//            when (updateProfileTask) {
+//                is FirebaseResponse.Success -> {
+//                    _uiState.update {
+//                        it.copy(
+//                            user = updateProfileTask.data
+//                        )
+//                    }
+//                    _eventFlow.emit(UiEvent.SnackBarEvent("Profile Update Successfully"))
+//                }
+//
+//                is FirebaseResponse.Error -> {
+//                    _eventFlow.emit(UiEvent.SnackBarEvent(updateProfileTask.message))
+//                    _uiState.update {
+//                        it.copy(
+//                            error = updateProfileTask.message
+//                        )
+//                    }
+//                }
+//            }
+//        }
+//
+//    fun uploadImage(uri: Uri) =
+//        viewModelScope.launch {
+//            val uploadTask = authRepository.uploadImageToFireStore(uri = uri)
+//
+//            when (uploadTask) {
+//                is FirebaseResponse.Success -> {
+//                    val imageUrl = uploadTask.data
+//
+//                    if (imageUrl != null) {
+//                        _uiState.update {
+//                            it.copy(
+//                                user = it.user?.copy(
+//                                    imageUrl = imageUrl
+//                                )
+//                            )
+//                        }
+//                    }
+//                }
+//
+//                is FirebaseResponse.Error -> {
+//                    _uiState.update {
+//                        it.copy(
+//                            error = uploadTask.message
+//                        )
+//                    }
+//                    _eventFlow.emit(UiEvent.SnackBarEvent(uploadTask.message))
+//                }
+//            }
+//        }
+
+    fun uploadImageAndUpdateProfile(uri: Uri, username: String) =
         viewModelScope.launch {
-            val updateProfileTask  =
-                authRepository.updateUserProfile(displayName = username, imageUrl = imageUrl)
+            // Step 1: Upload the image and get the download URL
+            val uploadImageTask = authRepository.uploadImageToFireStore(uri = uri)
 
-            when (updateProfileTask) {
+            when (uploadImageTask) {
                 is FirebaseResponse.Success -> {
-                    _uiState.update {
-                        it.copy(
-                            user = updateProfileTask.data
-                        )
-                    }
-                    _eventFlow.emit(UiEvent.SnackBarEvent("Profile Update Successfully"))
-                }
+                    val imageUrl = uploadImageTask.data
 
-                is FirebaseResponse.Error -> {
-                    _eventFlow.emit(UiEvent.SnackBarEvent(updateProfileTask.message))
-                    _uiState.update {
-                        it.copy(
-                            error = updateProfileTask.message
-                        )
-                    }
-                }
-            }
-        }
-
-    fun uploadImage(uri: Uri) =
-        viewModelScope.launch {
-            val uploadTask = authRepository.uploadImageToFireStore(uri = uri)
-
-            when (uploadTask) {
-                is FirebaseResponse.Success -> {
-                    val imageUrl = uploadTask.data
+                    // Step 2: Update the user profile with the new image URL and username
 
                     if (imageUrl != null) {
-                        _uiState.update {
-                            it.copy(
-                                user = it.user?.copy(
-                                    imageUrl = imageUrl
+                        val updateProfileTask = authRepository.updateUserProfile(
+                            displayName = username,
+                            imageUrl = imageUrl
+                        )
+
+                    when (updateProfileTask) {
+                        is FirebaseResponse.Success -> {
+                            _uiState.update {
+                                it.copy(
+                                    user = updateProfileTask.data,
+                                    error = ""
                                 )
-                            )
+                            }
+                            _eventFlow.emit(UiEvent.SnackBarEvent("Profile updated successfully"))
+                        }
+
+                        is FirebaseResponse.Error -> {
+                            _eventFlow.emit(UiEvent.SnackBarEvent(updateProfileTask.message))
+                            _uiState.update {
+                                it.copy(
+                                    error = updateProfileTask.message
+                                )
+                            }
                         }
                     }
                 }
+                }
 
                 is FirebaseResponse.Error -> {
                     _uiState.update {
                         it.copy(
-                            error = uploadTask.message
+                            error = uploadImageTask.message
                         )
                     }
-                    _eventFlow.emit(UiEvent.SnackBarEvent(uploadTask.message))
+                    _eventFlow.emit(UiEvent.SnackBarEvent(uploadImageTask.message))
                 }
             }
+
         }
 }

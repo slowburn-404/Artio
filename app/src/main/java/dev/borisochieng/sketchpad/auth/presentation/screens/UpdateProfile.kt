@@ -69,7 +69,9 @@ fun UpdateProfileScreen(navigate: (Screens) -> Unit, viewModel: AuthViewModel = 
     var photoUri: Uri? by remember {
         mutableStateOf(null)
     }
-    photoUri = uiState.user?.imageUrl
+    LaunchedEffect(uiState.user?.imageUrl) {
+        photoUri = uiState.user?.imageUrl
+    }
 
     val launcher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.PickVisualMedia()) { uri ->
@@ -83,6 +85,11 @@ fun UpdateProfileScreen(navigate: (Screens) -> Unit, viewModel: AuthViewModel = 
     val snackBarHostState = remember {
         SnackbarHostState()
     }
+    var showProgressIndicator by remember {
+        mutableStateOf(false)
+    }
+
+    showProgressIndicator = uiState.isLoading
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collectLatest { message ->
@@ -222,14 +229,8 @@ fun UpdateProfileScreen(navigate: (Screens) -> Unit, viewModel: AuthViewModel = 
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
                 onClick = {
-                    if (uiState.error.isEmpty()) {
-                        photoUri?.let {
-                            viewModel.uploadImage(it)
-                            viewModel.updateProfile(
-                                imageUrl = it,
-                                username = username
-                            )
-                        }
+                    if (uiState.error.isEmpty() && photoUri != null) {
+                        viewModel.uploadImageAndUpdateProfile(uri = photoUri!!, username = username)
                     }
                 },
                 enabled = username.isNotEmpty()
@@ -247,6 +248,7 @@ fun UpdateProfileScreen(navigate: (Screens) -> Unit, viewModel: AuthViewModel = 
     }
 
 }
+
 
 @Preview(showBackground = true)
 @Composable

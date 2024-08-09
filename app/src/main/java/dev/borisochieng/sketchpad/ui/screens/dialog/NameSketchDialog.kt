@@ -1,6 +1,5 @@
-package dev.borisochieng.sketchpad.ui.screens.drawingboard
+package dev.borisochieng.sketchpad.ui.screens.dialog
 
-import android.graphics.Bitmap
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -13,12 +12,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import dev.borisochieng.sketchpad.database.Sketch
 
 @Composable
 fun NameSketchDialog(
-	art: Bitmap,
-	onNamed: (Sketch) -> Unit,
+	onNamed: (String) -> Unit,
 	onDismiss: () -> Unit
 ) {
 	var name by rememberSaveable { mutableStateOf("") }
@@ -30,30 +27,21 @@ fun NameSketchDialog(
 			OutlinedTextField(
 				value = name,
 				onValueChange = { name = it },
-				modifier = Modifier.fillMaxWidth()
+				modifier = Modifier.fillMaxWidth(),
+				singleLine = true
 			)
-		},
-		dismissButton = {
-			OutlinedButton(
-				onClick = onDismiss,
-				modifier = Modifier.fillMaxWidth(0.5f)
-			) {
-				Text("Cancel")
-			}
 		},
 		confirmButton = {
 			Button(
-				onClick = {
-					val sketch = Sketch(
-						name = name,
-						art = art
-					)
-					onNamed(sketch)
-				},
-				modifier = Modifier.fillMaxWidth(0.5f),
+				onClick = { onNamed(name) },
 				enabled = name.isNotEmpty()
 			) {
 				Text("Save")
+			}
+		},
+		dismissButton = {
+			OutlinedButton(onClick = onDismiss) {
+				Text("Cancel")
 			}
 		}
 	)

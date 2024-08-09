@@ -10,6 +10,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,10 +18,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Person
-import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -47,12 +46,16 @@ import dev.borisochieng.sketchpad.ui.navigation.AppRoute
 @Composable
 fun HomeTopBar() {
 	TopAppBar(
-		title = {},
-		navigationIcon = {
-			Image(
-				painter = painterResource(R.drawable.logo),
-				contentDescription = stringResource(R.string.app_name)
-			)
+		title = {
+			Box(
+				modifier = Modifier.fillMaxWidth(),
+				contentAlignment = Alignment.Center
+			) {
+				Image(
+					painter = painterResource(R.drawable.logo),
+					contentDescription = stringResource(R.string.app_name)
+				)
+			}
 		}
 	)
 }
@@ -171,10 +174,10 @@ private enum class NavBarItems(
 		unselectedIcon = Icons.Outlined.Person,
 		route = AppRoute.ProfileScreen.route
 	),
-	Settings(
-		title = R.string.settings,
-		selectedIcon = Icons.Rounded.Settings,
-		unselectedIcon = Icons.Outlined.Settings,
-		route = AppRoute.SettingsScreen.route
-	)
+//	Settings(
+//		title = R.string.settings,
+//		selectedIcon = Icons.Rounded.Settings,
+//		unselectedIcon = Icons.Outlined.Settings,
+//		route = AppRoute.SettingsScreen.route
+//	)
 }

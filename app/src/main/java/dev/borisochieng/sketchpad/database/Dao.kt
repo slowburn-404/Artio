@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -18,7 +19,7 @@ interface SketchDao {
 	@Insert
 	suspend fun saveSketch(sketch: Sketch)
 
-	@Insert
+	@Update
 	suspend fun updateSketch(sketch: Sketch)
 
 	@Delete

@@ -110,9 +110,11 @@ fun OnBoardingScreen(
                         pagerState.scrollToPage(pagerState.currentPage + 1)
                     }
                 } else {
+                    viewModel.saveLaunchStatus()
                     navigate(Screens.SignUpScreen)
                 }
-            }) {
+            }
+        ) {
 
             Text(
                 text = if (pagerState.currentPage < 2) "Next" else "Get Started",

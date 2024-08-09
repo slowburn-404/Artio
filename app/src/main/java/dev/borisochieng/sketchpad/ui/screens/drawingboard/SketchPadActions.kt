@@ -1,13 +1,13 @@
 package dev.borisochieng.sketchpad.ui.screens.drawingboard
 
-import android.graphics.Bitmap
 import dev.borisochieng.sketchpad.database.Sketch
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.alt.PathProperties
 
 sealed class SketchPadActions {
 
 	data class SaveSketch(val sketch: Sketch) : SketchPadActions()
 
-	data class UpdateSketch(val art: Bitmap) : SketchPadActions()
+	data class UpdateSketch(val paths: List<PathProperties>) : SketchPadActions()
 
 	data class DeleteSketch(val sketch: Sketch) : SketchPadActions()
 
