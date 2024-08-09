@@ -28,14 +28,14 @@ import dev.borisochieng.sketchpad.utils.Extensions.formatDate
 fun SketchPoster(
 	sketch: Sketch,
 	modifier: Modifier = Modifier,
-	onClick: (Int) -> Unit
+	onClick: (String) -> Unit
 ) {
 	Column(
 		modifier = modifier
 			.padding(end = 10.dp, bottom = 10.dp)
 			.clip(MaterialTheme.shapes.large)
 			.background(MaterialTheme.colorScheme.surfaceContainer)
-			.clickable { onClick(sketch.id) },
+			.clickable { onClick(sketch.id.toString()) },
 		horizontalAlignment = Alignment.CenterHorizontally
 	) {
 		Box(

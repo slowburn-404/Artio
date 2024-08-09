@@ -18,9 +18,8 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 
 	var sketch by mutableStateOf<Sketch?>(null); private set
 
-	fun fetchSketch(sketchId: Int?) {
+	fun fetchSketch(sketchId: Int) {
 		sketch = null
-		if (sketchId == null) return
 		viewModelScope.launch {
 			sketchRepository.getSketch(sketchId).collect {
 				sketch = it

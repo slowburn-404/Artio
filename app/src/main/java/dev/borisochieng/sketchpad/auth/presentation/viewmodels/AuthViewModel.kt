@@ -1,12 +1,17 @@
 package dev.borisochieng.sketchpad.auth.presentation.viewmodels
 
 import android.net.Uri
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.borisochieng.sketchpad.auth.data.FirebaseResponse
 import dev.borisochieng.sketchpad.auth.domain.AuthRepository
 import dev.borisochieng.sketchpad.auth.presentation.state.UiEvent
 import dev.borisochieng.sketchpad.auth.presentation.state.UiState
+import dev.borisochieng.sketchpad.ui.navigation.AppRoute
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.KeyValueStore
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -20,6 +25,7 @@ import org.koin.core.component.inject
 
 class AuthViewModel : ViewModel(), KoinComponent {
     private val authRepository: AuthRepository by inject()
+    private val keyValueStore: KeyValueStore by inject()
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> get() = _uiState.asStateFlow()
@@ -27,8 +33,27 @@ class AuthViewModel : ViewModel(), KoinComponent {
     private val _eventFlow = MutableSharedFlow<UiEvent>()
     val uiEvent: SharedFlow<UiEvent> get() = _eventFlow.asSharedFlow()
 
+    var startScreen by mutableStateOf(AppRoute.HomeScreen.route); private set
+
     init {
+        checkIfFirstLaunch()
         isLoggedIn()
+    }
+
+    private fun checkIfFirstLaunch() {
+        viewModelScope.launch {
+            keyValueStore.getLaunchStatus().collect {
+                startScreen = (if (it) {
+                    AppRoute.HomeScreen
+                } else AppRoute.OnBoardingScreen).route
+            }
+        }
+    }
+
+    fun saveLaunchStatus() {
+        viewModelScope.launch {
+            keyValueStore.saveLaunchStatus()
+        }
     }
 
 

@@ -1,17 +1,15 @@
 package dev.borisochieng.sketchpad.ui.navigation
 
 import android.graphics.Bitmap
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import dev.borisochieng.sketchpad.auth.presentation.screens.LoginScreen
 import dev.borisochieng.sketchpad.auth.presentation.screens.OnBoardingScreen
 import dev.borisochieng.sketchpad.auth.presentation.screens.SignUpScreen
+import dev.borisochieng.sketchpad.auth.presentation.viewmodels.AuthViewModel
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadViewModel
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.alt.DrawingBoard
 import dev.borisochieng.sketchpad.ui.screens.home.HomeScreen
@@ -25,18 +23,16 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun AppRoute(
-	modifier: Modifier = Modifier,
 	navActions: NavActions,
 	navController: NavHostController,
-	paddingValues: PaddingValues,
 	saveImage: (Bitmap) -> Unit,
+	authViewModel: AuthViewModel = koinViewModel(),
 	homeViewModel: HomeViewModel = koinViewModel(),
 	sketchPadViewModel: SketchPadViewModel = koinViewModel()
 ) {
 	NavHost(
 		navController = navController,
-		startDestination = AppRoute.OnBoardingScreen.route,
-		modifier = modifier.padding(paddingValues)
+		startDestination = authViewModel.startScreen
 	) {
 		composable(AppRoute.HomeScreen.route) {
 			HomeScreen(
@@ -48,13 +44,14 @@ fun AppRoute(
 			route = AppRoute.SketchPad.route,
 			animationDirection = AnimationDirection.UpDown
 		) { backStackEntry ->
-			val sketchId = backStackEntry.arguments?.getInt("sketchId")
+			val sketchId = backStackEntry.arguments?.getString("sketchId") ?: ""
 			LaunchedEffect(true) {
-				sketchPadViewModel.fetchSketch(sketchId)
+				sketchPadViewModel.fetchSketch(sketchId.toInt())
 			}
 
 			DrawingBoard(
 				sketch = sketchPadViewModel.sketch,
+				exportSketch = saveImage,
 				actions = sketchPadViewModel::actions,
 				navigate = navActions::navigate
 			)

@@ -28,7 +28,7 @@ class NavActions(private val navController: NavHostController) {
         }
     }
 
-    private fun navigateToSketchPad(sketchId: Int?) {
+    private fun navigateToSketchPad(sketchId: String) {
         navController.navigate(
             AppRoute.SketchPad.routeWithId(sketchId)
         )
@@ -65,7 +65,7 @@ class NavActions(private val navController: NavHostController) {
 sealed class AppRoute(val route: String) {
     data object HomeScreen : AppRoute("home_screen")
     data object SketchPad : AppRoute("sketchpad/{sketchId}") {
-        fun routeWithId(sketchId: Int?) = String.format("sketchpad/%d", sketchId)
+        fun routeWithId(sketchId: String) = String.format("sketchpad/%s", sketchId)
     }
 
     data object SettingsScreen : AppRoute("settings_screen")
@@ -78,7 +78,7 @@ sealed class AppRoute(val route: String) {
 
 sealed class Screens {
     data object HomeScreen : Screens()
-    data class SketchPad(val sketchId: Int?) : Screens()
+    data class SketchPad(val sketchId: String) : Screens()
     data object SettingsScreen : Screens()
     data object ProfileScreen : Screens()
     data object Back : Screens()

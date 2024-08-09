@@ -46,7 +46,7 @@ fun HomeScreen(
 			horizontalAlignment = Alignment.CenterHorizontally
 		) {
 			OutlinedButton(
-				onClick = { navigate(Screens.SketchPad(null)) },
+				onClick = { navigate(Screens.SketchPad("0")) },
 				modifier = Modifier
 					.fillMaxWidth()
 					.padding(20.dp, 16.dp)
