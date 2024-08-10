@@ -21,8 +21,8 @@ class NavActions(private val navController: NavHostController) {
 
     private fun navigateToHomeScreen() {
         navController.navigate(AppRoute.HomeScreen.route) {
-            popUpTo(AppRoute.OnBoardingScreen.route) {
-                inclusive = true
+            popUpTo(AppRoute.HomeScreen.route) {
+                inclusive = false
             }
             launchSingleTop = true
         }
@@ -43,7 +43,12 @@ class NavActions(private val navController: NavHostController) {
     }
 
     private fun navigateToSignUpScreen() {
-        navController.navigate(AppRoute.SignUpScreen.route)
+        navController.navigate(AppRoute.SignUpScreen.route) {
+            popUpTo(AppRoute.SignUpScreen.route) {
+                inclusive = true
+            }
+            launchSingleTop = true
+        }
     }
 
     private fun navigateToLoginScreen() {

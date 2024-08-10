@@ -11,4 +11,6 @@ sealed class SketchPadActions {
 
 	data class DeleteSketch(val sketch: Sketch) : SketchPadActions()
 
+	data object SketchClosed : SketchPadActions()
+
 }

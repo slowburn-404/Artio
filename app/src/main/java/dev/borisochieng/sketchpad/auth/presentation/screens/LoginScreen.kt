@@ -344,7 +344,10 @@ fun LoginScreen(
                 Text(
                     modifier = Modifier
                         .padding(4.dp)
-                        .clickable(onClick = { navigate(Screens.HomeScreen) }),
+                        .clickable(onClick = {
+                            viewModel.saveLaunchStatus()
+                            navigate(Screens.HomeScreen)
+                        }),
                     text = "Continue as Guest",
                     style = AppTypography.labelLarge,
                     textDecoration = TextDecoration.Underline

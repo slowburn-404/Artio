@@ -49,7 +49,7 @@ class AuthViewModel : ViewModel(), KoinComponent {
             keyValueStore.getLaunchStatus().collect { hasFinishedOnboarding ->
                 startScreen = when {
                     !hasFinishedOnboarding -> AppRoute.OnBoardingScreen
-                    !isLoggedIn -> AppRoute.SignUpScreen
+//                    !isLoggedIn -> AppRoute.SignUpScreen // this causes the screen to pop up on every launch, which isn't good
                     else -> AppRoute.HomeScreen
                 }.route
             }
