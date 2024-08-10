@@ -1,6 +1,5 @@
 package dev.borisochieng.sketchpad.ui
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -10,6 +9,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
+import dev.borisochieng.sketchpad.R
 import dev.borisochieng.sketchpad.ui.components.NavBar
 import dev.borisochieng.sketchpad.ui.navigation.AppRoute
 import dev.borisochieng.sketchpad.ui.navigation.NavActions
@@ -24,10 +24,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
-    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(R.style.Theme_SketchPad)
         super.onCreate(savedInstanceState)
-        //   enableEdgeToEdge()
+//        enableEdgeToEdge()
         setContent {
             Root(window = window) {
                 val navController = rememberNavController()

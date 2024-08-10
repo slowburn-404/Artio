@@ -2,23 +2,21 @@ package dev.borisochieng.sketchpad.ui.navigation
 
 import android.graphics.Bitmap
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import dev.borisochieng.sketchpad.auth.presentation.screens.LoginScreen
 import dev.borisochieng.sketchpad.auth.presentation.screens.OnBoardingScreen
+import dev.borisochieng.sketchpad.auth.presentation.screens.ProfileScreen
 import dev.borisochieng.sketchpad.auth.presentation.screens.SignUpScreen
+import dev.borisochieng.sketchpad.auth.presentation.screens.UpdateProfileScreen
 import dev.borisochieng.sketchpad.auth.presentation.viewmodels.AuthViewModel
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadViewModel
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.alt.DrawingBoard
 import dev.borisochieng.sketchpad.ui.screens.home.HomeScreen
 import dev.borisochieng.sketchpad.ui.screens.home.HomeViewModel
-import dev.borisochieng.sketchpad.auth.presentation.screens.ProfileScreen
-import dev.borisochieng.sketchpad.auth.presentation.screens.UpdateProfileScreen
 import dev.borisochieng.sketchpad.ui.screens.settings.SettingsScreen
 import dev.borisochieng.sketchpad.utils.AnimationDirection
 import dev.borisochieng.sketchpad.utils.animatedComposable
@@ -35,12 +33,13 @@ fun AppRoute(
 	sketchPadViewModel: SketchPadViewModel = koinViewModel()
 ) {
 	NavHost(
-		modifier = Modifier.padding(paddingValues),
+//		modifier = Modifier.padding(paddingValues), this gives the app unnecessary padding
 		navController = navController,
 		startDestination = authViewModel.startScreen
 	) {
 		composable(AppRoute.HomeScreen.route) {
 			HomeScreen(
+				bottomPadding = paddingValues.calculateBottomPadding(),
 				savedSketches = homeViewModel.savedSketches,
 				navigate = navActions::navigate
 			)
@@ -65,7 +64,10 @@ fun AppRoute(
 			SettingsScreen(navigate = navActions::navigate)
 		}
 		composable(AppRoute.ProfileScreen.route) {
-			ProfileScreen(navigate = navActions::navigate)
+			ProfileScreen(
+				bottomPadding = paddingValues.calculateBottomPadding(),
+				navigate = navActions::navigate
+			)
 		}
 		animatedComposable(AppRoute.OnBoardingScreen.route) {
 			OnBoardingScreen(navigate = navActions::navigate)

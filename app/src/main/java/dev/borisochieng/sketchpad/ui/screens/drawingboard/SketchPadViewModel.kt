@@ -32,6 +32,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 			is SketchPadActions.SaveSketch -> saveSketch(action.sketch)
 			is SketchPadActions.UpdateSketch -> updateSketch(action.paths)
 			is SketchPadActions.DeleteSketch -> deleteSketch(action.sketch)
+			SketchPadActions.SketchClosed -> sketch = null
 		}
 	}
 

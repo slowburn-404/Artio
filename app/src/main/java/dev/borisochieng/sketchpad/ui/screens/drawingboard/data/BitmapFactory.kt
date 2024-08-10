@@ -10,6 +10,7 @@ import android.view.View
 import androidx.core.view.doOnLayout
 import androidx.core.view.drawToBitmap
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.catch
@@ -27,11 +28,14 @@ object BitmapFactory {
 	fun View.getBitmap(
 		coroutineScope: CoroutineScope,
 		onCaptured: (Bitmap?, Throwable?) -> Unit
-	) = bitmapGenerators
-		.mapNotNull { config -> drawBitmapFromView(config) }
-		.onEach { bitmap -> onCaptured(bitmap, null) }
-		.catch { error -> onCaptured(null, error) }
-		.launchIn(coroutineScope)
+	): Job {
+//		_bitmapGenerators.tryEmit(Bitmap.Config.ARGB_8888) // causes terrible lag on canvas
+		return bitmapGenerators
+			.mapNotNull { config -> drawBitmapFromView(config) }
+			.onEach { bitmap -> onCaptured(bitmap, null) }
+			.catch { error -> onCaptured(null, error) }
+			.launchIn(coroutineScope)
+	}
 }
 
 private suspend fun View.drawBitmapFromView(

@@ -201,7 +201,7 @@ fun CustomSeekbar(
 
 @Composable
 fun Root(window: Window, content: @Composable () -> Unit) {
-    val isDark = isSystemInDarkThemeCustom()
+    val isDark = false // isSystemInDarkThemeCustom()
     AppTheme(isDark) {
         window.StatusBarConfig(isDark)
         Surface(color = lightScheme.surface) {

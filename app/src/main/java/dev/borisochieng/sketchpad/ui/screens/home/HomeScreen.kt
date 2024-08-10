@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -12,12 +11,10 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Brush
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,6 +24,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.borisochieng.sketchpad.database.Sketch
@@ -36,22 +34,22 @@ import dev.borisochieng.sketchpad.ui.theme.lightScheme
 
 @Composable
 fun HomeScreen(
+    bottomPadding: Dp,
     savedSketches: List<Sketch>,
     navigate: (Screens) -> Unit
 ) {
     Scaffold(
+        modifier = Modifier.padding(bottom = bottomPadding),
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { navigate(Screens.SketchPad("0")) },
                 containerColor = lightScheme.primary,
                 contentColor = lightScheme.onPrimary
             ) {
-
                 Icon(
                     imageVector = Icons.Rounded.Brush,
                     contentDescription = "New sketch"
                 )
-
             }
         },
         topBar = { HomeTopBar() }

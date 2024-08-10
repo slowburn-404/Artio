@@ -1,6 +1,7 @@
 package dev.borisochieng.sketchpad.auth.presentation.screens
 
 import android.util.Patterns
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -84,7 +85,6 @@ fun SignUpScreen(
             append(" Login")
         }
     }
-
 
     var email by remember {
         mutableStateOf("")
@@ -433,7 +433,10 @@ fun SignUpScreen(
                 Text(
                     modifier = Modifier
                         .padding(4.dp)
-                        .clickable(onClick = { navigate(Screens.HomeScreen) }),
+                        .clickable(onClick = {
+                            viewModel.saveLaunchStatus()
+                            navigate(Screens.HomeScreen)
+                        }),
                     text = "Continue as Guest",
                     style = AppTypography.labelLarge,
                     textDecoration = TextDecoration.Underline
@@ -447,6 +450,11 @@ fun SignUpScreen(
                     style = AppTypography.labelLarge,
                 )
             }
+        }
+
+        BackHandler {
+            viewModel.saveLaunchStatus()
+            navigate(Screens.HomeScreen)
         }
     }
 }
