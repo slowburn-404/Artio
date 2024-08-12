@@ -3,6 +3,7 @@ package dev.borisochieng.sketchpad.ui
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -25,9 +26,10 @@ import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        setTheme(R.style.Theme_SketchPad)
+        /* setTheme(R.style.Theme_SketchPad) we are already setting this in the post splash screen
+         theme so no need to set it here. It also makes the system navigation buttons look funny */
         super.onCreate(savedInstanceState)
-//        enableEdgeToEdge()
+        enableEdgeToEdge()
         setContent {
             Root(window = window) {
                 val navController = rememberNavController()

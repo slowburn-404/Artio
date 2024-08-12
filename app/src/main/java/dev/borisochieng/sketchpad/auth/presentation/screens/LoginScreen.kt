@@ -46,10 +46,13 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.borisochieng.sketchpad.auth.presentation.state.UiEvent
 import dev.borisochieng.sketchpad.auth.presentation.viewmodels.AuthViewModel
 import dev.borisochieng.sketchpad.ui.navigation.Screens
+import dev.borisochieng.sketchpad.ui.theme.AppTheme
 import dev.borisochieng.sketchpad.ui.theme.AppTypography
 import dev.borisochieng.sketchpad.ui.theme.lightScheme
 import kotlinx.coroutines.flow.collectLatest
@@ -379,4 +382,14 @@ fun enableLoginButton(email: String, password: String): Boolean {
     return password.isNotEmpty() &&
             email.isNotEmpty() &&
             isValidEmail(email)
+}
+
+@Preview(showBackground = true)
+@Composable
+fun LoginScreenPreview() {
+    AppTheme {
+        LoginScreen(viewModel = viewModel()) {
+
+        }
+    }
 }

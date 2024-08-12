@@ -129,7 +129,7 @@ fun SignUpScreen(
 
 
     //listen for error or success messages
-   LaunchedEffect(uiEvent) {
+    LaunchedEffect(uiEvent) {
         uiEvent?.let { event ->
             when (event) {
                 is UiEvent.SnackBarEvent -> {
@@ -141,9 +141,9 @@ fun SignUpScreen(
         }
     }
 
-    //navigate when sign up is successful
-    LaunchedEffect(uiState) {
-        if (!uiState.isLoading && uiState.error.isEmpty() && uiState.isLoggedIn) {
+    //navigate if sign up is successful
+    LaunchedEffect(uiState.error) {
+        if (uiState.error.isEmpty() && !uiState.isLoading && uiState.isLoggedIn) {
             navigate(Screens.HomeScreen)
         }
     }
@@ -381,11 +381,7 @@ fun SignUpScreen(
                     contentColor = lightScheme.onPrimary
                 ),
                 onClick = {
-                    if (!uiState.isLoading) {
-                        showProgressIndicator = true
-                        viewModel.signUpUser(email, password)
-                        navigate(Screens.HomeScreen)
-                    }
+                    viewModel.signUpUser(email, password)
                 },
                 enabled = enableSignInButton(email, password, confirmPassword)
             ) {

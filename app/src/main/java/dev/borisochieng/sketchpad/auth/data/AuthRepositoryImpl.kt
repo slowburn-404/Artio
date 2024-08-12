@@ -1,6 +1,7 @@
 package dev.borisochieng.sketchpad.auth.data
 
 import android.net.Uri
+import com.google.firebase.auth.ActionCodeSettings
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -9,6 +10,7 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
+import com.google.firebase.auth.actionCodeSettings
 import com.google.firebase.storage.FirebaseStorage
 import dev.borisochieng.sketchpad.auth.domain.AuthRepository
 import dev.borisochieng.sketchpad.auth.domain.model.User
@@ -20,6 +22,8 @@ import java.util.UUID.randomUUID
 class AuthRepositoryImpl : AuthRepository {
 
     private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
+
+    //private lateinit var actionCodeSettings: ActionCodeSettings
 
     override suspend fun signUp(email: String, password: String): FirebaseResponse<User> =
         withContext(Dispatchers.IO) {
@@ -59,7 +63,7 @@ class AuthRepositoryImpl : AuthRepository {
                 val user =
                     User(
                         uid = firebaseUser?.uid!!,
-                        email =firebaseUser.email!!,
+                        email = firebaseUser.email!!,
                         displayName = firebaseUser.displayName,
                         imageUrl = firebaseUser.photoUrl,
                         isLoggedIn = checkIfUserIsLoggedIn()
@@ -150,4 +154,25 @@ class AuthRepositoryImpl : AuthRepository {
             }
         }
 
+//    override suspend fun sendPasswordResetEmail(email: String): FirebaseResponse<String> =
+//        withContext(Dispatchers.IO) {
+//            try {
+//                actionCodeSettings = actionCodeSettings {
+//                    url = "https://sketchpad.io/finishSignUp?code"
+//                    handleCodeInApp = true
+//                    setAndroidPackageName(
+//                        "dev.borisochieng.sketchpad",
+//                        true, //install if not available,
+//                        "7"// minimum version
+//                    )
+//                }
+//                firebaseAuth.sendPasswordResetEmail(
+//                    email = email,
+//                    actionCodeSettings = actionCodeSettings
+//                )
+//
+//            } catch (e: Exception) {
+//
+//            }
+//        }
 }

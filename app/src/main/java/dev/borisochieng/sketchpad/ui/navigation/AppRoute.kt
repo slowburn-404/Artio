@@ -17,6 +17,9 @@ import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadViewModel
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.alt.DrawingBoard
 import dev.borisochieng.sketchpad.ui.screens.home.HomeScreen
 import dev.borisochieng.sketchpad.ui.screens.home.HomeViewModel
+import dev.borisochieng.sketchpad.auth.presentation.screens.ProfileScreen
+import dev.borisochieng.sketchpad.auth.presentation.screens.ResetPasswordScreen
+import dev.borisochieng.sketchpad.auth.presentation.screens.UpdateProfileScreen
 import dev.borisochieng.sketchpad.ui.screens.settings.SettingsScreen
 import dev.borisochieng.sketchpad.utils.AnimationDirection
 import dev.borisochieng.sketchpad.utils.animatedComposable
@@ -80,6 +83,9 @@ fun AppRoute(
 		}
 		animatedComposable(AppRoute.UpdateProfileScreen.route) {
 			UpdateProfileScreen(navigate = navActions::navigate)
+		}
+		animatedComposable(AppRoute.ResetPasswordScreen.route) {
+			ResetPasswordScreen(navigate = navActions::navigate)
 		}
 	}
 }

@@ -45,12 +45,15 @@ class AuthViewModel : ViewModel(), KoinComponent {
 
     private fun checkIfFirstLaunch() {
         viewModelScope.launch {
-            val isLoggedIn = authRepository.checkIfUserIsLoggedIn()
             keyValueStore.getLaunchStatus().collect { hasFinishedOnboarding ->
-                startScreen = when {
-                    !hasFinishedOnboarding -> AppRoute.OnBoardingScreen
-//                    !isLoggedIn -> AppRoute.SignUpScreen // this causes the screen to pop up on every launch, which isn't good
-                    else -> AppRoute.HomeScreen
+//                startScreen = when {
+//                    !hasFinishedOnboarding -> AppRoute.OnBoardingScreen
+////                    !isLoggedIn -> AppRoute.SignUpScreen // this causes the screen to pop up on every launch, which isn't good
+//                    else -> AppRoute.HomeScreen
+                startScreen = if(hasFinishedOnboarding) {
+                    AppRoute.HomeScreen
+                } else {
+                    AppRoute.SignUpScreen
                 }.route
             }
         }
@@ -85,7 +88,8 @@ class AuthViewModel : ViewModel(), KoinComponent {
                     _uiState.update {
                         it.copy(
                             user = response.data,
-                            error = ""
+                            error = "",
+                            isLoggedIn = true
                         )
                     }
 
@@ -98,7 +102,8 @@ class AuthViewModel : ViewModel(), KoinComponent {
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            error = errorMessage
+                            error = errorMessage,
+                            isLoggedIn = false
                         )
                     }
 

@@ -16,6 +16,7 @@ class NavActions(private val navController: NavHostController) {
             Screens.SignUpScreen -> navigateToSignUpScreen()
             Screens.LoginScreen -> navigateToLoginScreen()
             Screens.UpdateProfileScreen -> navigateToUpdateProfileScreen()
+            Screens.ResetPasswordScreen -> navigateToResetPasswordScreen()
         }
     }
 
@@ -60,6 +61,10 @@ class NavActions(private val navController: NavHostController) {
         }
     }
 
+    private fun navigateToResetPasswordScreen() {
+        navController.navigate(AppRoute.ResetPasswordScreen.route)
+    }
+
     private fun navigateToUpdateProfileScreen() {
         navController.navigate(AppRoute.UpdateProfileScreen.route)
     }
@@ -79,6 +84,7 @@ sealed class AppRoute(val route: String) {
     data object SignUpScreen : AppRoute("welcome_screen")
     data object LoginScreen : AppRoute("login_screen")
     data object UpdateProfileScreen: AppRoute("update_profile")
+    data object ResetPasswordScreen: AppRoute("'reset_password")
 }
 
 sealed class Screens {
@@ -91,4 +97,5 @@ sealed class Screens {
     data object SignUpScreen : Screens()
     data object LoginScreen : Screens()
     data object UpdateProfileScreen: Screens()
+    data object ResetPasswordScreen: Screens()
 }
