@@ -44,7 +44,8 @@ fun DrawingBoard(
 	sketch: Sketch?,
 	exportSketch: (Bitmap) -> Unit,
 	actions: (SketchPadActions) -> Unit,
-	navigate: (Screens) -> Unit
+	navigate: (Screens) -> Unit,
+	onBroadCastUrl: (String) -> Unit
 ) {
 	val absolutePaths = remember { mutableStateListOf<PathProperties>() }
 	var paths by remember { mutableStateOf<List<PathProperties>>(emptyList()) }
@@ -92,6 +93,9 @@ fun DrawingBoard(
 					sketchBitmap?.let {
 						exportSketch(it)
 					} ?: Toast.makeText(context, "Oops... Unable to export sketch", Toast.LENGTH_SHORT).show()
+				},
+				onBroadCastUrl = { url ->
+					onBroadCastUrl(url)
 				}
 			)
 		},
