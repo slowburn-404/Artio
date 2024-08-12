@@ -5,6 +5,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseUser
+import dev.borisochieng.sketchpad.collab.domain.CollabRepository
+import dev.borisochieng.sketchpad.collab.data.toDBSketch
 import dev.borisochieng.sketchpad.database.Sketch
 import dev.borisochieng.sketchpad.database.repository.SketchRepository
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.alt.PathProperties
@@ -15,6 +18,10 @@ import org.koin.core.component.inject
 class SketchPadViewModel : ViewModel(), KoinComponent {
 
 	private val sketchRepository by inject<SketchRepository>()
+
+	private val collabRepository by inject<CollabRepository>()
+
+	private val firebaseUser by inject<FirebaseUser>()
 
 	var sketch by mutableStateOf<Sketch?>(null); private set
 
@@ -38,7 +45,9 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 
 	private fun saveSketch(sketch: Sketch) {
 		viewModelScope.launch {
+			val dbSketch = sketch.toDBSketch()
 			sketchRepository.saveSketch(sketch)
+			collabRepository.saveSketchToDB(userId = firebaseUser.uid, title = dbSketch.title, paths = dbSketch.paths)
 		}
 	}
 

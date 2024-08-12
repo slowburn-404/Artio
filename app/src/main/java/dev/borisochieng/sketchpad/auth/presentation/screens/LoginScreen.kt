@@ -46,9 +46,13 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.borisochieng.sketchpad.auth.presentation.state.UiEvent
 import dev.borisochieng.sketchpad.auth.presentation.viewmodels.AuthViewModel
 import dev.borisochieng.sketchpad.ui.navigation.Screens
+import dev.borisochieng.sketchpad.ui.theme.AppTheme
 import dev.borisochieng.sketchpad.ui.theme.AppTypography
 import dev.borisochieng.sketchpad.ui.theme.lightScheme
 import kotlinx.coroutines.flow.collectLatest
@@ -95,13 +99,20 @@ fun LoginScreen(
     }
 
     val snackBarHostState = remember { SnackbarHostState() }
+    val uiEvent by viewModel.uiEvent.collectAsState(initial = null)
     val uiState = viewModel.uiState.collectAsState()
     showProgressIndicator = uiState.value.isLoading
 
     //listen for error messages
-    LaunchedEffect(Unit) {
-        viewModel.uiEvent.collectLatest { messsage ->
-            snackBarHostState.showSnackbar(message = messsage.toString())
+    LaunchedEffect(uiEvent) {
+        uiEvent?.let { event ->
+            when (event) {
+                is UiEvent.SnackBarEvent -> {
+                    // Showing Snackbar with the message
+                    snackBarHostState.showSnackbar(event.message)
+                }
+                // Handle other events if any
+            }
         }
     }
 
@@ -371,4 +382,14 @@ fun enableLoginButton(email: String, password: String): Boolean {
     return password.isNotEmpty() &&
             email.isNotEmpty() &&
             isValidEmail(email)
+}
+
+@Preview(showBackground = true)
+@Composable
+fun LoginScreenPreview() {
+    AppTheme {
+        LoginScreen(viewModel = viewModel()) {
+
+        }
+    }
 }
