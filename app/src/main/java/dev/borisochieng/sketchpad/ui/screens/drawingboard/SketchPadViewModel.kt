@@ -38,7 +38,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 		when (action) {
 			is SketchPadActions.SaveSketch -> saveSketch(action.sketch)
 			is SketchPadActions.UpdateSketch -> updateSketch(action.paths)
-			is SketchPadActions.DeleteSketch -> deleteSketch(action.sketch)
+			SketchPadActions.SketchClosed -> sketch = null
 			SketchPadActions.SketchClosed -> sketch = null
 		}
 	}
@@ -61,12 +61,6 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 				pathList = paths
 			)
 			sketchRepository.updateSketch(updatedSketch)
-		}
-	}
-
-	private fun deleteSketch(sketchToDelete: Sketch) {
-		viewModelScope.launch {
-			sketchRepository.deleteSketch(sketchToDelete)
 		}
 	}
 
