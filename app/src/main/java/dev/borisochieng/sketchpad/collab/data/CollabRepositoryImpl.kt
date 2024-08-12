@@ -27,7 +27,6 @@ class CollabRepositoryImpl : CollabRepository {
                         }
                     )
 
-
                     database.child("Users")
                         .child(userId)
                         .child("boards")

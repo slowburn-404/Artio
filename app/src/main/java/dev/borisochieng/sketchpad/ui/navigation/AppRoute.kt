@@ -33,7 +33,8 @@ fun AppRoute(
 	saveImage: (Bitmap) -> Unit,
 	authViewModel: AuthViewModel = koinViewModel(),
 	homeViewModel: HomeViewModel = koinViewModel(),
-	sketchPadViewModel: SketchPadViewModel = koinViewModel()
+	sketchPadViewModel: SketchPadViewModel = koinViewModel(),
+	broadCastUrl: (String) -> Unit
 ) {
 	NavHost(
 //		modifier = Modifier.padding(paddingValues), this gives the app unnecessary padding
@@ -60,7 +61,8 @@ fun AppRoute(
 				sketch = sketchPadViewModel.sketch,
 				exportSketch = saveImage,
 				actions = sketchPadViewModel::actions,
-				navigate = navActions::navigate
+				navigate = navActions::navigate,
+				onBroadCastUrl = broadCastUrl
 			)
 		}
 		composable(AppRoute.SettingsScreen.route) {
