@@ -14,15 +14,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.borisochieng.sketchpad.R
-import dev.borisochieng.sketchpad.auth.domain.model.PagerItem
+import dev.borisochieng.sketchpad.auth.presentation.screens.PagerItems
 import dev.borisochieng.sketchpad.ui.theme.AppTheme
 import dev.borisochieng.sketchpad.ui.theme.AppTypography
 
 @Composable
 fun HorizontalPagerItem(
     modifier: Modifier = Modifier,
-    pagerItem: PagerItem,
+    pagerItem: PagerItems,
 ) {
     Column(
         modifier = modifier
@@ -65,11 +64,7 @@ fun HorizontalPagerItem(
 fun HorizontalPagerItemPreview() {
     AppTheme {
         HorizontalPagerItem(
-            pagerItem = PagerItem(
-                imageId = R.drawable.draw,
-                title = "Draw on a canvas",
-                body = "Bring your ideas to life"
-            ),
+            pagerItem = PagerItems.Draw
         )
     }
 }

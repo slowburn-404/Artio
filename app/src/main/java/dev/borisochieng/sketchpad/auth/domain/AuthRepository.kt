@@ -18,4 +18,6 @@ interface AuthRepository {
 
     suspend fun uploadImageToFireStore(uri: Uri): FirebaseResponse<Uri>
 
+//    suspend fun sendPasswordResetEmail(email: String): FirebaseResponse<String>
+
 }

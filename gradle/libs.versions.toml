@@ -55,6 +55,7 @@ splash = { group = "androidx.core", name = "core-splashscreen", version.ref = "s
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom"}
 firebase-auth = {module = "com.google.firebase:firebase-auth"}
 firebase-storage = { module = "com.google.firebase:firebase-storage" }
+firebase-database = {module = "com.google.firebase:firebase-database"}
 coil = { group = "io.coil-kt", name = "coil", version.ref = "coil" }
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 rang-vikalp = { module = "io.ak1:rang-vikalp", version.ref = "rangVikalp" }

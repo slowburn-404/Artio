@@ -93,6 +93,7 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.storage)
+    implementation(libs.firebase.database)
 
     //coil
     implementation(libs.coil)
@@ -109,6 +110,7 @@ dependencies {
     //SketchPad Lib
     implementation  (libs.drawbox)
     implementation  (libs.rang.vikalp)
+
     //dataStore
     implementation (libs.androidx.datastore.preferences)
 }

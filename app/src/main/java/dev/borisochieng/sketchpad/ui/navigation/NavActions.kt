@@ -16,13 +16,14 @@ class NavActions(private val navController: NavHostController) {
             Screens.SignUpScreen -> navigateToSignUpScreen()
             Screens.LoginScreen -> navigateToLoginScreen()
             Screens.UpdateProfileScreen -> navigateToUpdateProfileScreen()
+            Screens.ResetPasswordScreen -> navigateToResetPasswordScreen()
         }
     }
 
     private fun navigateToHomeScreen() {
         navController.navigate(AppRoute.HomeScreen.route) {
-            popUpTo(AppRoute.OnBoardingScreen.route) {
-                inclusive = true
+            popUpTo(AppRoute.HomeScreen.route) {
+                inclusive = false
             }
             launchSingleTop = true
         }
@@ -43,7 +44,12 @@ class NavActions(private val navController: NavHostController) {
     }
 
     private fun navigateToSignUpScreen() {
-        navController.navigate(AppRoute.SignUpScreen.route)
+        navController.navigate(AppRoute.SignUpScreen.route) {
+            popUpTo(AppRoute.SignUpScreen.route) {
+                inclusive = true
+            }
+            launchSingleTop = true
+        }
     }
 
     private fun navigateToLoginScreen() {
@@ -53,6 +59,10 @@ class NavActions(private val navController: NavHostController) {
             }
             launchSingleTop = true
         }
+    }
+
+    private fun navigateToResetPasswordScreen() {
+        navController.navigate(AppRoute.ResetPasswordScreen.route)
     }
 
     private fun navigateToUpdateProfileScreen() {
@@ -74,6 +84,7 @@ sealed class AppRoute(val route: String) {
     data object SignUpScreen : AppRoute("welcome_screen")
     data object LoginScreen : AppRoute("login_screen")
     data object UpdateProfileScreen: AppRoute("update_profile")
+    data object ResetPasswordScreen: AppRoute("'reset_password")
 }
 
 sealed class Screens {
@@ -86,4 +97,5 @@ sealed class Screens {
     data object SignUpScreen : Screens()
     data object LoginScreen : Screens()
     data object UpdateProfileScreen: Screens()
+    data object ResetPasswordScreen: Screens()
 }

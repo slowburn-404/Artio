@@ -45,12 +45,15 @@ class AuthViewModel : ViewModel(), KoinComponent {
 
     private fun checkIfFirstLaunch() {
         viewModelScope.launch {
-            val isLoggedIn = authRepository.checkIfUserIsLoggedIn()
             keyValueStore.getLaunchStatus().collect { hasFinishedOnboarding ->
-                startScreen = when {
-                    !hasFinishedOnboarding -> AppRoute.OnBoardingScreen
-                    !isLoggedIn -> AppRoute.SignUpScreen
-                    else -> AppRoute.HomeScreen
+//                startScreen = when {
+//                    !hasFinishedOnboarding -> AppRoute.OnBoardingScreen
+////                    !isLoggedIn -> AppRoute.SignUpScreen // this causes the screen to pop up on every launch, which isn't good
+//                    else -> AppRoute.HomeScreen
+                startScreen = if(hasFinishedOnboarding) {
+                    AppRoute.HomeScreen
+                } else {
+                    AppRoute.SignUpScreen
                 }.route
             }
         }
@@ -85,9 +88,12 @@ class AuthViewModel : ViewModel(), KoinComponent {
                     _uiState.update {
                         it.copy(
                             user = response.data,
-                            error = ""
+                            error = "",
+                            isLoggedIn = true
                         )
                     }
+
+                    _eventFlow.emit(UiEvent.SnackBarEvent("Account created successfully"))
 
                 }
 
@@ -96,7 +102,8 @@ class AuthViewModel : ViewModel(), KoinComponent {
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            error = errorMessage
+                            error = errorMessage,
+                            isLoggedIn = false
                         )
                     }
 
@@ -131,6 +138,7 @@ class AuthViewModel : ViewModel(), KoinComponent {
                             isLoggedIn = true
                         )
                     }
+                    _eventFlow.emit(UiEvent.SnackBarEvent("Log in successful"))
 
                 }
 
@@ -239,14 +247,21 @@ class AuthViewModel : ViewModel(), KoinComponent {
 
     fun uploadImageAndUpdateProfile(uri: Uri, username: String) =
         viewModelScope.launch {
-            // Step 1: Upload the image and get the download URL
+
+            _uiState.update {
+                it.copy(
+                    isLoading = true,
+                    error = ""
+                )
+            }
+            // Upload the image and get the download URL
             val uploadImageTask = authRepository.uploadImageToFireStore(uri = uri)
 
             when (uploadImageTask) {
                 is FirebaseResponse.Success -> {
                     val imageUrl = uploadImageTask.data
 
-                    // Step 2: Update the user profile with the new image URL and username
+                    //Update the user profile with the new image URL and username
 
                     if (imageUrl != null) {
                         val updateProfileTask = authRepository.updateUserProfile(
@@ -259,7 +274,8 @@ class AuthViewModel : ViewModel(), KoinComponent {
                                 _uiState.update {
                                     it.copy(
                                         user = updateProfileTask.data,
-                                        error = ""
+                                        error = "",
+                                        isLoading = false
                                     )
                                 }
                                 _eventFlow.emit(UiEvent.SnackBarEvent("Profile updated successfully"))
@@ -269,7 +285,8 @@ class AuthViewModel : ViewModel(), KoinComponent {
                                 _eventFlow.emit(UiEvent.SnackBarEvent(updateProfileTask.message))
                                 _uiState.update {
                                     it.copy(
-                                        error = updateProfileTask.message
+                                        error = updateProfileTask.message,
+                                        isLoading = false
                                     )
                                 }
                             }
@@ -280,7 +297,8 @@ class AuthViewModel : ViewModel(), KoinComponent {
                 is FirebaseResponse.Error -> {
                     _uiState.update {
                         it.copy(
-                            error = uploadImageTask.message
+                            error = uploadImageTask.message,
+                            isLoading = false
                         )
                     }
                     _eventFlow.emit(UiEvent.SnackBarEvent(uploadImageTask.message))

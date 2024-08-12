@@ -1,6 +1,7 @@
 package dev.borisochieng.sketchpad.auth.presentation.screens
 
 import android.util.Patterns
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -48,6 +49,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import dev.borisochieng.sketchpad.auth.presentation.state.UiEvent
 import dev.borisochieng.sketchpad.auth.presentation.viewmodels.AuthViewModel
 import dev.borisochieng.sketchpad.ui.navigation.Screens
 import dev.borisochieng.sketchpad.ui.theme.AppTypography
@@ -85,7 +87,6 @@ fun SignUpScreen(
         }
     }
 
-
     var email by remember {
         mutableStateOf("")
     }
@@ -122,26 +123,34 @@ fun SignUpScreen(
     }
 
     val snackBarHostState = remember { SnackbarHostState() }
-    val uiState = viewModel.uiState.collectAsState()
-    showProgressIndicator = uiState.value.isLoading
+    val uiEvent by viewModel.uiEvent.collectAsState(initial = null)
+    val uiState by viewModel.uiState.collectAsState()
+    showProgressIndicator = uiState.isLoading
+
 
     //listen for error or success messages
-    LaunchedEffect(Unit) {
-        viewModel.uiEvent.collectLatest { message ->
-            snackBarHostState.showSnackbar(message = message.toString())
+    LaunchedEffect(uiEvent) {
+        uiEvent?.let { event ->
+            when (event) {
+                is UiEvent.SnackBarEvent -> {
+                    // Showing Snackbar with the message
+                    snackBarHostState.showSnackbar(event.message)
+                }
+                // Handle other events if any
+            }
         }
     }
 
-    //navigate when sign up is successful
-    LaunchedEffect(uiState.value) {
-        if (!uiState.value.isLoading && uiState.value.error.isEmpty() && uiState.value.isLoggedIn) {
+    //navigate if sign up is successful
+    LaunchedEffect(uiState.error) {
+        if (uiState.error.isEmpty() && !uiState.isLoading && uiState.isLoggedIn) {
             navigate(Screens.HomeScreen)
         }
     }
 
     //navigate to home screen if user is already logged in
-    LaunchedEffect(uiState.value.isLoggedIn) {
-        if (uiState.value.isLoggedIn) {
+    LaunchedEffect(uiState.isLoggedIn) {
+        if (uiState.isLoggedIn) {
             navigate(Screens.HomeScreen)
         }
     }
@@ -372,10 +381,7 @@ fun SignUpScreen(
                     contentColor = lightScheme.onPrimary
                 ),
                 onClick = {
-                    if (!uiState.value.isLoading) {
-                        showProgressIndicator = true
-                        viewModel.signUpUser(email, password)
-                    }
+                    viewModel.signUpUser(email, password)
                 },
                 enabled = enableSignInButton(email, password, confirmPassword)
             ) {
@@ -433,7 +439,10 @@ fun SignUpScreen(
                 Text(
                     modifier = Modifier
                         .padding(4.dp)
-                        .clickable(onClick = { navigate(Screens.HomeScreen) }),
+                        .clickable(onClick = {
+                            viewModel.saveLaunchStatus()
+                            navigate(Screens.HomeScreen)
+                        }),
                     text = "Continue as Guest",
                     style = AppTypography.labelLarge,
                     textDecoration = TextDecoration.Underline
@@ -447,6 +456,11 @@ fun SignUpScreen(
                     style = AppTypography.labelLarge,
                 )
             }
+        }
+
+        BackHandler {
+            viewModel.saveLaunchStatus()
+            navigate(Screens.HomeScreen)
         }
     }
 }

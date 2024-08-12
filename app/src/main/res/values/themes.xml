@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.SketchPad" parent="Theme.AppCompat.Light.NoActionBar" />
+    <style name="Theme.SketchPad" parent="Theme.Material3.Light.NoActionBar"/>
 
 
     <!--Splash screen-->
@@ -10,6 +10,9 @@
         <item name="windowSplashScreenAnimatedIcon">@drawable/logo</item>
         <item name="windowSplashScreenAnimationDuration">1000</item>
         <item name="postSplashScreenTheme">@style/Theme.SketchPad</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
     </style>
 
 

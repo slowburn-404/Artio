@@ -13,23 +13,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
-import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,6 +31,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
@@ -47,17 +41,21 @@ import dev.borisochieng.sketchpad.ui.navigation.Screens
 import dev.borisochieng.sketchpad.ui.theme.AppTheme
 import dev.borisochieng.sketchpad.ui.theme.AppTypography
 import dev.borisochieng.sketchpad.ui.theme.lightScheme
-import kotlinx.coroutines.flow.collectLatest
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(navigate: (Screens) -> Unit, viewModel: AuthViewModel = koinViewModel()) {
+fun ProfileScreen(
+    bottomPadding: Dp,
+    navigate: (Screens) -> Unit,
+    viewModel: AuthViewModel = koinViewModel()
+) {
 
     val uiState by viewModel.uiState.collectAsState()
 
 
     Scaffold(
+        modifier = Modifier.padding(bottom = bottomPadding),
         topBar = {
             TopAppBar(
                 title = {
@@ -71,7 +69,9 @@ fun ProfileScreen(navigate: (Screens) -> Unit, viewModel: AuthViewModel = koinVi
         },
     ) { innerPadding ->
         Column(
-            modifier = Modifier.padding(innerPadding).padding(16.dp)
+            modifier = Modifier
+                .padding(innerPadding)
+                .padding(16.dp)
         ) {
             Box(
                 modifier = Modifier.
@@ -106,7 +106,7 @@ fun ProfileScreen(navigate: (Screens) -> Unit, viewModel: AuthViewModel = koinVi
                         contentDescription = "Avatar",
                         model = ImageRequest
                             .Builder(LocalContext.current)
-                            .data(uiState.user?.imageUrl)
+                            .data(uiState.user!!.imageUrl)
                             .build(),
                         contentScale = ContentScale.Crop
                     )
@@ -212,6 +212,6 @@ fun ProfileScreen(navigate: (Screens) -> Unit, viewModel: AuthViewModel = koinVi
 @Composable
 fun ProfileScreenPreview() {
     AppTheme {
-        ProfileScreen(navigate = {}, viewModel = viewModel())
+        ProfileScreen(0.dp, navigate = {}, viewModel = viewModel())
     }
 }

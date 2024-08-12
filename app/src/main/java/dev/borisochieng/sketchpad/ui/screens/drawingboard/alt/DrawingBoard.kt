@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -46,7 +47,7 @@ fun DrawingBoard(
 	navigate: (Screens) -> Unit
 ) {
 	val absolutePaths = remember { mutableStateListOf<PathProperties>() }
-	var paths by remember { mutableStateOf(sketch?.pathList ?: emptyList()) }
+	var paths by remember { mutableStateOf<List<PathProperties>>(emptyList()) }
 	var drawMode by remember { mutableStateOf(DrawMode.Draw) }
 	var pencilSize by remember { mutableFloatStateOf(Sizes.Small.strokeWidth) }
 	var color by remember { mutableStateOf(Color.Black) }
@@ -204,6 +205,10 @@ fun DrawingBoard(
 				onNamed = { name -> save(name) },
 				onDismiss = { openNameSketchDialog.value = false }
 			)
+		}
+
+		DisposableEffect(Unit) {
+			onDispose { actions(SketchPadActions.SketchClosed) }
 		}
 	}
 }
