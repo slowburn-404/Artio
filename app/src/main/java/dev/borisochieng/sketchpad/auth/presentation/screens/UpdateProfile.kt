@@ -1,7 +1,6 @@
 package dev.borisochieng.sketchpad.auth.presentation.screens
 
 import android.net.Uri
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -59,7 +58,6 @@ import dev.borisochieng.sketchpad.ui.navigation.Screens
 import dev.borisochieng.sketchpad.ui.theme.AppTheme
 import dev.borisochieng.sketchpad.ui.theme.AppTypography
 import dev.borisochieng.sketchpad.ui.theme.lightScheme
-import kotlinx.coroutines.flow.collectLatest
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,7 +74,7 @@ fun UpdateProfileScreen(navigate: (Screens) -> Unit, viewModel: AuthViewModel = 
         photoUri = uiState.user?.imageUrl
     }
 
-    val launcher =
+    val imagePicker =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.PickVisualMedia()) { uri ->
             photoUri = uri
         }
@@ -147,7 +145,7 @@ fun UpdateProfileScreen(navigate: (Screens) -> Unit, viewModel: AuthViewModel = 
                     .clip(CircleShape)
                     .size(150.dp)
                     .clickable {
-                        launcher.launch(
+                        imagePicker.launch(
                             PickVisualMediaRequest(
                                 mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly
                             )

@@ -26,10 +26,9 @@ import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        /* setTheme(R.style.Theme_SketchPad) we are already setting this in the post splash screen
-         theme so no need to set it here. It also makes the system navigation buttons look funny */
+        setTheme(R.style.Theme_SketchPad)
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        //enableEdgeToEdge()
         setContent {
             Root(window = window) {
                 val navController = rememberNavController()

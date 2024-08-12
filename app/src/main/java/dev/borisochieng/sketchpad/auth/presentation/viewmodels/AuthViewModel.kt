@@ -254,14 +254,14 @@ class AuthViewModel : ViewModel(), KoinComponent {
                     error = ""
                 )
             }
-            // Step 1: Upload the image and get the download URL
+            // Upload the image and get the download URL
             val uploadImageTask = authRepository.uploadImageToFireStore(uri = uri)
 
             when (uploadImageTask) {
                 is FirebaseResponse.Success -> {
                     val imageUrl = uploadImageTask.data
 
-                    // Step 2: Update the user profile with the new image URL and username
+                    //Update the user profile with the new image URL and username
 
                     if (imageUrl != null) {
                         val updateProfileTask = authRepository.updateUserProfile(
@@ -285,7 +285,8 @@ class AuthViewModel : ViewModel(), KoinComponent {
                                 _eventFlow.emit(UiEvent.SnackBarEvent(updateProfileTask.message))
                                 _uiState.update {
                                     it.copy(
-                                        error = updateProfileTask.message
+                                        error = updateProfileTask.message,
+                                        isLoading = false
                                     )
                                 }
                             }
@@ -296,7 +297,8 @@ class AuthViewModel : ViewModel(), KoinComponent {
                 is FirebaseResponse.Error -> {
                     _uiState.update {
                         it.copy(
-                            error = uploadImageTask.message
+                            error = uploadImageTask.message,
+                            isLoading = false
                         )
                     }
                     _eventFlow.emit(UiEvent.SnackBarEvent(uploadImageTask.message))
