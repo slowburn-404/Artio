@@ -1,5 +1,6 @@
 package dev.borisochieng.sketchpad.ui.screens.drawingboard
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -39,6 +40,33 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
     val uiEvents: SharedFlow<CanvasUiEvents> get() = _uiEvents.asSharedFlow()
 
     var sketch by mutableStateOf<Sketch?>(null); private set
+
+//<<<<<<< HEAD
+//	private fun saveSketch(sketch: Sketch) {
+//		viewModelScope.launch {
+//			sketchRepository.saveSketch(sketch)
+//			saveSketchToRemoteDb(sketch)
+//		}
+//	}
+
+    init {
+        listenForSketchChanges()
+    }
+
+	private fun saveSketchToRemoteDb(sketch: Sketch) {
+		viewModelScope.launch {
+			try {
+				val dbSketch = sketch.toDBSketch()
+				collabRepository.createSketch(
+					userId = firebaseUser.uid,
+					title = dbSketch.title,
+					paths = dbSketch.paths
+				)
+			} catch (e: Exception) {
+				Log.e("RemoteDbError", "User is not logged in", e)
+			}
+		}
+	}
 
     fun fetchSketch(sketchId: Int) {
         sketch = null

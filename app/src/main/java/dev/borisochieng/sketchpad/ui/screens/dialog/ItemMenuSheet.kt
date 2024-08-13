@@ -133,7 +133,7 @@ private fun DragHandle(
 	Column(
 		modifier = modifier
 			.fillMaxWidth()
-			.padding(16.dp)
+			.padding(10.dp)
 			.clip(BottomSheetDefaults.ExpandedShape)
 			.background(MaterialTheme.colorScheme.background)
 			.padding(horizontal = 16.dp)

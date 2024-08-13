@@ -2,6 +2,7 @@ package dev.borisochieng.sketchpad.ui.screens.drawingboard.alt
 
 import android.graphics.Bitmap
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -30,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
@@ -39,11 +41,13 @@ import dev.borisochieng.sketchpad.auth.presentation.state.UiEvent
 import dev.borisochieng.sketchpad.database.Sketch
 import dev.borisochieng.sketchpad.ui.navigation.Screens
 import dev.borisochieng.sketchpad.ui.screens.dialog.NameSketchDialog
+import dev.borisochieng.sketchpad.ui.screens.dialog.SavePromptDialog
 import dev.borisochieng.sketchpad.ui.screens.dialog.Sizes
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.CanvasUiEvents
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadActions
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadViewModel
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.BitmapFactory.getBitmap
+import io.ak1.drawbox.rememberDrawController
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -55,10 +59,8 @@ fun DrawingBoard(
     onBroadCastUrl: (String) -> Unit,
     viewModel: SketchPadViewModel = koinViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    val uiEvents by viewModel.uiEvents.collectAsState(initial = null)
-
-
+    val drawController =
+        dev.borisochieng.sketchpad.ui.screens.drawingboard.data.rememberDrawController()
     val absolutePaths = remember { mutableStateListOf<PathProperties>() }
     var paths by remember { mutableStateOf<List<PathProperties>>(emptyList()) }
     var drawMode by remember { mutableStateOf(DrawMode.Draw) }
@@ -67,6 +69,7 @@ fun DrawingBoard(
     var scale by remember { mutableFloatStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
     val openNameSketchDialog = rememberSaveable { mutableStateOf(false) }
+    val openSavePromptDialog = rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     var sketchBitmap: Bitmap? = null
@@ -82,21 +85,26 @@ fun DrawingBoard(
         Toast.makeText(context, "Sketch saved", Toast.LENGTH_SHORT).show()
         navigate(Screens.Back)
     }
+
+    val uiState by viewModel.uiState.collectAsState()
+    val uiEvents by viewModel.uiEvents.collectAsState(initial = null)
+
     val snackBarHostState = remember {
         SnackbarHostState()
     }
 
-    //listen for paths
+    //listen for path changes
     LaunchedEffect(uiState.paths) {
         absolutePaths.clear()
         paths = uiState.paths
-        absolutePaths.addAll(uiState.paths)
+        absolutePaths.addAll(paths)
     }
+
     LaunchedEffect(uiEvents) {
         uiEvents?.let { event ->
             when (event) {
                 is CanvasUiEvents.SnackBarEvent -> {
-                    // Showing SnackBar with the message
+                    // Showing Snackbar with the message
                     snackBarHostState.showSnackbar(event.message)
                 }
                 // Handle other events if any
@@ -104,11 +112,8 @@ fun DrawingBoard(
         }
     }
 
-
     Scaffold(
-        snackbarHost = {
-            SnackbarHost(hostState = snackBarHostState)
-        },
+        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         topBar = {
             PaletteTopBar(
                 canSave = paths != sketch?.pathList,
@@ -127,20 +132,31 @@ fun DrawingBoard(
                     paths += nextPath
                 },
                 onExportClicked = {
-                    sketchBitmap?.let {
-                        exportSketch(it)
-                    } ?: Toast.makeText(
-                        context,
-                        "Oops... Unable to export sketch",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    drawController.saveBitmap()
+                    /*	sketchBitmap?.let {
+                            exportSketch(it)
+                        } ?: Toast.makeText(context, "Oops... Unable to export sketch", Toast.LENGTH_SHORT).show()
+                    },
+                    onBroadCastUrl = { url ->
+                        onBroadCastUrl(url)
+                    */
                 },
                 onBroadCastUrl = { url ->
                     onBroadCastUrl(url)
                 }
             )
         },
-        containerColor = Color.White
+        containerColor = Color.White,
+        bottomBar = {
+            PaletteMenu(
+                drawMode = drawMode,
+                selectedColor = color,
+                pencilSize = pencilSize,
+                onColorChanged = { color = it },
+                onSizeChanged = { pencilSize = it },
+                onDrawModeChanged = { drawMode = it }
+            )
+        }
     ) { paddingValues ->
         LaunchedEffect(sketch) {
             sketch?.let {
@@ -175,7 +191,18 @@ fun DrawingBoard(
             AndroidView(
                 factory = {
                     ComposeView(context).apply {
+
                         setContent {
+                            LaunchedEffect(drawController) {
+                                drawController.trackBitmaps(
+                                    this@apply,
+                                    this,
+                                    onCaptured = { imageBitmap, error ->
+                                        imageBitmap?.let {
+                                            exportSketch(it.asAndroidBitmap())
+                                        }
+                                    })
+                            }
                             Canvas(
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -208,8 +235,7 @@ fun DrawingBoard(
                                             absolutePaths.clear()
                                             absolutePaths.addAll(paths)
 
-                                            //update drawn path in the db
-                                            viewModel.updatePathInDb(path = path)
+                                            viewModel.updatePathInDb(path)
                                         }
                                     }
                             ) {
@@ -239,14 +265,7 @@ fun DrawingBoard(
                 modifier = Modifier.fillMaxSize()
             )
 
-            PaletteMenu(
-                drawMode = drawMode,
-                selectedColor = color,
-                pencilSize = pencilSize,
-                onColorChanged = { color = it },
-                onSizeChanged = { pencilSize = it },
-                onDrawModeChanged = { drawMode = it }
-            )
+
         }
 
         if (openNameSketchDialog.value) {
@@ -256,8 +275,28 @@ fun DrawingBoard(
             )
         }
 
+        if (openSavePromptDialog.value) {
+            SavePromptDialog(
+                sketchIsNew = sketch == null,
+                onSave = {
+                    if (sketch == null) {
+                        openNameSketchDialog.value = true
+                    } else {
+                        save(null)
+                    }
+                },
+                onDiscard = { navigate(Screens.Back) },
+                onDismiss = { openSavePromptDialog.value = false }
+            )
+        }
+
         DisposableEffect(Unit) {
             onDispose { actions(SketchPadActions.SketchClosed) }
+        }
+
+        // onBackPress, if canvas has new lines drawn, prompt user to save sketch or changes
+        if (paths.isNotEmpty() && paths != sketch?.pathList) {
+            BackHandler { openSavePromptDialog.value = true }
         }
     }
 }

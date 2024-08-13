@@ -11,6 +11,8 @@ interface SketchRepository {
 
 	suspend fun saveSketch(sketch: Sketch)
 
+	suspend fun refreshDatabase(sketches: List<Sketch>)
+
 	suspend fun updateSketch(sketch: Sketch)
 
 	suspend fun deleteSketch(sketch: Sketch)
