@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseUser
 import dev.borisochieng.sketchpad.auth.data.FirebaseResponse
+import dev.borisochieng.sketchpad.collab.data.toDBPathProperties
 import dev.borisochieng.sketchpad.collab.domain.CollabRepository
 import dev.borisochieng.sketchpad.collab.data.toDBSketch
 import dev.borisochieng.sketchpad.database.Sketch
@@ -41,32 +42,24 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 
     var sketch by mutableStateOf<Sketch?>(null); private set
 
-//<<<<<<< HEAD
-//	private fun saveSketch(sketch: Sketch) {
-//		viewModelScope.launch {
-//			sketchRepository.saveSketch(sketch)
-//			saveSketchToRemoteDb(sketch)
-//		}
-//	}
-
     init {
         listenForSketchChanges()
     }
 
-	private fun saveSketchToRemoteDb(sketch: Sketch) {
-		viewModelScope.launch {
-			try {
-				val dbSketch = sketch.toDBSketch()
-				collabRepository.createSketch(
-					userId = firebaseUser.uid,
-					title = dbSketch.title,
-					paths = dbSketch.paths
-				)
-			} catch (e: Exception) {
-				Log.e("RemoteDbError", "User is not logged in", e)
-			}
-		}
-	}
+    private fun saveSketchToRemoteDb(sketch: Sketch) {
+        viewModelScope.launch {
+            try {
+                val dbSketch = sketch.toDBSketch()
+                collabRepository.createSketch(
+                    userId = firebaseUser.uid,
+                    title = dbSketch.title,
+                    paths = dbSketch.paths
+                )
+            } catch (e: Exception) {
+                Log.e("RemoteDbError", "User is not logged in", e)
+            }
+        }
+    }
 
     fun fetchSketch(sketchId: Int) {
         sketch = null
@@ -135,7 +128,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
         }
     }
 
-    fun listenForSketchChanges() =
+    private fun listenForSketchChanges() =
         viewModelScope.launch {
             val boardId = _uiState.value.boardDetails?.boardId
             if (boardId != null) {
@@ -145,7 +138,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
                 )
 
                 response.collectLatest { dbResponse ->
-                    when(dbResponse) {
+                    when (dbResponse) {
                         is FirebaseResponse.Success -> {
                             _uiState.update {
                                 it.copy(
@@ -155,6 +148,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
                             }
 
                         }
+
                         is FirebaseResponse.Error -> {
 
                             _uiState.update {
@@ -172,18 +166,20 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 
         }
 
-    fun updatePathInDb(path: PathProperties ) =
+    fun updatePathInDb(paths: List<PathProperties>) =
         viewModelScope.launch {
             val boardDetails = _uiState.value.boardDetails
-            if(boardDetails != null) {
-                val response = collabRepository.updatePathInDB(
-                    userId = boardDetails.userId,
-                    boardId = boardDetails.boardId,
-                    path = path,
-                    pathId = boardDetails.pathIds.first()
-                )
+            if(boardDetails != null && paths.isNotEmpty()) {
+                val pathIds = boardDetails.pathIds.take(paths.size) //ensure paths id matches path count
+                val response =
+                    collabRepository.updatePathInDB(
+                        userId = boardDetails.userId,
+                        boardId = boardDetails.boardId,
+                        paths = paths.map { it.toDBPathProperties() },
+                        pathIds = pathIds
+                    )
 
-                if(response is FirebaseResponse.Error) {
+                if (response is FirebaseResponse.Error) {
                     _uiState.update {
                         it.copy(
                             error = response.message

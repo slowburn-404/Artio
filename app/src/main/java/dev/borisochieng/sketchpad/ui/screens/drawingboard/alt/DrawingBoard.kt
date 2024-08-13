@@ -234,8 +234,6 @@ fun DrawingBoard(
                                             paths += path
                                             absolutePaths.clear()
                                             absolutePaths.addAll(paths)
-
-                                            viewModel.updatePathInDb(path)
                                         }
                                     }
                             ) {
@@ -248,6 +246,8 @@ fun DrawingBoard(
                                         cap = StrokeCap.Round
                                     )
                                 }
+
+                                viewModel.updatePathInDb(paths)
                             }
 
                             LaunchedEffect(paths) {
