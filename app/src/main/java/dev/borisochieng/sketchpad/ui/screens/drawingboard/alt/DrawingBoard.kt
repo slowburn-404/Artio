@@ -12,9 +12,12 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -34,14 +37,18 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
+import dev.borisochieng.sketchpad.auth.presentation.state.UiEvent
 import dev.borisochieng.sketchpad.database.Sketch
 import dev.borisochieng.sketchpad.ui.navigation.Screens
 import dev.borisochieng.sketchpad.ui.screens.dialog.NameSketchDialog
 import dev.borisochieng.sketchpad.ui.screens.dialog.SavePromptDialog
 import dev.borisochieng.sketchpad.ui.screens.dialog.Sizes
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.CanvasUiEvents
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadActions
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadViewModel
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.BitmapFactory.getBitmap
 import io.ak1.drawbox.rememberDrawController
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun DrawingBoard(
@@ -49,7 +56,8 @@ fun DrawingBoard(
 	exportSketch: (Bitmap) -> Unit,
 	actions: (SketchPadActions) -> Unit,
 	navigate: (Screens) -> Unit,
-	onBroadCastUrl: (String) -> Unit
+	onBroadCastUrl: (String) -> Unit,
+    viewModel: SketchPadViewModel = koinViewModel()
 ) {
 	val drawController = dev.borisochieng.sketchpad.ui.screens.drawingboard.data.rememberDrawController()
 	val absolutePaths = remember { mutableStateListOf<PathProperties>() }
@@ -76,8 +84,35 @@ fun DrawingBoard(
 		Toast.makeText(context, "Sketch saved", Toast.LENGTH_SHORT).show()
 		navigate(Screens.Back)
 	}
+    
+    val uiState by viewModel.uiState.collectAsState()
+    val uiEvents by viewModel.uiEvents.collectAsState(initial = null)
+
+    val snackBarHostState = remember {
+        SnackbarHostState()
+    }
+    
+    //listen for path changes
+    LaunchedEffect(uiState.paths) {
+        absolutePaths.clear()
+        paths = uiState.paths
+        absolutePaths.addAll(paths)        
+    }
+    
+     LaunchedEffect(uiEvents) {
+        uiEvents?.let { event ->
+            when (event) {
+                is CanvasUiEvents.SnackBarEvent -> {
+                    // Showing Snackbar with the message
+                    snackBarHostState.showSnackbar(event.message)
+                }
+                // Handle other events if any
+            }
+        }
+    }
 
 	Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
 		topBar = {
 			PaletteTopBar(
 				canSave = paths != sketch?.pathList,
@@ -132,8 +167,8 @@ fun DrawingBoard(
 
 		BoxWithConstraints(
 			modifier = Modifier
-				.fillMaxSize()
-				.padding(paddingValues),
+                .fillMaxSize()
+                .padding(paddingValues),
 			contentAlignment = Alignment.BottomCenter
 		) {
 			val state = rememberTransformableState { zoomChange, panChange, _ ->
@@ -166,37 +201,39 @@ fun DrawingBoard(
 							}
 							Canvas(
 								modifier = Modifier
-									.fillMaxSize()
-									.background(Color.White)
-									.graphicsLayer {
-										scaleX = scale
-										scaleY = scale
-										translationX = offset.x
-										translationY = offset.y
-									}
-									.transformable(state)
-									.pointerInput(true) {
-										if (drawMode == DrawMode.Touch) return@pointerInput
-										detectDragGestures { change, dragAmount ->
-											change.consume()
-											val eraseMode = drawMode == DrawMode.Erase
-											val path = PathProperties(
-												color = when (drawMode) {
-													DrawMode.Erase -> Color.White
-													DrawMode.Draw -> color
-													else -> Color.Transparent
-												},
-												eraseMode = eraseMode,
-												start = change.position - dragAmount,
-												end = change.position,
-												strokeWidth = pencilSize
-											)
+                                    .fillMaxSize()
+                                    .background(Color.White)
+                                    .graphicsLayer {
+                                        scaleX = scale
+                                        scaleY = scale
+                                        translationX = offset.x
+                                        translationY = offset.y
+                                    }
+                                    .transformable(state)
+                                    .pointerInput(true) {
+                                        if (drawMode == DrawMode.Touch) return@pointerInput
+                                        detectDragGestures { change, dragAmount ->
+                                            change.consume()
+                                            val eraseMode = drawMode == DrawMode.Erase
+                                            val path = PathProperties(
+                                                color = when (drawMode) {
+                                                    DrawMode.Erase -> Color.White
+                                                    DrawMode.Draw -> color
+                                                    else -> Color.Transparent
+                                                },
+                                                eraseMode = eraseMode,
+                                                start = change.position - dragAmount,
+                                                end = change.position,
+                                                strokeWidth = pencilSize
+                                            )
 
-											paths += path
-											absolutePaths.clear()
-											absolutePaths.addAll(paths)
-										}
-									}
+                                            paths += path
+                                            absolutePaths.clear()
+                                            absolutePaths.addAll(paths)
+
+                                            viewModel.updatePathInDb(path)
+                                        }
+                                    }
 							) {
 								paths.forEach { path ->
 									drawLine(
