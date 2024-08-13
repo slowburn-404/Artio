@@ -49,6 +49,10 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 //		}
 //	}
 
+    init {
+        listenForSketchChanges()
+    }
+
 	private fun saveSketchToRemoteDb(sketch: Sketch) {
 		viewModelScope.launch {
 			try {

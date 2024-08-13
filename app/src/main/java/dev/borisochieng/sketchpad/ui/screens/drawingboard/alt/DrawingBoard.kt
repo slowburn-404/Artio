@@ -52,54 +52,55 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun DrawingBoard(
-	sketch: Sketch?,
-	exportSketch: (Bitmap) -> Unit,
-	actions: (SketchPadActions) -> Unit,
-	navigate: (Screens) -> Unit,
-	onBroadCastUrl: (String) -> Unit,
+    sketch: Sketch?,
+    exportSketch: (Bitmap) -> Unit,
+    actions: (SketchPadActions) -> Unit,
+    navigate: (Screens) -> Unit,
+    onBroadCastUrl: (String) -> Unit,
     viewModel: SketchPadViewModel = koinViewModel()
 ) {
-	val drawController = dev.borisochieng.sketchpad.ui.screens.drawingboard.data.rememberDrawController()
-	val absolutePaths = remember { mutableStateListOf<PathProperties>() }
-	var paths by remember { mutableStateOf<List<PathProperties>>(emptyList()) }
-	var drawMode by remember { mutableStateOf(DrawMode.Draw) }
-	var pencilSize by remember { mutableFloatStateOf(Sizes.Small.strokeWidth) }
-	var color by remember { mutableStateOf(Color.Black) }
-	var scale by remember { mutableFloatStateOf(1f) }
-	var offset by remember { mutableStateOf(Offset.Zero) }
-	val openNameSketchDialog = rememberSaveable { mutableStateOf(false) }
-	val openSavePromptDialog = rememberSaveable { mutableStateOf(false) }
-	val scope = rememberCoroutineScope()
-	val context = LocalContext.current
-	var sketchBitmap: Bitmap? = null
-	val save: (String?) -> Unit = { name ->
-		val action = if (name == null) {
-			SketchPadActions.UpdateSketch(paths)
-		} else {
-			openNameSketchDialog.value = false
-			val newSketch = Sketch(name = name, pathList = paths)
-			SketchPadActions.SaveSketch(newSketch)
-		}
-		actions(action)
-		Toast.makeText(context, "Sketch saved", Toast.LENGTH_SHORT).show()
-		navigate(Screens.Back)
-	}
-    
+    val drawController =
+        dev.borisochieng.sketchpad.ui.screens.drawingboard.data.rememberDrawController()
+    val absolutePaths = remember { mutableStateListOf<PathProperties>() }
+    var paths by remember { mutableStateOf<List<PathProperties>>(emptyList()) }
+    var drawMode by remember { mutableStateOf(DrawMode.Draw) }
+    var pencilSize by remember { mutableFloatStateOf(Sizes.Small.strokeWidth) }
+    var color by remember { mutableStateOf(Color.Black) }
+    var scale by remember { mutableFloatStateOf(1f) }
+    var offset by remember { mutableStateOf(Offset.Zero) }
+    val openNameSketchDialog = rememberSaveable { mutableStateOf(false) }
+    val openSavePromptDialog = rememberSaveable { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    var sketchBitmap: Bitmap? = null
+    val save: (String?) -> Unit = { name ->
+        val action = if (name == null) {
+            SketchPadActions.UpdateSketch(paths)
+        } else {
+            openNameSketchDialog.value = false
+            val newSketch = Sketch(name = name, pathList = paths)
+            SketchPadActions.SaveSketch(newSketch)
+        }
+        actions(action)
+        Toast.makeText(context, "Sketch saved", Toast.LENGTH_SHORT).show()
+        navigate(Screens.Back)
+    }
+
     val uiState by viewModel.uiState.collectAsState()
     val uiEvents by viewModel.uiEvents.collectAsState(initial = null)
 
     val snackBarHostState = remember {
         SnackbarHostState()
     }
-    
+
     //listen for path changes
     LaunchedEffect(uiState.paths) {
         absolutePaths.clear()
         paths = uiState.paths
-        absolutePaths.addAll(paths)        
+        absolutePaths.addAll(paths)
     }
-    
-     LaunchedEffect(uiEvents) {
+
+    LaunchedEffect(uiEvents) {
         uiEvents?.let { event ->
             when (event) {
                 is CanvasUiEvents.SnackBarEvent -> {
@@ -111,96 +112,99 @@ fun DrawingBoard(
         }
     }
 
-	Scaffold(
+    Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
-		topBar = {
-			PaletteTopBar(
-				canSave = paths != sketch?.pathList,
-				canUndo = paths.isNotEmpty(),
-				canRedo = paths.size < absolutePaths.size,
-				onSaveClicked = {
-					if (sketch == null) {
-						openNameSketchDialog.value = true
-					} else {
-						save(null)
-					}
-				},
-				unUndoClicked = { paths -= paths.last() },
-				unRedoClicked = {
-					val nextPath = absolutePaths[paths.size]
-					paths += nextPath
-				},
-				onExportClicked = {
+        topBar = {
+            PaletteTopBar(
+                canSave = paths != sketch?.pathList,
+                canUndo = paths.isNotEmpty(),
+                canRedo = paths.size < absolutePaths.size,
+                onSaveClicked = {
+                    if (sketch == null) {
+                        openNameSketchDialog.value = true
+                    } else {
+                        save(null)
+                    }
+                },
+                unUndoClicked = { paths -= paths.last() },
+                unRedoClicked = {
+                    val nextPath = absolutePaths[paths.size]
+                    paths += nextPath
+                },
+                onExportClicked = {
+                    drawController.saveBitmap()
+                    /*	sketchBitmap?.let {
+                            exportSketch(it)
+                        } ?: Toast.makeText(context, "Oops... Unable to export sketch", Toast.LENGTH_SHORT).show()
+                    },
+                    onBroadCastUrl = { url ->
+                        onBroadCastUrl(url)
+                    */
+                },
+                onBroadCastUrl = { url ->
+                    onBroadCastUrl(url)
+                }
+            )
+        },
+        containerColor = Color.White,
+        bottomBar = {
+            PaletteMenu(
+                drawMode = drawMode,
+                selectedColor = color,
+                pencilSize = pencilSize,
+                onColorChanged = { color = it },
+                onSizeChanged = { pencilSize = it },
+                onDrawModeChanged = { drawMode = it }
+            )
+        }
+    ) { paddingValues ->
+        LaunchedEffect(sketch) {
+            sketch?.let {
+                absolutePaths.clear(); paths = emptyList()
+                absolutePaths.addAll(sketch.pathList)
+                paths = sketch.pathList
+            }
+        }
 
-					drawController.saveBitmap()
-				/*	sketchBitmap?.let {
-						exportSketch(it)
-					} ?: Toast.makeText(context, "Oops... Unable to export sketch", Toast.LENGTH_SHORT).show()
-				},
-				onBroadCastUrl = { url ->
-					onBroadCastUrl(url)
-				*/},
-				onBroadCastUrl = { url ->
-					onBroadCastUrl(url)
-				}
-			)
-		},
-		containerColor = Color.White,
-		bottomBar = {
-			PaletteMenu(
-				drawMode = drawMode,
-				selectedColor = color,
-				pencilSize = pencilSize,
-				onColorChanged = { color = it },
-				onSizeChanged = { pencilSize = it },
-				onDrawModeChanged = { drawMode = it }
-			)
-		}
-	) { paddingValues ->
-		LaunchedEffect(sketch) {
-			sketch?.let {
-				absolutePaths.clear(); paths = emptyList()
-				absolutePaths.addAll(sketch.pathList)
-				paths = sketch.pathList
-			}
-		}
-
-		BoxWithConstraints(
-			modifier = Modifier
+        BoxWithConstraints(
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-			contentAlignment = Alignment.BottomCenter
-		) {
-			val state = rememberTransformableState { zoomChange, panChange, _ ->
-				if (drawMode != DrawMode.Touch) return@rememberTransformableState
-				scale = (scale * zoomChange).coerceIn(1f, 5f)
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            val state = rememberTransformableState { zoomChange, panChange, _ ->
+                if (drawMode != DrawMode.Touch) return@rememberTransformableState
+                scale = (scale * zoomChange).coerceIn(1f, 5f)
 
-				val extraWidth = (scale - 1) * constraints.maxWidth
-				val extraHeight = (scale - 1) * constraints.maxHeight
+                val extraWidth = (scale - 1) * constraints.maxWidth
+                val extraHeight = (scale - 1) * constraints.maxHeight
 
-				val maxX = extraWidth / 2
-				val maxY = extraHeight / 2
+                val maxX = extraWidth / 2
+                val maxY = extraHeight / 2
 
-				offset = Offset(
-					x = (offset.x + scale * panChange.x).coerceIn(-maxX, maxX),
-					y = (offset.y + scale * panChange.y).coerceIn(-maxY, maxY)
-				)
-			}
+                offset = Offset(
+                    x = (offset.x + scale * panChange.x).coerceIn(-maxX, maxX),
+                    y = (offset.y + scale * panChange.y).coerceIn(-maxY, maxY)
+                )
+            }
 
-			AndroidView(
-				factory = {
-					ComposeView(context).apply {
+            AndroidView(
+                factory = {
+                    ComposeView(context).apply {
 
-						setContent {
-							LaunchedEffect(drawController) {
-								drawController.trackBitmaps(this@apply, this, onCaptured = { imageBitmap, error ->
-									imageBitmap?.let {
-										exportSketch(it.asAndroidBitmap())
-									}
-								})
-							}
-							Canvas(
-								modifier = Modifier
+                        setContent {
+                            LaunchedEffect(drawController) {
+                                drawController.trackBitmaps(
+                                    this@apply,
+                                    this,
+                                    onCaptured = { imageBitmap, error ->
+                                        imageBitmap?.let {
+                                            exportSketch(it.asAndroidBitmap())
+                                        }
+                                    })
+                            }
+                            Canvas(
+                                modifier = Modifier
                                     .fillMaxSize()
                                     .background(Color.White)
                                     .graphicsLayer {
@@ -234,64 +238,65 @@ fun DrawingBoard(
                                             viewModel.updatePathInDb(path)
                                         }
                                     }
-							) {
-								paths.forEach { path ->
-									drawLine(
-										color = path.color,
-										start = path.start,
-										end = path.end,
-										strokeWidth = path.strokeWidth,
-										cap = StrokeCap.Round
-									)
-								}
-							}
+                            ) {
+                                paths.forEach { path ->
+                                    drawLine(
+                                        color = path.color,
+                                        start = path.start,
+                                        end = path.end,
+                                        strokeWidth = path.strokeWidth,
+                                        cap = StrokeCap.Round
+                                    )
+                                }
+                            }
 
-							LaunchedEffect(paths) {
-								this@apply.getBitmap(scope) { bitmap, error ->
-									sketchBitmap = bitmap
-									error?.let {
-										Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
-									}
-								}
-							}
-						}
-					}
-				},
-				modifier = Modifier.fillMaxSize()
-			)
+                            LaunchedEffect(paths) {
+                                this@apply.getBitmap(scope) { bitmap, error ->
+                                    sketchBitmap = bitmap
+                                    error?.let {
+                                        Toast.makeText(context, it.message, Toast.LENGTH_SHORT)
+                                            .show()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                modifier = Modifier.fillMaxSize()
+            )
 
 
-		}
+        }
 
-		if (openNameSketchDialog.value) {
-			NameSketchDialog(
-				onNamed = { name -> save(name) },
-				onDismiss = { openNameSketchDialog.value = false }
-			)
-		}
+        if (openNameSketchDialog.value) {
+            NameSketchDialog(
+                onNamed = { name -> save(name) },
+                onDismiss = { openNameSketchDialog.value = false }
+            )
+        }
 
-		if (openSavePromptDialog.value) {
-			SavePromptDialog(
-				sketchIsNew = sketch == null,
-				onSave = {
-					if (sketch == null) {
-						openNameSketchDialog.value = true
-					} else {
-						save(null)
-					}
-				},
-				onDiscard = { navigate(Screens.Back) },
-				onDismiss = { openSavePromptDialog.value = false }
-			)
-		}
+        if (openSavePromptDialog.value) {
+            SavePromptDialog(
+                sketchIsNew = sketch == null,
+                onSave = {
+                    if (sketch == null) {
+                        openNameSketchDialog.value = true
+                    } else {
+                        save(null)
+                    }
+                },
+                onDiscard = { navigate(Screens.Back) },
+                onDismiss = { openSavePromptDialog.value = false }
+            )
+        }
 
-		DisposableEffect(Unit) {
-			onDispose { actions(SketchPadActions.SketchClosed) }
-		}
+        DisposableEffect(Unit) {
+            onDispose { actions(SketchPadActions.SketchClosed) }
+        }
 
-		// onBackPress, if canvas has new lines drawn, prompt user to save sketch or changes
-		if (paths.isNotEmpty() && paths != sketch?.pathList) {
-			BackHandler { openSavePromptDialog.value = true }
-		}
-	}
+        // onBackPress, if canvas has new lines drawn, prompt user to save sketch or changes
+        if (paths.isNotEmpty() && paths != sketch?.pathList) {
+            BackHandler { openSavePromptDialog.value = true }
+        }
+    }
 }
