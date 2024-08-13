@@ -1,0 +1,527 @@
+Index: app/src/main/java/dev/borisochieng/sketchpad/ui/screens/home/HomeScreen.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package dev.borisochieng.sketchpad.ui.screens.home\r\n\r\nimport androidx.compose.foundation.layout.Arrangement\r\nimport androidx.compose.foundation.layout.Column\r\nimport androidx.compose.foundation.layout.PaddingValues\r\nimport androidx.compose.foundation.layout.fillMaxSize\r\nimport androidx.compose.foundation.layout.padding\r\nimport androidx.compose.foundation.layout.size\r\nimport androidx.compose.foundation.lazy.grid.GridCells\r\nimport androidx.compose.foundation.lazy.grid.LazyVerticalGrid\r\nimport androidx.compose.foundation.rememberScrollState\r\nimport androidx.compose.foundation.verticalScroll\r\nimport androidx.compose.material.icons.Icons\r\nimport androidx.compose.material.icons.rounded.Brush\r\nimport androidx.compose.material.icons.rounded.History\r\nimport androidx.compose.material3.FloatingActionButton\r\nimport androidx.compose.material3.Icon\r\nimport androidx.compose.material3.Scaffold\r\nimport androidx.compose.material3.Text\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.ui.Alignment\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.draw.alpha\r\nimport androidx.compose.ui.text.font.FontStyle\r\nimport androidx.compose.ui.text.font.FontWeight\r\nimport androidx.compose.ui.text.style.TextAlign\r\nimport androidx.compose.ui.unit.Dp\r\nimport androidx.compose.ui.unit.dp\r\nimport androidx.compose.ui.unit.sp\r\nimport dev.borisochieng.sketchpad.database.Sketch\r\nimport dev.borisochieng.sketchpad.ui.components.HomeTopBar\r\nimport dev.borisochieng.sketchpad.ui.navigation.Screens\r\nimport dev.borisochieng.sketchpad.ui.theme.lightScheme\r\n\r\n@Composable\r\nfun HomeScreen(\r\n    bottomPadding: Dp,\r\n    savedSketches: List<Sketch>,\r\n    navigate: (Screens) -> Unit\r\n) {\r\n    Scaffold(\r\n        modifier = Modifier.padding(bottom = bottomPadding),\r\n        floatingActionButton = {\r\n            FloatingActionButton(\r\n                onClick = { navigate(Screens.SketchPad(\"0\")) },\r\n                containerColor = lightScheme.primary,\r\n                contentColor = lightScheme.onPrimary\r\n            ) {\r\n                Icon(\r\n                    imageVector = Icons.Rounded.Brush,\r\n                    contentDescription = \"New sketch\"\r\n                )\r\n            }\r\n        },\r\n        topBar = { HomeTopBar() }\r\n    ) { paddingValues ->\r\n        Column(\r\n            modifier = Modifier\r\n                .fillMaxSize()\r\n                .padding(paddingValues)\r\n                .padding(16.dp),\r\n            horizontalAlignment = Alignment.CenterHorizontally\r\n        ) {\r\n//\t\t\tOutlinedButton(\r\n//\t\t\t\tonClick = { navigate(Screens.SketchPad(\"0\")) },\r\n//\t\t\t\tmodifier = Modifier\r\n//\t\t\t\t\t.fillMaxWidth()\r\n//\t\t\t\t\t.padding(20.dp, 16.dp)\r\n//\t\t\t) {\r\n//\t\t\t\tIcon(Icons.Rounded.Add, null, Modifier.padding(vertical = 14.dp))\r\n//\t\t\t\tText(\"Create New Sketch\", Modifier.padding(start = 10.dp))\r\n//\t\t\t}\r\n            LazyVerticalGrid(\r\n                columns = GridCells.Adaptive(150.dp),\r\n                modifier = Modifier.padding(start = 10.dp),\r\n                contentPadding = PaddingValues(bottom = 100.dp)\r\n            ) {\r\n                items(savedSketches.size) { index ->\r\n                    val sketch = savedSketches[index]\r\n                    SketchPoster(\r\n                        sketch = sketch,\r\n                        onClick = { navigate(Screens.SketchPad(it)) }\r\n                    )\r\n                }\r\n            }\r\n\r\n            if (savedSketches.isEmpty()) {\r\n                EmptyScreen()\r\n            }\r\n        }\r\n    }\r\n}\r\n\r\n@Composable\r\nprivate fun EmptyScreen() {\r\n    val displayText = \"No drawings saved\"\r\n\r\n    Column(\r\n        modifier = Modifier\r\n            .fillMaxSize()\r\n            .verticalScroll(rememberScrollState())\r\n            .padding(30.dp)\r\n            .alpha(0.7f),\r\n        verticalArrangement = Arrangement.Center,\r\n        horizontalAlignment = Alignment.CenterHorizontally\r\n    ) {\r\n        Icon(\r\n            imageVector = Icons.Rounded.History,\r\n            contentDescription = displayText,\r\n            modifier = Modifier\r\n                .padding(bottom = 20.dp)\r\n                .size(100.dp)\r\n        )\r\n        Text(\r\n            text = displayText,\r\n            fontSize = 24.sp,\r\n            fontStyle = FontStyle.Italic,\r\n            fontWeight = FontWeight.Medium,\r\n            textAlign = TextAlign.Center\r\n        )\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/home/HomeScreen.kt b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/home/HomeScreen.kt
+--- a/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/home/HomeScreen.kt	(revision 2b5c6e52c770f0c530ab776c3a6142289b97aef4)
++++ b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/home/HomeScreen.kt	(date 1723472676923)
+@@ -18,6 +18,8 @@
+ import androidx.compose.material3.Scaffold
+ import androidx.compose.material3.Text
+ import androidx.compose.runtime.Composable
++import androidx.compose.runtime.mutableStateOf
++import androidx.compose.runtime.remember
+ import androidx.compose.ui.Alignment
+ import androidx.compose.ui.Modifier
+ import androidx.compose.ui.draw.alpha
+@@ -30,14 +32,18 @@
+ import dev.borisochieng.sketchpad.database.Sketch
+ import dev.borisochieng.sketchpad.ui.components.HomeTopBar
+ import dev.borisochieng.sketchpad.ui.navigation.Screens
++import dev.borisochieng.sketchpad.ui.screens.dialog.ItemMenuSheet
+ import dev.borisochieng.sketchpad.ui.theme.lightScheme
+ 
+ @Composable
+ fun HomeScreen(
+     bottomPadding: Dp,
+     savedSketches: List<Sketch>,
++    actions: (HomeActions) -> Unit,
+     navigate: (Screens) -> Unit
+ ) {
++    val selectedSketch = remember { mutableStateOf<Sketch?>(null) }
++
+     Scaffold(
+         modifier = Modifier.padding(bottom = bottomPadding),
+         floatingActionButton = {
+@@ -61,15 +67,6 @@
+                 .padding(16.dp),
+             horizontalAlignment = Alignment.CenterHorizontally
+         ) {
+-//			OutlinedButton(
+-//				onClick = { navigate(Screens.SketchPad("0")) },
+-//				modifier = Modifier
+-//					.fillMaxWidth()
+-//					.padding(20.dp, 16.dp)
+-//			) {
+-//				Icon(Icons.Rounded.Add, null, Modifier.padding(vertical = 14.dp))
+-//				Text("Create New Sketch", Modifier.padding(start = 10.dp))
+-//			}
+             LazyVerticalGrid(
+                 columns = GridCells.Adaptive(150.dp),
+                 modifier = Modifier.padding(start = 10.dp),
+@@ -79,7 +76,8 @@
+                     val sketch = savedSketches[index]
+                     SketchPoster(
+                         sketch = sketch,
+-                        onClick = { navigate(Screens.SketchPad(it)) }
++                        onClick = { navigate(Screens.SketchPad(it)) },
++                        onMenuClicked = { selectedSketch.value = it }
+                     )
+                 }
+             }
+@@ -88,6 +86,14 @@
+                 EmptyScreen()
+             }
+         }
++
++        if (selectedSketch.value != null) {
++            ItemMenuSheet(
++                sketch = selectedSketch.value!!,
++                action = actions,
++                onDismiss = { selectedSketch.value = null }
++            )
++        }
+     }
+ }
+ 
+Index: app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/SketchPadViewModel.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package dev.borisochieng.sketchpad.ui.screens.drawingboard\r\n\r\nimport androidx.compose.runtime.getValue\r\nimport androidx.compose.runtime.mutableStateOf\r\nimport androidx.compose.runtime.setValue\r\nimport androidx.lifecycle.ViewModel\r\nimport androidx.lifecycle.viewModelScope\r\nimport dev.borisochieng.sketchpad.database.Sketch\r\nimport dev.borisochieng.sketchpad.database.repository.SketchRepository\r\nimport dev.borisochieng.sketchpad.ui.screens.drawingboard.alt.PathProperties\r\nimport kotlinx.coroutines.launch\r\nimport org.koin.core.component.KoinComponent\r\nimport org.koin.core.component.inject\r\n\r\nclass SketchPadViewModel : ViewModel(), KoinComponent {\r\n\r\n\tprivate val sketchRepository by inject<SketchRepository>()\r\n\r\n\tvar sketch by mutableStateOf<Sketch?>(null); private set\r\n\r\n\tfun fetchSketch(sketchId: Int) {\r\n\t\tsketch = null\r\n\t\tviewModelScope.launch {\r\n\t\t\tsketchRepository.getSketch(sketchId).collect {\r\n\t\t\t\tsketch = it\r\n\t\t\t}\r\n\t\t}\r\n\t}\r\n\r\n\tfun actions(action: SketchPadActions) {\r\n\t\twhen (action) {\r\n\t\t\tis SketchPadActions.SaveSketch -> saveSketch(action.sketch)\r\n\t\t\tis SketchPadActions.UpdateSketch -> updateSketch(action.paths)\r\n\t\t\tis SketchPadActions.DeleteSketch -> deleteSketch(action.sketch)\r\n\t\t\tSketchPadActions.SketchClosed -> sketch = null\r\n\t\t}\r\n\t}\r\n\r\n\tprivate fun saveSketch(sketch: Sketch) {\r\n\t\tviewModelScope.launch {\r\n\t\t\tsketchRepository.saveSketch(sketch)\r\n\t\t}\r\n\t}\r\n\r\n\tprivate fun updateSketch(paths: List<PathProperties>) {\r\n\t\tviewModelScope.launch {\r\n\t\t\tif (sketch == null) return@launch\r\n\t\t\tval updatedSketch = Sketch(\r\n\t\t\t\tid = sketch!!.id,\r\n\t\t\t\tname = sketch!!.name,\r\n\t\t\t\tdateCreated = sketch!!.dateCreated,\r\n\t\t\t\tpathList = paths\r\n\t\t\t)\r\n\t\t\tsketchRepository.updateSketch(updatedSketch)\r\n\t\t}\r\n\t}\r\n\r\n\tprivate fun deleteSketch(sketchToDelete: Sketch) {\r\n\t\tviewModelScope.launch {\r\n\t\t\tsketchRepository.deleteSketch(sketchToDelete)\r\n\t\t}\r\n\t}\r\n\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/SketchPadViewModel.kt b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/SketchPadViewModel.kt
+--- a/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/SketchPadViewModel.kt	(revision 2b5c6e52c770f0c530ab776c3a6142289b97aef4)
++++ b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/SketchPadViewModel.kt	(date 1723472334301)
+@@ -31,7 +31,6 @@
+ 		when (action) {
+ 			is SketchPadActions.SaveSketch -> saveSketch(action.sketch)
+ 			is SketchPadActions.UpdateSketch -> updateSketch(action.paths)
+-			is SketchPadActions.DeleteSketch -> deleteSketch(action.sketch)
+ 			SketchPadActions.SketchClosed -> sketch = null
+ 		}
+ 	}
+@@ -55,10 +54,4 @@
+ 		}
+ 	}
+ 
+-	private fun deleteSketch(sketchToDelete: Sketch) {
+-		viewModelScope.launch {
+-			sketchRepository.deleteSketch(sketchToDelete)
+-		}
+-	}
+-
+ }
+\ No newline at end of file
+Index: app/src/main/java/dev/borisochieng/sketchpad/ui/screens/dialog/DeleteDialog.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/dialog/DeleteDialog.kt b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/dialog/DeleteDialog.kt
+new file mode 100644
+--- /dev/null	(date 1723475060716)
++++ b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/dialog/DeleteDialog.kt	(date 1723475060716)
+@@ -0,0 +1,36 @@
++package dev.borisochieng.sketchpad.ui.screens.dialog
++
++import androidx.compose.material3.AlertDialog
++import androidx.compose.material3.Button
++import androidx.compose.material3.ButtonDefaults.outlinedButtonColors
++import androidx.compose.material3.MaterialTheme.colorScheme
++import androidx.compose.material3.OutlinedButton
++import androidx.compose.material3.Text
++import androidx.compose.runtime.Composable
++
++@Composable
++fun DeleteDialog(
++	onDeleteSketch: () -> Unit,
++	onDismiss: () -> Unit
++) {
++	AlertDialog(
++		onDismissRequest = onDismiss,
++		title = { Text("Delete sketch") },
++		text = {
++			Text("Are you sure you want to delete this sketch? You may not be able to undo this action.")
++		},
++		confirmButton = {
++			OutlinedButton(
++				onClick = onDeleteSketch,
++				colors = outlinedButtonColors(contentColor = colorScheme.error)
++			) {
++				Text("Delete")
++			}
++		},
++		dismissButton = {
++			Button(onClick = onDismiss) {
++				Text("Cancel")
++			}
++		}
++	)
++}
+\ No newline at end of file
+Index: app/src/main/res/values/strings.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><resources>\r\n    <string name=\"app_name\">SketchPad</string>\r\n    <string name=\"back\">Back</string>\r\n    <string name=\"home\">Home</string>\r\n    <string name=\"settings\">Settings</string>\r\n    <string name=\"profile\">Profile</string>\r\n</resources>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/values/strings.xml b/app/src/main/res/values/strings.xml
+--- a/app/src/main/res/values/strings.xml	(revision 2b5c6e52c770f0c530ab776c3a6142289b97aef4)
++++ b/app/src/main/res/values/strings.xml	(date 1723472333455)
+@@ -4,4 +4,6 @@
+     <string name="home">Home</string>
+     <string name="settings">Settings</string>
+     <string name="profile">Profile</string>
++    <string name="rename">Rename</string>
++    <string name="delete">Delete</string>
+ </resources>
+\ No newline at end of file
+Index: app/src/main/java/dev/borisochieng/sketchpad/ui/navigation/AppRoute.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package dev.borisochieng.sketchpad.ui.navigation\r\n\r\nimport android.graphics.Bitmap\r\nimport androidx.compose.foundation.layout.PaddingValues\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.runtime.LaunchedEffect\r\nimport androidx.navigation.NavHostController\r\nimport androidx.navigation.compose.NavHost\r\nimport androidx.navigation.compose.composable\r\nimport dev.borisochieng.sketchpad.auth.presentation.screens.LoginScreen\r\nimport dev.borisochieng.sketchpad.auth.presentation.screens.OnBoardingScreen\r\nimport dev.borisochieng.sketchpad.auth.presentation.screens.ProfileScreen\r\nimport dev.borisochieng.sketchpad.auth.presentation.screens.SignUpScreen\r\nimport dev.borisochieng.sketchpad.auth.presentation.screens.UpdateProfileScreen\r\nimport dev.borisochieng.sketchpad.auth.presentation.viewmodels.AuthViewModel\r\nimport dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadViewModel\r\nimport dev.borisochieng.sketchpad.ui.screens.drawingboard.alt.DrawingBoard\r\nimport dev.borisochieng.sketchpad.ui.screens.home.HomeScreen\r\nimport dev.borisochieng.sketchpad.ui.screens.home.HomeViewModel\r\nimport dev.borisochieng.sketchpad.ui.screens.settings.SettingsScreen\r\nimport dev.borisochieng.sketchpad.utils.AnimationDirection\r\nimport dev.borisochieng.sketchpad.utils.animatedComposable\r\nimport org.koin.androidx.compose.koinViewModel\r\n\r\n@Composable\r\nfun AppRoute(\r\n\tpaddingValues: PaddingValues,\r\n\tnavActions: NavActions,\r\n\tnavController: NavHostController,\r\n\tsaveImage: (Bitmap) -> Unit,\r\n\tauthViewModel: AuthViewModel = koinViewModel(),\r\n\thomeViewModel: HomeViewModel = koinViewModel(),\r\n\tsketchPadViewModel: SketchPadViewModel = koinViewModel()\r\n) {\r\n\tNavHost(\r\n//\t\tmodifier = Modifier.padding(paddingValues), this gives the app unnecessary padding\r\n\t\tnavController = navController,\r\n\t\tstartDestination = authViewModel.startScreen\r\n\t) {\r\n\t\tcomposable(AppRoute.HomeScreen.route) {\r\n\t\t\tHomeScreen(\r\n\t\t\t\tbottomPadding = paddingValues.calculateBottomPadding(),\r\n\t\t\t\tsavedSketches = homeViewModel.savedSketches,\r\n\t\t\t\tnavigate = navActions::navigate\r\n\t\t\t)\r\n\t\t}\r\n\t\tanimatedComposable(\r\n\t\t\troute = AppRoute.SketchPad.route,\r\n\t\t\tanimationDirection = AnimationDirection.UpDown\r\n\t\t) { backStackEntry ->\r\n\t\t\tval sketchId = backStackEntry.arguments?.getString(\"sketchId\") ?: \"\"\r\n\t\t\tLaunchedEffect(true) {\r\n\t\t\t\tsketchPadViewModel.fetchSketch(sketchId.toInt())\r\n\t\t\t}\r\n\r\n\t\t\tDrawingBoard(\r\n\t\t\t\tsketch = sketchPadViewModel.sketch,\r\n\t\t\t\texportSketch = saveImage,\r\n\t\t\t\tactions = sketchPadViewModel::actions,\r\n\t\t\t\tnavigate = navActions::navigate\r\n\t\t\t)\r\n\t\t}\r\n\t\tcomposable(AppRoute.SettingsScreen.route) {\r\n\t\t\tSettingsScreen(navigate = navActions::navigate)\r\n\t\t}\r\n\t\tcomposable(AppRoute.ProfileScreen.route) {\r\n\t\t\tProfileScreen(\r\n\t\t\t\tbottomPadding = paddingValues.calculateBottomPadding(),\r\n\t\t\t\tnavigate = navActions::navigate\r\n\t\t\t)\r\n\t\t}\r\n\t\tanimatedComposable(AppRoute.OnBoardingScreen.route) {\r\n\t\t\tOnBoardingScreen(navigate = navActions::navigate)\r\n\t\t}\r\n\t\tanimatedComposable(AppRoute.SignUpScreen.route) {\r\n\t\t\tSignUpScreen(navigate = navActions:: navigate)\r\n\t\t}\r\n\t\tanimatedComposable(AppRoute.LoginScreen.route) {\r\n\t\t\tLoginScreen(navigate = navActions::navigate)\r\n\t\t}\r\n\t\tanimatedComposable(AppRoute.UpdateProfileScreen.route) {\r\n\t\t\tUpdateProfileScreen(navigate = navActions::navigate)\r\n\t\t}\r\n\t}\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/dev/borisochieng/sketchpad/ui/navigation/AppRoute.kt b/app/src/main/java/dev/borisochieng/sketchpad/ui/navigation/AppRoute.kt
+--- a/app/src/main/java/dev/borisochieng/sketchpad/ui/navigation/AppRoute.kt	(revision 2b5c6e52c770f0c530ab776c3a6142289b97aef4)
++++ b/app/src/main/java/dev/borisochieng/sketchpad/ui/navigation/AppRoute.kt	(date 1723472332999)
+@@ -41,6 +41,7 @@
+ 			HomeScreen(
+ 				bottomPadding = paddingValues.calculateBottomPadding(),
+ 				savedSketches = homeViewModel.savedSketches,
++				actions = homeViewModel::actions,
+ 				navigate = navActions::navigate
+ 			)
+ 		}
+Index: app/src/main/java/dev/borisochieng/sketchpad/ui/screens/dialog/ItemMenuSheet.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/dialog/ItemMenuSheet.kt b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/dialog/ItemMenuSheet.kt
+new file mode 100644
+--- /dev/null	(date 1723475060620)
++++ b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/dialog/ItemMenuSheet.kt	(date 1723475060620)
+@@ -0,0 +1,152 @@
++package dev.borisochieng.sketchpad.ui.screens.dialog
++
++import androidx.annotation.StringRes
++import androidx.compose.foundation.background
++import androidx.compose.foundation.clickable
++import androidx.compose.foundation.layout.Column
++import androidx.compose.foundation.layout.Row
++import androidx.compose.foundation.layout.fillMaxWidth
++import androidx.compose.foundation.layout.padding
++import androidx.compose.material.icons.Icons
++import androidx.compose.material.icons.rounded.Delete
++import androidx.compose.material.icons.rounded.Edit
++import androidx.compose.material3.BottomSheetDefaults
++import androidx.compose.material3.ExperimentalMaterial3Api
++import androidx.compose.material3.Icon
++import androidx.compose.material3.MaterialTheme
++import androidx.compose.material3.ModalBottomSheet
++import androidx.compose.material3.Text
++import androidx.compose.material3.rememberModalBottomSheetState
++import androidx.compose.runtime.Composable
++import androidx.compose.runtime.mutableStateOf
++import androidx.compose.runtime.remember
++import androidx.compose.ui.Alignment
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.draw.alpha
++import androidx.compose.ui.draw.clip
++import androidx.compose.ui.graphics.vector.ImageVector
++import androidx.compose.ui.res.stringResource
++import androidx.compose.ui.text.font.FontWeight
++import androidx.compose.ui.unit.dp
++import androidx.compose.ui.unit.sp
++import dev.borisochieng.sketchpad.R
++import dev.borisochieng.sketchpad.database.Sketch
++import dev.borisochieng.sketchpad.ui.screens.dialog.Menus.Delete
++import dev.borisochieng.sketchpad.ui.screens.dialog.Menus.Rename
++import dev.borisochieng.sketchpad.ui.screens.home.HomeActions
++import dev.borisochieng.sketchpad.utils.Extensions.formatDate
++
++@OptIn(ExperimentalMaterial3Api::class)
++@Composable
++fun ItemMenuSheet(
++	sketch: Sketch,
++	action: (HomeActions) -> Unit,
++	onDismiss: () -> Unit
++) {
++	val sheetState = rememberModalBottomSheetState(true)
++	val openRenameDialog = remember { mutableStateOf(false) }
++	val openDeleteDialog = remember { mutableStateOf(false) }
++
++	ModalBottomSheet(
++		onDismissRequest = onDismiss,
++		sheetState = sheetState,
++		dragHandle = { DragHandle(sketch) }
++	) {
++		Column(Modifier.fillMaxWidth()) {
++			Menus.entries.forEach { menu ->
++				ItemMenu(
++					menu = stringResource(menu.menuRes),
++					icon = menu.icon,
++					onClick = {
++						when (menu) {
++							Rename -> openRenameDialog.value = true
++							Delete -> openDeleteDialog.value = true
++						}
++					}
++				)
++			}
++		}
++	}
++
++	if (openRenameDialog.value) {
++		NameSketchDialog(
++			currentName = sketch.name,
++			onNamed = { newName ->
++				val renamedSketch = Sketch(
++					id = sketch.id,
++					name = newName,
++					dateCreated = sketch.dateCreated,
++					lastModified = sketch.lastModified,
++					pathList = sketch.pathList
++				)
++				action(HomeActions.RenameSketch(renamedSketch))
++			},
++			onDismiss = { openRenameDialog.value = false }
++		)
++	}
++
++	if (openDeleteDialog.value) {
++		DeleteDialog(
++			onDeleteSketch = { action(HomeActions.DeleteSketch(sketch)) },
++			onDismiss = { openDeleteDialog.value = false }
++		)
++	}
++}
++
++@Composable
++private fun ItemMenu(
++	menu: String,
++	icon: ImageVector,
++	modifier: Modifier = Modifier,
++	onClick: () -> Unit
++) {
++	Row(
++		modifier = modifier
++			.fillMaxWidth()
++			.padding(horizontal = 16.dp)
++			.padding(bottom = 10.dp)
++			.clip(MaterialTheme.shapes.large)
++			.clickable { onClick() }
++			.padding(20.dp),
++		verticalAlignment = Alignment.CenterVertically
++	) {
++		Icon(icon, menu)
++		Text(menu, Modifier.padding(start = 16.dp))
++	}
++}
++
++@OptIn(ExperimentalMaterial3Api::class)
++@Composable
++private fun DragHandle(
++	sketch: Sketch,
++	modifier: Modifier = Modifier
++) {
++	Column(
++		modifier = modifier
++			.fillMaxWidth()
++			.padding(16.dp)
++			.clip(BottomSheetDefaults.ExpandedShape)
++			.background(MaterialTheme.colorScheme.background)
++	) {
++		Text(
++			text = sketch.name,
++			modifier = Modifier.padding(top = 10.dp),
++			fontWeight = FontWeight.Bold
++		)
++		Text(
++			text = "Last modified on:" + sketch.lastModified.formatDate(),
++			modifier = Modifier
++				.padding(bottom = 10.dp)
++				.alpha(0.8f),
++			fontSize = 14.sp
++		)
++	}
++}
++
++private enum class Menus(
++	@StringRes val menuRes: Int,
++	val icon: ImageVector
++) {
++	Rename(R.string.rename, Icons.Rounded.Edit),
++	Delete(R.string.delete, Icons.Rounded.Delete)
++}
+Index: app/src/main/java/dev/borisochieng/sketchpad/ui/screens/dialog/NameSketchDialog.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package dev.borisochieng.sketchpad.ui.screens.dialog\r\n\r\nimport androidx.compose.foundation.layout.fillMaxWidth\r\nimport androidx.compose.material3.AlertDialog\r\nimport androidx.compose.material3.Button\r\nimport androidx.compose.material3.OutlinedButton\r\nimport androidx.compose.material3.OutlinedTextField\r\nimport androidx.compose.material3.Text\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.runtime.getValue\r\nimport androidx.compose.runtime.mutableStateOf\r\nimport androidx.compose.runtime.saveable.rememberSaveable\r\nimport androidx.compose.runtime.setValue\r\nimport androidx.compose.ui.Modifier\r\n\r\n@Composable\r\nfun NameSketchDialog(\r\n\tonNamed: (String) -> Unit,\r\n\tonDismiss: () -> Unit\r\n) {\r\n\tvar name by rememberSaveable { mutableStateOf(\"\") }\r\n\r\n\tAlertDialog(\r\n\t\tonDismissRequest = onDismiss,\r\n\t\ttitle = { Text(\"Save as\") },\r\n\t\ttext = {\r\n\t\t\tOutlinedTextField(\r\n\t\t\t\tvalue = name,\r\n\t\t\t\tonValueChange = { name = it },\r\n\t\t\t\tmodifier = Modifier.fillMaxWidth(),\r\n\t\t\t\tsingleLine = true\r\n\t\t\t)\r\n\t\t},\r\n\t\tconfirmButton = {\r\n\t\t\tButton(\r\n\t\t\t\tonClick = { onNamed(name) },\r\n\t\t\t\tenabled = name.isNotEmpty()\r\n\t\t\t) {\r\n\t\t\t\tText(\"Save\")\r\n\t\t\t}\r\n\t\t},\r\n\t\tdismissButton = {\r\n\t\t\tOutlinedButton(onClick = onDismiss) {\r\n\t\t\t\tText(\"Cancel\")\r\n\t\t\t}\r\n\t\t}\r\n\t)\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/dialog/NameSketchDialog.kt b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/dialog/NameSketchDialog.kt
+--- a/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/dialog/NameSketchDialog.kt	(revision 2b5c6e52c770f0c530ab776c3a6142289b97aef4)
++++ b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/dialog/NameSketchDialog.kt	(date 1723472676798)
+@@ -15,10 +15,11 @@
+ 
+ @Composable
+ fun NameSketchDialog(
++	currentName: String = "",
+ 	onNamed: (String) -> Unit,
+ 	onDismiss: () -> Unit
+ ) {
+-	var name by rememberSaveable { mutableStateOf("") }
++	var name by rememberSaveable { mutableStateOf(currentName) }
+ 
+ 	AlertDialog(
+ 		onDismissRequest = onDismiss,
+Index: app/src/main/java/dev/borisochieng/sketchpad/ui/screens/home/HomeActions.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/home/HomeActions.kt b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/home/HomeActions.kt
+new file mode 100644
+--- /dev/null	(date 1723472334599)
++++ b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/home/HomeActions.kt	(date 1723472334599)
+@@ -0,0 +1,12 @@
++package dev.borisochieng.sketchpad.ui.screens.home
++
++import dev.borisochieng.sketchpad.database.Sketch
++import dev.borisochieng.sketchpad.ui.screens.drawingboard.alt.PathProperties
++
++sealed class HomeActions {
++
++	data class RenameSketch(val sketch: Sketch) : HomeActions()
++
++	data class DeleteSketch(val sketch: Sketch) : HomeActions()
++
++}
+\ No newline at end of file
+Index: app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/alt/PathProperties.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package dev.borisochieng.sketchpad.ui.screens.drawingboard.alt\r\n\r\nimport androidx.compose.ui.geometry.Offset\r\nimport androidx.compose.ui.graphics.Color\r\n\r\ndata class PathProperties(\r\n\tvar alpha: Float = 1f,\r\n\tvar color: Color = Color.Black,\r\n\tvar eraseMode: Boolean = false,\r\n\tval start: Offset = Offset.Zero,\r\n\tval end: Offset = Offset.Zero,\r\n\tvar strokeWidth: Float = 10f\r\n)\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/alt/PathProperties.kt b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/alt/PathProperties.kt
+--- a/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/alt/PathProperties.kt	(revision 2b5c6e52c770f0c530ab776c3a6142289b97aef4)
++++ b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/alt/PathProperties.kt	(date 1723472333768)
+@@ -4,10 +4,10 @@
+ import androidx.compose.ui.graphics.Color
+ 
+ data class PathProperties(
+-	var alpha: Float = 1f,
+-	var color: Color = Color.Black,
+-	var eraseMode: Boolean = false,
++	val alpha: Float = 1f,
++	val color: Color = Color.Black,
++	val eraseMode: Boolean = false,
+ 	val start: Offset = Offset.Zero,
+ 	val end: Offset = Offset.Zero,
+-	var strokeWidth: Float = 10f
++	val strokeWidth: Float = 10f
+ )
+Index: app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/SketchPadActions.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package dev.borisochieng.sketchpad.ui.screens.drawingboard\r\n\r\nimport dev.borisochieng.sketchpad.database.Sketch\r\nimport dev.borisochieng.sketchpad.ui.screens.drawingboard.alt.PathProperties\r\n\r\nsealed class SketchPadActions {\r\n\r\n\tdata class SaveSketch(val sketch: Sketch) : SketchPadActions()\r\n\r\n\tdata class UpdateSketch(val paths: List<PathProperties>) : SketchPadActions()\r\n\r\n\tdata class DeleteSketch(val sketch: Sketch) : SketchPadActions()\r\n\r\n\tdata object SketchClosed : SketchPadActions()\r\n\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/SketchPadActions.kt b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/SketchPadActions.kt
+--- a/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/SketchPadActions.kt	(revision 2b5c6e52c770f0c530ab776c3a6142289b97aef4)
++++ b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/SketchPadActions.kt	(date 1723472333533)
+@@ -9,8 +9,6 @@
+ 
+ 	data class UpdateSketch(val paths: List<PathProperties>) : SketchPadActions()
+ 
+-	data class DeleteSketch(val sketch: Sketch) : SketchPadActions()
+-
+ 	data object SketchClosed : SketchPadActions()
+ 
+ }
+\ No newline at end of file
+Index: app/src/main/java/dev/borisochieng/sketchpad/ui/screens/home/Poster.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package dev.borisochieng.sketchpad.ui.screens.home\r\n\r\nimport androidx.compose.foundation.Canvas\r\nimport androidx.compose.foundation.background\r\nimport androidx.compose.foundation.clickable\r\nimport androidx.compose.foundation.layout.Box\r\nimport androidx.compose.foundation.layout.Column\r\nimport androidx.compose.foundation.layout.fillMaxSize\r\nimport androidx.compose.foundation.layout.fillMaxWidth\r\nimport androidx.compose.foundation.layout.height\r\nimport androidx.compose.foundation.layout.padding\r\nimport androidx.compose.material3.MaterialTheme\r\nimport androidx.compose.material3.Text\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.ui.Alignment\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.draw.alpha\r\nimport androidx.compose.ui.draw.clip\r\nimport androidx.compose.ui.draw.scale\r\nimport androidx.compose.ui.graphics.Color\r\nimport androidx.compose.ui.graphics.StrokeCap\r\nimport androidx.compose.ui.unit.dp\r\nimport androidx.compose.ui.unit.sp\r\nimport dev.borisochieng.sketchpad.database.Sketch\r\nimport dev.borisochieng.sketchpad.utils.Extensions.formatDate\r\n\r\n@Composable\r\nfun SketchPoster(\r\n\tsketch: Sketch,\r\n\tmodifier: Modifier = Modifier,\r\n\tonClick: (String) -> Unit\r\n) {\r\n\tColumn(\r\n\t\tmodifier = modifier\r\n\t\t\t.padding(end = 10.dp, bottom = 10.dp)\r\n\t\t\t.clip(MaterialTheme.shapes.large)\r\n\t\t\t.background(MaterialTheme.colorScheme.surfaceContainer)\r\n\t\t\t.clickable { onClick(sketch.id.toString()) },\r\n\t\thorizontalAlignment = Alignment.CenterHorizontally\r\n\t) {\r\n\t\tBox(\r\n\t\t\tmodifier = Modifier\r\n\t\t\t\t.fillMaxWidth()\r\n\t\t\t\t.background(Color.White)\r\n\t\t\t\t.height(120.dp),\r\n\t\t\tcontentAlignment = Alignment.Center\r\n\t\t) {\r\n\t\t\tCanvas(\r\n\t\t\t\tmodifier = Modifier\r\n\t\t\t\t\t.fillMaxSize()\r\n\t\t\t\t\t.scale(0.1f)\r\n\t\t\t) {\r\n\t\t\t\tsketch.pathList.forEach { path ->\r\n\t\t\t\t\tdrawLine(\r\n\t\t\t\t\t\tcolor = path.color,\r\n\t\t\t\t\t\tstart = path.start,\r\n\t\t\t\t\t\tend = path.end,\r\n\t\t\t\t\t\tstrokeWidth = path.strokeWidth,\r\n\t\t\t\t\t\tcap = StrokeCap.Round\r\n\t\t\t\t\t)\r\n\t\t\t\t}\r\n\t\t\t}\r\n\t\t}\r\n\t\tText(\r\n\t\t\ttext = sketch.name,\r\n\t\t\tmodifier = Modifier.padding(top = 10.dp)\r\n\t\t)\r\n\t\tText(\r\n\t\t\ttext = sketch.lastModified.formatDate(),\r\n\t\t\tmodifier = Modifier\r\n\t\t\t\t.padding(bottom = 10.dp)\r\n\t\t\t\t.alpha(0.8f),\r\n\t\t\tfontSize = 14.sp\r\n\t\t)\r\n\t}\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/home/Poster.kt b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/home/Poster.kt
+--- a/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/home/Poster.kt	(revision 2b5c6e52c770f0c530ab776c3a6142289b97aef4)
++++ b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/home/Poster.kt	(date 1723472332701)
+@@ -9,6 +9,10 @@
+ import androidx.compose.foundation.layout.fillMaxWidth
+ import androidx.compose.foundation.layout.height
+ import androidx.compose.foundation.layout.padding
++import androidx.compose.material.icons.Icons
++import androidx.compose.material.icons.rounded.MoreHoriz
++import androidx.compose.material3.Icon
++import androidx.compose.material3.IconButton
+ import androidx.compose.material3.MaterialTheme
+ import androidx.compose.material3.Text
+ import androidx.compose.runtime.Composable
+@@ -28,7 +32,8 @@
+ fun SketchPoster(
+ 	sketch: Sketch,
+ 	modifier: Modifier = Modifier,
+-	onClick: (String) -> Unit
++	onClick: (String) -> Unit,
++	onMenuClicked: (Sketch) -> Unit
+ ) {
+ 	Column(
+ 		modifier = modifier
+@@ -60,6 +65,15 @@
+ 					)
+ 				}
+ 			}
++			IconButton(
++				onClick = { onMenuClicked(sketch) },
++				modifier = Modifier.align(Alignment.TopEnd)
++			) {
++				Icon(
++					imageVector = Icons.Rounded.MoreHoriz,
++					contentDescription = "Open menu"
++				)
++			}
+ 		}
+ 		Text(
+ 			text = sketch.name,
+Index: app/src/main/java/dev/borisochieng/sketchpad/ui/screens/home/HomeViewModel.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package dev.borisochieng.sketchpad.ui.screens.home\r\n\r\nimport androidx.compose.runtime.getValue\r\nimport androidx.compose.runtime.mutableStateOf\r\nimport androidx.compose.runtime.setValue\r\nimport androidx.lifecycle.ViewModel\r\nimport androidx.lifecycle.viewModelScope\r\nimport dev.borisochieng.sketchpad.database.Sketch\r\nimport dev.borisochieng.sketchpad.database.repository.SketchRepository\r\nimport kotlinx.coroutines.launch\r\nimport org.koin.core.component.KoinComponent\r\nimport org.koin.core.component.inject\r\n\r\nclass HomeViewModel : ViewModel(), KoinComponent {\r\n\r\n\tprivate val sketchRepository by inject<SketchRepository>()\r\n\r\n\tvar savedSketches by mutableStateOf<List<Sketch>>(emptyList()); private set\r\n\r\n\tinit {\r\n\t\tviewModelScope.launch {\r\n\t\t\tsketchRepository.getAllSketches().collect {\r\n\t\t\t\tsavedSketches = it\r\n\t\t\t}\r\n\t\t}\r\n\t}\r\n\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/home/HomeViewModel.kt b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/home/HomeViewModel.kt
+--- a/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/home/HomeViewModel.kt	(revision 2b5c6e52c770f0c530ab776c3a6142289b97aef4)
++++ b/app/src/main/java/dev/borisochieng/sketchpad/ui/screens/home/HomeViewModel.kt	(date 1723472332873)
+@@ -25,4 +25,23 @@
+ 		}
+ 	}
+ 
++	fun actions(action: HomeActions) {
++		when (action) {
++			is HomeActions.RenameSketch -> renameSketch(action.sketch)
++			is HomeActions.DeleteSketch -> deleteSketch(action.sketch)
++		}
++	}
++
++	private fun renameSketch(sketch: Sketch) {
++		viewModelScope.launch {
++			sketchRepository.updateSketch(sketch)
++		}
++	}
++
++	private fun deleteSketch(sketchToDelete: Sketch) {
++		viewModelScope.launch {
++			sketchRepository.deleteSketch(sketchToDelete)
++		}
++	}
++
+ }
+\ No newline at end of file

@@ -25,4 +25,23 @@ class HomeViewModel : ViewModel(), KoinComponent {
 		}
 	}
 
+	fun actions(action: HomeActions) {
+		when (action) {
+			is HomeActions.RenameSketch -> renameSketch(action.sketch)
+			is HomeActions.DeleteSketch -> deleteSketch(action.sketch)
+		}
+	}
+
+	private fun renameSketch(sketch: Sketch) {
+		viewModelScope.launch {
+			sketchRepository.updateSketch(sketch)
+		}
+	}
+
+	private fun deleteSketch(sketchToDelete: Sketch) {
+		viewModelScope.launch {
+			sketchRepository.deleteSketch(sketchToDelete)
+		}
+	}
+
 }

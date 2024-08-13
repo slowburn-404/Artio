@@ -45,6 +45,7 @@ fun AppRoute(
 			HomeScreen(
 				bottomPadding = paddingValues.calculateBottomPadding(),
 				savedSketches = homeViewModel.savedSketches,
+				actions = homeViewModel::actions,
 				navigate = navActions::navigate
 			)
 		}

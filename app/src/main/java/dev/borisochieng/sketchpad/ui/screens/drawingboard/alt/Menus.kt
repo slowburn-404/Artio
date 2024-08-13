@@ -177,8 +177,7 @@ fun PaletteTopBar(
         ) {
             Icon(
                 imageVector = Icons.Rounded.PersonAdd,
-                contentDescription = "Invite Collaborator",
-                tint = Color.Gray
+                contentDescription = "Invite Collaborator"
             )
         }
     }

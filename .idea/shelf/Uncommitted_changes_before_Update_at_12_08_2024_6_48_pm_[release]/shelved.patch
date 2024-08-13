@@ -1,0 +1,43 @@
+Index: app/build.gradle.kts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>plugins {\r\n    alias(libs.plugins.android.application)\r\n    alias(libs.plugins.compose.compiler)\r\n    alias(libs.plugins.jetbrains.kotlin.android)\r\n    alias(libs.plugins.ksp)\r\n    alias(libs.plugins.google.services)\r\n}\r\n\r\nandroid {\r\n    namespace = \"dev.borisochieng.sketchpad\"\r\n    compileSdk = 34\r\n\r\n    defaultConfig {\r\n        applicationId = \"dev.borisochieng.sketchpad\"\r\n        minSdk = 24\r\n        targetSdk = 34\r\n        versionCode = 1\r\n        versionName = \"1.0\"\r\n\r\n//        room {\r\n//            schemaDirectory(path = \"$projectDir/schemas\")\r\n//        }\r\n\r\n        testInstrumentationRunner = \"androidx.test.runner.AndroidJUnitRunner\"\r\n        vectorDrawables {\r\n            useSupportLibrary = true\r\n        }\r\n    }\r\n\r\n    buildTypes {\r\n        release {\r\n            isMinifyEnabled = false\r\n            proguardFiles(\r\n                getDefaultProguardFile(\"proguard-android-optimize.txt\"),\r\n                \"proguard-rules.pro\"\r\n            )\r\n        }\r\n    }\r\n    compileOptions {\r\n        sourceCompatibility = JavaVersion.VERSION_1_8\r\n        targetCompatibility = JavaVersion.VERSION_1_8\r\n    }\r\n    kotlinOptions {\r\n        jvmTarget = \"1.8\"\r\n    }\r\n    buildFeatures {\r\n        compose = true\r\n    }\r\n    composeOptions {\r\n        kotlinCompilerExtensionVersion = \"1.5.1\"\r\n    }\r\n    packaging {\r\n        resources {\r\n            excludes += \"/META-INF/{AL2.0,LGPL2.1}\"\r\n        }\r\n    }\r\n}\r\n\r\ndependencies {\r\n\r\n    // android\r\n    implementation(libs.androidx.core.ktx)\r\n    implementation(libs.androidx.lifecycle.runtime.ktx)\r\n\r\n    // compose\r\n    implementation(libs.androidx.activity.compose)\r\n    implementation(platform(libs.androidx.compose.bom))\r\n    implementation(libs.androidx.compose.navigation)\r\n    implementation(libs.androidx.ui)\r\n    implementation(libs.androidx.ui.graphics)\r\n    implementation(libs.androidx.ui.tooling.preview)\r\n    implementation(libs.androidx.material.icons)\r\n    implementation(libs.androidx.material3)\r\n\r\n    // gson\r\n    implementation(libs.gson)\r\n\r\n    //koin\r\n    implementation(libs.koin.android)\r\n    implementation(platform(libs.koin.bom))\r\n    implementation(libs.koin.core)\r\n    implementation(libs.koin.androidx.compose)\r\n\r\n    // room\r\n    implementation(libs.room.ktx)\r\n    implementation(libs.room.runtime)\r\n    ksp(libs.room.compiler)\r\n\r\n    // splashscreen\r\n    implementation(libs.splash)\r\n\r\n    //firebase\r\n    implementation(platform(libs.firebase.bom))\r\n    implementation(libs.firebase.auth)\r\n    implementation(libs.firebase.storage)\r\n    implementation(libs.firebase.database)\r\n\r\n    //coil\r\n    implementation(libs.coil)\r\n    implementation(libs.coil.compose)\r\n\r\n    testImplementation(libs.junit)\r\n    androidTestImplementation(libs.androidx.junit)\r\n    androidTestImplementation(libs.androidx.espresso.core)\r\n    androidTestImplementation(platform(libs.androidx.compose.bom))\r\n    androidTestImplementation(libs.androidx.ui.test.junit4)\r\n    debugImplementation(libs.androidx.ui.tooling)\r\n    debugImplementation(libs.androidx.ui.test.manifest)\r\n\r\n    //SketchPad Lib\r\n    implementation  (libs.drawbox)\r\n    implementation  (libs.rang.vikalp)\r\n\r\n    //dataStore\r\n    implementation (libs.androidx.datastore.preferences)\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/build.gradle.kts b/app/build.gradle.kts
+--- a/app/build.gradle.kts	(revision bddbfe91a68fa8935c847b10b9ca7084c7b0d7a4)
++++ b/app/build.gradle.kts	(date 1723477529100)
+@@ -10,6 +10,15 @@
+     namespace = "dev.borisochieng.sketchpad"
+     compileSdk = 34
+ 
++    signingConfigs {
++        create("release") {
++            keyAlias = "nnamdo"
++            keyPassword = "rolinsnnamodi9570"
++            storeFile = file("C:\\Users\\Martins\\keystores\\app-keystore.jks")
++            storePassword = "rolinsnnamodi9570"
++        }
++    }
++
+     defaultConfig {
+         applicationId = "dev.borisochieng.sketchpad"
+         minSdk = 24
+@@ -28,12 +37,16 @@
+     }
+ 
+     buildTypes {
++        debug {
++            signingConfig = signingConfigs.getByName("release")
++        }
+         release {
+             isMinifyEnabled = false
+             proguardFiles(
+                 getDefaultProguardFile("proguard-android-optimize.txt"),
+                 "proguard-rules.pro"
+             )
++            signingConfig = signingConfigs.getByName("release")
+         }
+     }
+     compileOptions {

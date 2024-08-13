@@ -15,9 +15,12 @@ import androidx.compose.material.icons.rounded.Brush
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -30,21 +33,24 @@ import androidx.compose.ui.unit.sp
 import dev.borisochieng.sketchpad.database.Sketch
 import dev.borisochieng.sketchpad.ui.components.HomeTopBar
 import dev.borisochieng.sketchpad.ui.navigation.Screens
-import dev.borisochieng.sketchpad.ui.theme.lightScheme
+import dev.borisochieng.sketchpad.ui.screens.dialog.ItemMenuSheet
 
 @Composable
 fun HomeScreen(
     bottomPadding: Dp,
     savedSketches: List<Sketch>,
+    actions: (HomeActions) -> Unit,
     navigate: (Screens) -> Unit
 ) {
+    val selectedSketch = remember { mutableStateOf<Sketch?>(null) }
+
     Scaffold(
         modifier = Modifier.padding(bottom = bottomPadding),
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { navigate(Screens.SketchPad("0")) },
-                containerColor = lightScheme.primary,
-                contentColor = lightScheme.onPrimary
+                containerColor = colorScheme.primary,
+                contentColor = colorScheme.onPrimary
             ) {
                 Icon(
                     imageVector = Icons.Rounded.Brush,
@@ -61,15 +67,6 @@ fun HomeScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-//			OutlinedButton(
-//				onClick = { navigate(Screens.SketchPad("0")) },
-//				modifier = Modifier
-//					.fillMaxWidth()
-//					.padding(20.dp, 16.dp)
-//			) {
-//				Icon(Icons.Rounded.Add, null, Modifier.padding(vertical = 14.dp))
-//				Text("Create New Sketch", Modifier.padding(start = 10.dp))
-//			}
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(150.dp),
                 modifier = Modifier.padding(start = 10.dp),
@@ -79,7 +76,8 @@ fun HomeScreen(
                     val sketch = savedSketches[index]
                     SketchPoster(
                         sketch = sketch,
-                        onClick = { navigate(Screens.SketchPad(it)) }
+                        onClick = { navigate(Screens.SketchPad(it)) },
+                        onMenuClicked = { selectedSketch.value = it }
                     )
                 }
             }
@@ -87,6 +85,14 @@ fun HomeScreen(
             if (savedSketches.isEmpty()) {
                 EmptyScreen()
             }
+        }
+
+        if (selectedSketch.value != null) {
+            ItemMenuSheet(
+                sketch = selectedSketch.value!!,
+                action = actions,
+                onDismiss = { selectedSketch.value = null }
+            )
         }
     }
 }
