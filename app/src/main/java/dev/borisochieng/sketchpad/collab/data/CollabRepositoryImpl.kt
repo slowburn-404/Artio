@@ -1,6 +1,8 @@
 package dev.borisochieng.sketchpad.collab.data
 
+import android.util.Log
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -80,8 +82,8 @@ class CollabRepositoryImpl : CollabRepository, KoinComponent {
     override suspend fun updatePathInDB(
         userId: String,
         boardId: String,
-        path: PathProperties,
-        pathId: String
+        paths: List<DBPathProperties>,
+        pathIds: List<String>
     ): FirebaseResponse<String> =
         withContext(Dispatchers.IO) {
             val database = FirebaseDatabase.getInstance().reference
@@ -91,12 +93,15 @@ class CollabRepositoryImpl : CollabRepository, KoinComponent {
                     .child("boards")
                     .child(boardId)
                     .child("paths")
-                    .child(pathId)
 
             return@withContext try {
 
                 suspendCancellableCoroutine<FirebaseResponse<String>> { continuation ->
-                    pathRef.setValue(path) //create a new path or update if it already exists
+
+                    //create a map of pathid to path
+                    val pathsMap = pathIds.zip(paths).toMap()
+
+                    pathRef.setValue(pathsMap.mapValues { it.value }) //update all paths
                         .addOnSuccessListener {
                             //suspend coroutine and resume when setValue() completes
                             continuation.resume(
@@ -105,6 +110,7 @@ class CollabRepositoryImpl : CollabRepository, KoinComponent {
                         }
                         .addOnFailureListener { error ->
                             error.printStackTrace()
+                            Log.e("Add path to DB", error.message.toString())
                             continuation.resume(
                                 FirebaseResponse.Error("Error syncing sketches")
                             )
@@ -113,6 +119,7 @@ class CollabRepositoryImpl : CollabRepository, KoinComponent {
 
             } catch (e: Exception) {
                 e.printStackTrace()
+                Log.e("Update path", e.message.toString())
                 FirebaseResponse.Error("Something went wrong. Check your internet connection and try again")
             }
 
@@ -125,33 +132,58 @@ class CollabRepositoryImpl : CollabRepository, KoinComponent {
     ): Flow<FirebaseResponse<List<PathProperties>>> =
         callbackFlow {
             val database = FirebaseDatabase.getInstance().reference
-            val boardRef = database.child("Users").child(userId).child("boards").child(boardId)
+            val boardRef = database.child("Users").child(userId).child("boards").child(boardId).child("paths")
 
-            val listener = object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val pathsFromDB = mutableListOf<DBPathProperties>()
+            val pathsFromDb = mutableListOf<DBPathProperties>()
 
-                    snapshot.child("paths").children.forEach { pathSnapshot ->
-                        val path = pathSnapshot.getValue(DBPathProperties::class.java)
+            val listener = object : ChildEventListener {
+                override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
+                    val path = snapshot.getValue(DBPathProperties::class.java)
 
-                        if (path != null) {
-                            pathsFromDB.add(path)
-                        }
+                    if(path != null) {
+                        pathsFromDb.add(path)
+                        val domainPaths = pathsFromDb.map { it.toPathProperties() }
+
+                        trySend(FirebaseResponse.Success(domainPaths))
                     }
-
-                    val domainPath = pathsFromDB.map { it.toPathProperties() }
-
-                    trySend(FirebaseResponse.Success(domainPath))
-
                 }
 
+                override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
+                    val path = snapshot.getValue(DBPathProperties::class.java)
+                    if (path != null) {
+                        val index = pathsFromDb.indexOfFirst { it == path }
+
+                        if (index != -1) {
+                            pathsFromDb[index] = path
+                            val domainPaths = pathsFromDb.map { it.toPathProperties() }
+
+                            trySend(FirebaseResponse.Success(domainPaths))
+                        }
+                    }
+                }
+
+                override fun onChildRemoved(snapshot: DataSnapshot) {
+                    val path = snapshot.getValue(DBPathProperties::class.java)
+                    if(path != null) {
+                        pathsFromDb.removeAll{ it == path }
+                        val domainPaths = pathsFromDb.map { it.toPathProperties() }
+                        trySend(FirebaseResponse.Success(domainPaths))
+                    }
+                }
+
+                override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
+                    TODO("Not yet implemented")
+                }
+
+
                 override fun onCancelled(error: DatabaseError) {
-                    trySend(FirebaseResponse.Error("Failed to fetch latest path"))
+                    Log.e("Update Child", error.message)
+                    trySend(FirebaseResponse.Error("Failed to fetch latest path: ${error.message}"))
                 }
 
             }
 
-            boardRef.addValueEventListener(listener)
+            boardRef.addChildEventListener(listener)
 
             awaitClose {
                 boardRef.removeEventListener(listener)
