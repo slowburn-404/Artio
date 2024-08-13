@@ -12,7 +12,7 @@ interface CollabRepository {
 
     suspend fun listenForSketchChanges(userId: String, boardId: String): Flow<FirebaseResponse<List<PathProperties>>>
 
-    suspend fun updatePathInDB(userId: String, boardId: String, path: PathProperties, pathId: String): FirebaseResponse<String>
+    suspend fun updatePathInDB(userId: String, boardId: String, paths: List<DBPathProperties>, pathIds: List<String>): FirebaseResponse<String>
 
 
 

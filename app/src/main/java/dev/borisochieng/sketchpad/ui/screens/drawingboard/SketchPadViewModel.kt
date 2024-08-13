@@ -126,7 +126,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
                     boardId = boardId
                 )
                 response.collectLatest { dbResponse ->
-                    when(dbResponse) {
+                    when (dbResponse) {
                         is FirebaseResponse.Success -> {
                             _uiState.update {
                                 it.copy(
@@ -135,6 +135,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
                                 )
                             }
                         }
+
                         is FirebaseResponse.Error -> {
                             _uiState.update { it.copy(error = dbResponse.message) }
                             _uiEvents.emit(CanvasUiEvents.SnackBarEvent(dbResponse.message))
@@ -145,18 +146,20 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
             }
         }
 
-    fun updatePathInDb(path: PathProperties) =
+    fun updatePathInDb(paths: List<PathProperties>) =
         viewModelScope.launch {
             val boardDetails = _uiState.value.boardDetails
-            if(boardDetails != null) {
-                val response = collabRepository.updatePathInDB(
-                    userId = boardDetails.userId,
-                    boardId = boardDetails.boardId,
-                    path = path,
-                    pathId = boardDetails.pathIds.first()
-                )
+            if(boardDetails != null && paths.isNotEmpty()) {
+                val pathIds = boardDetails.pathIds.take(paths.size) //ensure paths id matches path count
+                val response =
+                    collabRepository.updatePathInDB(
+                        userId = boardDetails.userId,
+                        boardId = boardDetails.boardId,
+                        paths = paths.map { it.toDBPathProperties() },
+                        pathIds = pathIds
+                    )
 
-                if(response is FirebaseResponse.Error) {
+                if (response is FirebaseResponse.Error) {
                     _uiState.update { it.copy(error = response.message) }
                     _uiEvents.emit(CanvasUiEvents.SnackBarEvent(response.message))
                 }
