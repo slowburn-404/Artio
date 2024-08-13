@@ -176,7 +176,7 @@ fun PaletteTopBar(
                 onBroadCastUrl(url) }
         ) {
             Icon(
-                imageVector = Icons.Rounded.PersonAdd,
+                painter = painterResource(id = R.drawable.collaboration),
                 contentDescription = "Invite Collaborator"
             )
         }
