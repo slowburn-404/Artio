@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
@@ -38,6 +39,7 @@ import dev.borisochieng.sketchpad.ui.screens.dialog.NameSketchDialog
 import dev.borisochieng.sketchpad.ui.screens.dialog.Sizes
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadActions
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.BitmapFactory.getBitmap
+import io.ak1.drawbox.rememberDrawController
 
 @Composable
 fun DrawingBoard(
@@ -47,6 +49,7 @@ fun DrawingBoard(
 	navigate: (Screens) -> Unit,
 	onBroadCastUrl: (String) -> Unit
 ) {
+	val drawController = dev.borisochieng.sketchpad.ui.screens.drawingboard.data.rememberDrawController()
 	val absolutePaths = remember { mutableStateListOf<PathProperties>() }
 	var paths by remember { mutableStateOf<List<PathProperties>>(emptyList()) }
 	var drawMode by remember { mutableStateOf(DrawMode.Draw) }
@@ -90,16 +93,31 @@ fun DrawingBoard(
 					paths += nextPath
 				},
 				onExportClicked = {
-					sketchBitmap?.let {
+
+					drawController.saveBitmap()
+				/*	sketchBitmap?.let {
 						exportSketch(it)
 					} ?: Toast.makeText(context, "Oops... Unable to export sketch", Toast.LENGTH_SHORT).show()
 				},
 				onBroadCastUrl = { url ->
 					onBroadCastUrl(url)
+				*/},
+				onBroadCastUrl = { url ->
+					onBroadCastUrl(url)
 				}
 			)
 		},
-		containerColor = Color.White
+		containerColor = Color.White,
+		bottomBar = {
+			PaletteMenu(
+				drawMode = drawMode,
+				selectedColor = color,
+				pencilSize = pencilSize,
+				onColorChanged = { color = it },
+				onSizeChanged = { pencilSize = it },
+				onDrawModeChanged = { drawMode = it }
+			)
+		}
 	) { paddingValues ->
 		LaunchedEffect(sketch) {
 			sketch?.let {
@@ -134,7 +152,15 @@ fun DrawingBoard(
 			AndroidView(
 				factory = {
 					ComposeView(context).apply {
+
 						setContent {
+							LaunchedEffect(drawController) {
+								drawController.trackBitmaps(this@apply, this, onCaptured = { imageBitmap, error ->
+									imageBitmap?.let {
+										exportSketch(it.asAndroidBitmap())
+									}
+								})
+							}
 							Canvas(
 								modifier = Modifier
 									.fillMaxSize()
@@ -194,14 +220,7 @@ fun DrawingBoard(
 				modifier = Modifier.fillMaxSize()
 			)
 
-			PaletteMenu(
-				drawMode = drawMode,
-				selectedColor = color,
-				pencilSize = pencilSize,
-				onColorChanged = { color = it },
-				onSizeChanged = { pencilSize = it },
-				onDrawModeChanged = { drawMode = it }
-			)
+
 		}
 
 		if (openNameSketchDialog.value) {

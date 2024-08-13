@@ -76,3 +76,13 @@ private fun View.getRect(x: Int, y: Int): android.graphics.Rect {
 	val viewHeight = this.height
 	return android.graphics.Rect(x, y, viewWidth + x, viewHeight + y)
 }
+
+/*fun trackBitmaps(
+	it: View,
+	coroutineScope: CoroutineScope,
+	onCaptured: (ImageBitmap?, Throwable?) -> Unit
+) = bitmapGenerators
+	.mapNotNull { config -> it.drawBitmapFromView(it.context, config) }
+	.onEach { bitmap -> onCaptured(bitmap.asImageBitmap(), null) }
+	.catch { error -> onCaptured(null, error) }
+	.launchIn(coroutineScope)*/
