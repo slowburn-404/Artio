@@ -177,7 +177,9 @@ fun PaletteTopBar(
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.collaboration),
-                contentDescription = "Invite Collaborator"
+                contentDescription = "Invite Collaborator",
+                modifier = Modifier.size(24.dp),
+                tint = Color.Black
             )
         }
     }
