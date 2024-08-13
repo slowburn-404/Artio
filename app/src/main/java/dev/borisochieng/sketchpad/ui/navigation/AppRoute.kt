@@ -53,13 +53,11 @@ fun AppRoute(
 		) { backStackEntry ->
 			val sketchId = backStackEntry.arguments?.getString("sketchId") ?: ""
 			LaunchedEffect(true) {
-				sketchPadViewModel.fetchSketch(sketchId.toInt())
+				sketchPadViewModel.fetchSketch(sketchId)
 			}
 
 			DrawingBoard(
-				sketch = sketchPadViewModel.sketch,
 				exportSketch = saveImage,
-				actions = sketchPadViewModel::actions,
 				navigate = navActions::navigate,
 				onBroadCastUrl = broadCastUrl
 			)

@@ -14,7 +14,7 @@ class SketchRepositoryImpl: SketchRepository, KoinComponent {
 		return sketchDao.getAllSketches()
 	}
 
-	override fun getSketch(sketchId: Int): Flow<Sketch> {
+	override fun getSketch(sketchId: String): Flow<Sketch> {
 		return sketchDao.getSketch(sketchId)
 	}
 

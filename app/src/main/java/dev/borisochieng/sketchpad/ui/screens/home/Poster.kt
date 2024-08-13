@@ -43,7 +43,7 @@ fun SketchPoster(
 			.padding(end = 10.dp, bottom = 10.dp)
 			.clip(MaterialTheme.shapes.large)
 			.background(MaterialTheme.colorScheme.surfaceContainer)
-			.clickable { onClick(sketch.id.toString()) },
+			.clickable { onClick(sketch.id) },
 		horizontalAlignment = Alignment.CenterHorizontally
 	) {
 		Box(
