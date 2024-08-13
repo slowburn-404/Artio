@@ -22,6 +22,11 @@ class SketchRepositoryImpl: SketchRepository, KoinComponent {
 		return sketchDao.saveSketch(sketch)
 	}
 
+	override suspend fun refreshDatabase(sketches: List<Sketch>) {
+		sketchDao.clearDatabase()
+		return sketchDao.insertSketches(sketches)
+	}
+
 	override suspend fun updateSketch(sketch: Sketch) {
 		return sketchDao.updateSketch(sketch)
 	}
