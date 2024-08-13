@@ -107,7 +107,17 @@ fun DrawingBoard(
 				}
 			)
 		},
-		containerColor = Color.White
+		containerColor = Color.White,
+		bottomBar = {
+			PaletteMenu(
+				drawMode = drawMode,
+				selectedColor = color,
+				pencilSize = pencilSize,
+				onColorChanged = { color = it },
+				onSizeChanged = { pencilSize = it },
+				onDrawModeChanged = { drawMode = it }
+			)
+		}
 	) { paddingValues ->
 		LaunchedEffect(sketch) {
 			sketch?.let {
@@ -210,14 +220,7 @@ fun DrawingBoard(
 				modifier = Modifier.fillMaxSize()
 			)
 
-			PaletteMenu(
-				drawMode = drawMode,
-				selectedColor = color,
-				pencilSize = pencilSize,
-				onColorChanged = { color = it },
-				onSizeChanged = { pencilSize = it },
-				onDrawModeChanged = { drawMode = it }
-			)
+
 		}
 
 		if (openNameSketchDialog.value) {
