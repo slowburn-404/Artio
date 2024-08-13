@@ -19,10 +19,16 @@ interface SketchDao {
 	@Insert
 	suspend fun saveSketch(sketch: Sketch)
 
+	@Insert
+	suspend fun insertSketches(sketches: List<Sketch>)
+
 	@Update
 	suspend fun updateSketch(sketch: Sketch)
 
 	@Delete
 	suspend fun deleteSketch(sketch: Sketch)
+
+	@Query("DELETE FROM sketch")
+	suspend fun clearDatabase()
 
 }
