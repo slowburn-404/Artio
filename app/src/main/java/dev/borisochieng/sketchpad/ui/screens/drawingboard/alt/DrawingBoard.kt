@@ -2,6 +2,7 @@ package dev.borisochieng.sketchpad.ui.screens.drawingboard.alt
 
 import android.graphics.Bitmap
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -35,6 +36,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import dev.borisochieng.sketchpad.database.Sketch
 import dev.borisochieng.sketchpad.ui.navigation.Screens
 import dev.borisochieng.sketchpad.ui.screens.dialog.NameSketchDialog
+import dev.borisochieng.sketchpad.ui.screens.dialog.SavePromptDialog
 import dev.borisochieng.sketchpad.ui.screens.dialog.Sizes
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadActions
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.BitmapFactory.getBitmap
@@ -55,6 +57,7 @@ fun DrawingBoard(
 	var scale by remember { mutableFloatStateOf(1f) }
 	var offset by remember { mutableStateOf(Offset.Zero) }
 	val openNameSketchDialog = rememberSaveable { mutableStateOf(false) }
+	val openSavePromptDialog = rememberSaveable { mutableStateOf(false) }
 	val scope = rememberCoroutineScope()
 	val context = LocalContext.current
 	var sketchBitmap: Bitmap? = null
@@ -211,8 +214,28 @@ fun DrawingBoard(
 			)
 		}
 
+		if (openSavePromptDialog.value) {
+			SavePromptDialog(
+				sketchIsNew = sketch == null,
+				onSave = {
+					if (sketch == null) {
+						openNameSketchDialog.value = true
+					} else {
+						save(null)
+					}
+				},
+				onDiscard = { navigate(Screens.Back) },
+				onDismiss = { openSavePromptDialog.value = false }
+			)
+		}
+
 		DisposableEffect(Unit) {
 			onDispose { actions(SketchPadActions.SketchClosed) }
+		}
+
+		// onBackPress, if canvas has new lines drawn, prompt user to save sketch or changes
+		if (paths.isNotEmpty() && paths != sketch?.pathList) {
+			BackHandler { openSavePromptDialog.value = true }
 		}
 	}
 }
