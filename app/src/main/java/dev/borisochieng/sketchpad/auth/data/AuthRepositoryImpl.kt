@@ -1,6 +1,7 @@
 package dev.borisochieng.sketchpad.auth.data
 
 import android.net.Uri
+import android.util.Log
 import com.google.firebase.auth.ActionCodeSettings
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
@@ -40,6 +41,8 @@ class AuthRepositoryImpl : AuthRepository {
                         imageUrl = firebaseUser.photoUrl,
                         isLoggedIn = checkIfUserIsLoggedIn()
                     )
+
+                Log.d("New User", newUser.toString())
                 FirebaseResponse.Success(newUser)
 
             } catch (e: Exception) {
@@ -69,6 +72,7 @@ class AuthRepositoryImpl : AuthRepository {
                         isLoggedIn = checkIfUserIsLoggedIn()
 
                     )
+                Log.d("User", user.toString())
                 FirebaseResponse.Success(user)
             } catch (e: Exception) {
                 e.printStackTrace()

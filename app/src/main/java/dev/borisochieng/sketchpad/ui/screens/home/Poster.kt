@@ -1,7 +1,9 @@
 package dev.borisochieng.sketchpad.ui.screens.home
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +11,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.MoreHoriz
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,25 +30,27 @@ import androidx.compose.ui.unit.sp
 import dev.borisochieng.sketchpad.database.Sketch
 import dev.borisochieng.sketchpad.utils.Extensions.formatDate
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SketchPoster(
 	sketch: Sketch,
 	modifier: Modifier = Modifier,
-	onClick: (String) -> Unit
+	onClick: (String) -> Unit,
+	onMenuClicked: (Sketch) -> Unit
 ) {
 	Column(
 		modifier = modifier
 			.padding(end = 10.dp, bottom = 10.dp)
 			.clip(MaterialTheme.shapes.large)
 			.background(MaterialTheme.colorScheme.surfaceContainer)
-			.clickable { onClick(sketch.id.toString()) },
+			.clickable { onClick(sketch.id) },
 		horizontalAlignment = Alignment.CenterHorizontally
 	) {
 		Box(
 			modifier = Modifier
 				.fillMaxWidth()
 				.background(Color.White)
-				.height(120.dp),
+				.height(140.dp),
 			contentAlignment = Alignment.Center
 		) {
 			Canvas(
@@ -60,15 +68,27 @@ fun SketchPoster(
 					)
 				}
 			}
+			IconButton(
+				onClick = { onMenuClicked(sketch) },
+				modifier = Modifier.align(Alignment.TopEnd)
+			) {
+				Icon(
+					imageVector = Icons.Rounded.MoreHoriz,
+					contentDescription = "Open menu"
+				)
+			}
 		}
 		Text(
 			text = sketch.name,
-			modifier = Modifier.padding(top = 10.dp)
+			modifier = Modifier
+				.padding(start = 10.dp, top = 10.dp, end = 10.dp)
+				.basicMarquee(),
+			softWrap = false
 		)
 		Text(
 			text = sketch.lastModified.formatDate(),
 			modifier = Modifier
-				.padding(bottom = 10.dp)
+				.padding(start = 10.dp, end = 10.dp, bottom = 10.dp)
 				.alpha(0.8f),
 			fontSize = 14.sp
 		)

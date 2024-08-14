@@ -1,7 +1,10 @@
 package dev.borisochieng.sketchpad.ui.screens.drawingboard.alt
 
 import android.graphics.Bitmap
+import android.net.Uri
+import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -11,9 +14,14 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -27,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
@@ -35,17 +44,25 @@ import androidx.compose.ui.viewinterop.AndroidView
 import dev.borisochieng.sketchpad.database.Sketch
 import dev.borisochieng.sketchpad.ui.navigation.Screens
 import dev.borisochieng.sketchpad.ui.screens.dialog.NameSketchDialog
+import dev.borisochieng.sketchpad.ui.screens.dialog.SavePromptDialog
 import dev.borisochieng.sketchpad.ui.screens.dialog.Sizes
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.CanvasUiEvents
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadActions
-import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.BitmapFactory.getBitmap
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadViewModel
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.rememberDrawController
+import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun DrawingBoard(
 	sketch: Sketch?,
 	exportSketch: (Bitmap) -> Unit,
 	actions: (SketchPadActions) -> Unit,
-	navigate: (Screens) -> Unit
+	navigate: (Screens) -> Unit,
+	onBroadCastUrl: (Uri) -> Unit,
+	viewModel: SketchPadViewModel = koinViewModel()
 ) {
+	val drawController = rememberDrawController()
 	val absolutePaths = remember { mutableStateListOf<PathProperties>() }
 	var paths by remember { mutableStateOf<List<PathProperties>>(emptyList()) }
 	var drawMode by remember { mutableStateOf(DrawMode.Draw) }
@@ -54,9 +71,10 @@ fun DrawingBoard(
 	var scale by remember { mutableFloatStateOf(1f) }
 	var offset by remember { mutableStateOf(Offset.Zero) }
 	val openNameSketchDialog = rememberSaveable { mutableStateOf(false) }
+	val openSavePromptDialog = rememberSaveable { mutableStateOf(false) }
+	val snackbarHostState = remember { SnackbarHostState() }
 	val scope = rememberCoroutineScope()
 	val context = LocalContext.current
-	var sketchBitmap: Bitmap? = null
 	val save: (String?) -> Unit = { name ->
 		val action = if (name == null) {
 			SketchPadActions.UpdateSketch(paths)
@@ -68,6 +86,29 @@ fun DrawingBoard(
 		actions(action)
 		Toast.makeText(context, "Sketch saved", Toast.LENGTH_SHORT).show()
 		navigate(Screens.Back)
+	}
+
+	val uiState by viewModel.uiState.collectAsState()
+	val uiEvents by viewModel.uiEvents.collectAsState(initial = null)
+
+	//listen for path changes
+	LaunchedEffect(uiState.paths) {
+		if (!uiState.userIsLoggedIn) return@LaunchedEffect
+		absolutePaths.clear()
+		paths = uiState.paths
+		absolutePaths.addAll(paths)
+	}
+
+	LaunchedEffect(uiEvents) {
+		uiEvents?.let { event ->
+			when (event) {
+				is CanvasUiEvents.SnackBarEvent -> {
+					// Showing Snackbar with the message
+					snackbarHostState.showSnackbar(event.message)
+				}
+				// Handle other events if any
+			}
+		}
 	}
 
 	Scaffold(
@@ -88,21 +129,48 @@ fun DrawingBoard(
 					val nextPath = absolutePaths[paths.size]
 					paths += nextPath
 				},
-				onExportClicked = {
-					sketchBitmap?.let {
-						exportSketch(it)
-					} ?: Toast.makeText(context, "Oops... Unable to export sketch", Toast.LENGTH_SHORT).show()
-				}
+				onExportClicked = { drawController.saveBitmap() },
+				onBroadCastUrl = {
+					Log.d("Credentials", "User id: ${uiState.boardDetails!!.userId} \n Board id: ${uiState.boardDetails!!.boardId}")
+					if (uiState.userIsLoggedIn) {
+						viewModel.generateCollabUrl(userId = uiState.boardDetails!!.userId, boardId = uiState.boardDetails!!.boardId)
+						scope.launch {
+							uiState.collabUrl?.let { url ->
+								onBroadCastUrl(url)
+							}
+						}
+					} else {
+						scope.launch {
+							val action = snackbarHostState.showSnackbar(
+								message = "Sign up to avail collaborative feature",
+								actionLabel = "SIGN UP", duration = SnackbarDuration.Short
+							)
+							if (action != SnackbarResult.ActionPerformed) return@launch
+							navigate(Screens.OnBoardingScreen)
+						}
+					}
+				},
+				collabUrl = uiState.collabUrl
 			)
 		},
+		bottomBar = {
+			PaletteMenu(
+				drawMode = drawMode,
+				selectedColor = color,
+				pencilSize = pencilSize,
+				onColorChanged = { color = it },
+				onSizeChanged = { pencilSize = it },
+				onDrawModeChanged = { drawMode = it }
+			)
+		},
+		snackbarHost = { SnackbarHost(snackbarHostState) },
 		containerColor = Color.White
 	) { paddingValues ->
 		LaunchedEffect(sketch) {
-			sketch?.let {
-				absolutePaths.clear(); paths = emptyList()
-				absolutePaths.addAll(sketch.pathList)
-				paths = sketch.pathList
-			}
+			if (sketch == null) return@LaunchedEffect
+			absolutePaths.clear(); paths = emptyList()
+			absolutePaths.addAll(sketch.pathList)
+			paths = sketch.pathList
 		}
 
 		BoxWithConstraints(
@@ -131,6 +199,17 @@ fun DrawingBoard(
 				factory = {
 					ComposeView(context).apply {
 						setContent {
+							LaunchedEffect(drawController) {
+								drawController.trackBitmaps(
+									it = this@apply, coroutineScope = this,
+									onCaptured = { imageBitmap, error ->
+										imageBitmap?.let {
+											exportSketch(it.asAndroidBitmap())
+										}
+									}
+								)
+							}
+
 							Canvas(
 								modifier = Modifier
 									.fillMaxSize()
@@ -162,7 +241,9 @@ fun DrawingBoard(
 											paths += path
 											absolutePaths.clear()
 											absolutePaths.addAll(paths)
+
 										}
+										viewModel.updatePathInDb(paths)
 									}
 							) {
 								paths.forEach { path ->
@@ -174,29 +255,13 @@ fun DrawingBoard(
 										cap = StrokeCap.Round
 									)
 								}
-							}
 
-							LaunchedEffect(paths) {
-								this@apply.getBitmap(scope) { bitmap, error ->
-									sketchBitmap = bitmap
-									error?.let {
-										Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
-									}
-								}
+								viewModel.updatePathInDb(paths)
 							}
 						}
 					}
 				},
 				modifier = Modifier.fillMaxSize()
-			)
-
-			PaletteMenu(
-				drawMode = drawMode,
-				selectedColor = color,
-				pencilSize = pencilSize,
-				onColorChanged = { color = it },
-				onSizeChanged = { pencilSize = it },
-				onDrawModeChanged = { drawMode = it }
 			)
 		}
 
@@ -207,8 +272,29 @@ fun DrawingBoard(
 			)
 		}
 
+		if (openSavePromptDialog.value) {
+			val sketchIsNew = sketch == null
+			SavePromptDialog(
+				sketchIsNew = sketchIsNew,
+				onSave = {
+					if (sketchIsNew) {
+						openNameSketchDialog.value = true
+					} else {
+						save(null)
+					}
+				},
+				onDiscard = { navigate(Screens.Back) },
+				onDismiss = { openSavePromptDialog.value = false }
+			)
+		}
+
 		DisposableEffect(Unit) {
 			onDispose { actions(SketchPadActions.SketchClosed) }
+		}
+
+		// onBackPress, if canvas has new lines drawn, prompt user to save sketch or changes
+		if (paths.isNotEmpty() && paths != sketch?.pathList) {
+			BackHandler { openSavePromptDialog.value = true }
 		}
 	}
 }

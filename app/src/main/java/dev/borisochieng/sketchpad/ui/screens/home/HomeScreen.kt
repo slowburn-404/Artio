@@ -1,5 +1,6 @@
 package dev.borisochieng.sketchpad.ui.screens.home
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,9 +16,12 @@ import androidx.compose.material.icons.rounded.Brush
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -30,21 +34,27 @@ import androidx.compose.ui.unit.sp
 import dev.borisochieng.sketchpad.database.Sketch
 import dev.borisochieng.sketchpad.ui.components.HomeTopBar
 import dev.borisochieng.sketchpad.ui.navigation.Screens
-import dev.borisochieng.sketchpad.ui.theme.lightScheme
+import dev.borisochieng.sketchpad.ui.screens.dialog.ItemMenuSheet
+import dev.borisochieng.sketchpad.utils.ShimmerBoxItem
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
     bottomPadding: Dp,
-    savedSketches: List<Sketch>,
+    uiState: HomeUiState,
+    actions: (HomeActions) -> Unit,
     navigate: (Screens) -> Unit
 ) {
+    val (savedSketches, isLoading) = uiState
+    val selectedSketch = remember { mutableStateOf<Sketch?>(null) }
+
     Scaffold(
-        modifier = Modifier.padding(bottom = bottomPadding),
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navigate(Screens.SketchPad("0")) },
-                containerColor = lightScheme.primary,
-                contentColor = lightScheme.onPrimary
+                onClick = { navigate(Screens.SketchPad("0000")) },
+                modifier = Modifier.padding(bottom = bottomPadding),
+                containerColor = colorScheme.primary,
+                contentColor = colorScheme.onPrimary
             ) {
                 Icon(
                     imageVector = Icons.Rounded.Brush,
@@ -57,19 +67,18 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp),
+                .padding(paddingValues),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-//			OutlinedButton(
-//				onClick = { navigate(Screens.SketchPad("0")) },
-//				modifier = Modifier
-//					.fillMaxWidth()
-//					.padding(20.dp, 16.dp)
-//			) {
-//				Icon(Icons.Rounded.Add, null, Modifier.padding(vertical = 14.dp))
-//				Text("Create New Sketch", Modifier.padding(start = 10.dp))
-//			}
+            when {
+                isLoading -> {
+                    LoadingScreen(Modifier.padding(bottom = bottomPadding))
+                }
+                savedSketches.isEmpty() && !isLoading -> {
+                    EmptyScreen(Modifier.padding(bottom = bottomPadding))
+                }
+            }
+
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(150.dp),
                 modifier = Modifier.padding(start = 10.dp),
@@ -79,24 +88,46 @@ fun HomeScreen(
                     val sketch = savedSketches[index]
                     SketchPoster(
                         sketch = sketch,
-                        onClick = { navigate(Screens.SketchPad(it)) }
+                        modifier = Modifier.animateItemPlacement(),
+                        onClick = { navigate(Screens.SketchPad(it)) },
+                        onMenuClicked = { selectedSketch.value = it }
                     )
                 }
             }
+        }
 
-            if (savedSketches.isEmpty()) {
-                EmptyScreen()
-            }
+        if (selectedSketch.value != null) {
+            ItemMenuSheet(
+                sketch = selectedSketch.value!!,
+                action = actions,
+                onDismiss = { selectedSketch.value = null }
+            )
         }
     }
 }
 
 @Composable
-private fun EmptyScreen() {
+private fun LoadingScreen(
+    modifier: Modifier = Modifier,
+    isLoading: Boolean = true
+) {
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(150.dp),
+        modifier = modifier.padding(start = 10.dp),
+        contentPadding = PaddingValues(bottom = 100.dp)
+    ) {
+        items(10) {
+            ShimmerBoxItem(isLoading)
+        }
+    }
+}
+
+@Composable
+private fun EmptyScreen(modifier: Modifier = Modifier) {
     val displayText = "No drawings saved"
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(30.dp)

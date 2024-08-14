@@ -7,9 +7,11 @@ interface SketchRepository {
 
 	fun getAllSketches(): Flow<List<Sketch>>
 
-	fun getSketch(sketchId: Int): Flow<Sketch>
+	fun getSketch(sketchId: String): Flow<Sketch>
 
 	suspend fun saveSketch(sketch: Sketch)
+
+	suspend fun refreshDatabase(sketches: List<Sketch>)
 
 	suspend fun updateSketch(sketch: Sketch)
 

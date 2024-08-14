@@ -2,6 +2,7 @@ package dev.borisochieng.sketchpad
 
 import android.app.Application
 import com.google.firebase.FirebaseApp
+import com.google.firebase.database.FirebaseDatabase
 import dev.borisochieng.sketchpad.di.AppModule.appModule
 import dev.borisochieng.sketchpad.di.PersistenceModule.persistenceModule
 import org.koin.android.ext.koin.androidContext

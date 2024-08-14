@@ -1,6 +1,12 @@
 package dev.borisochieng.sketchpad.ui
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -25,6 +31,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.Theme_SketchPad)
         super.onCreate(savedInstanceState)
@@ -51,11 +58,44 @@ class MainActivity : ComponentActivity() {
                                         }
                                     }
                                 }
+                            },
+                            broadCastUrl = { url ->
+                                shareCollaborateUrl(url = url)
                             }
                         )
                     }
                 }
             }
+        }
+    }
+
+    private fun shareCollaborateUrl(url: Uri) {
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, url.toString())
+        }
+        val chooser = Intent.createChooser(intent, "Invite collaborator via")
+        startActivity(chooser)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleDeepLink(intent)
+    }
+
+    private fun handleDeepLink(intent: Intent) {
+        val action = intent.action
+        val data: Uri? = intent.data
+
+        if(action == Intent.ACTION_VIEW && data != null) {
+            val userId = data.getQueryParameter("user_id")
+            val boardId = data.getQueryParameter("board_id")
+
+            //TODO(navigate to drawing board)
+
+            Log.d("DeepLink", "User id: $userId \n BoardId: $boardId")
+
+            Toast.makeText(this, "User id: $userId \n BoardId: $boardId", Toast.LENGTH_SHORT).show()
         }
     }
 }
