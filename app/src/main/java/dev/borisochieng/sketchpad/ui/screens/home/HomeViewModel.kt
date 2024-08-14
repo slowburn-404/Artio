@@ -22,9 +22,9 @@ class HomeViewModel : ViewModel(), KoinComponent {
 
     private val sketchRepository by inject<SketchRepository>()
     private val collabRepository by inject<CollabRepository>()
-    private val firebaseUser by inject<FirebaseUser>()
+//    private val firebaseUser by inject<FirebaseUser>()
 
-  //  private val firebaseUser = FirebaseAuth.getInstance().currentUser
+    private val firebaseUser = FirebaseAuth.getInstance().currentUser
 
     private var localSketches by mutableStateOf<List<Sketch>>(emptyList()) // for internal use only
     private var synced by mutableStateOf(false)
@@ -87,9 +87,7 @@ class HomeViewModel : ViewModel(), KoinComponent {
                 emptyList()
             }
 
-            null -> {
-                emptyList()
-            }
+           else -> emptyList()
         }
     }
 
