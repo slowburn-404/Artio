@@ -7,6 +7,9 @@ import dev.borisochieng.sketchpad.collab.data.models.DBPathProperties
 import dev.borisochieng.sketchpad.collab.data.models.DBSketch
 import dev.borisochieng.sketchpad.database.Sketch
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.alt.PathProperties
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 fun PathProperties.toDBPathProperties(): DBPathProperties {
     return DBPathProperties(
@@ -21,8 +24,11 @@ fun PathProperties.toDBPathProperties(): DBPathProperties {
 
 fun Sketch.toDBSketch(): DBSketch {
     return DBSketch(
+        id = id,
+        dateCreated = dateConverter(dateCreated),
+        lastModified = dateConverter(lastModified),
         title = name,
-        paths = pathList.map { it.toDBPathProperties() }
+        paths = pathList.map { it.toDBPathProperties() },
     )
 }
 
@@ -30,4 +36,9 @@ fun Sketch.toDBSketch(): DBSketch {
 private fun Color.toHexString(): String {
     val argb = this.toArgb()
     return String.format("#%08x", argb)
+}
+
+private fun dateConverter(date: Date): String {
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    return dateFormat.format(date)
 }

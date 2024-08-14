@@ -1,6 +1,8 @@
 package dev.borisochieng.sketchpad.ui.screens.drawingboard.alt
 
 import android.graphics.Bitmap
+import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
@@ -57,8 +59,8 @@ fun DrawingBoard(
 	exportSketch: (Bitmap) -> Unit,
 	actions: (SketchPadActions) -> Unit,
 	navigate: (Screens) -> Unit,
-    onBroadCastUrl: (String) -> Unit,
-    viewModel: SketchPadViewModel = koinViewModel()
+	onBroadCastUrl: (Uri) -> Unit,
+	viewModel: SketchPadViewModel = koinViewModel()
 ) {
 	val drawController = rememberDrawController()
 	val absolutePaths = remember { mutableStateListOf<PathProperties>() }
@@ -128,9 +130,15 @@ fun DrawingBoard(
 					paths += nextPath
 				},
 				onExportClicked = { drawController.saveBitmap() },
-				onBroadCastUrl = { url ->
+				onBroadCastUrl = {
+					Log.d("Credentials", "User id: ${uiState.boardDetails!!.userId} \n Board id: ${uiState.boardDetails!!.boardId}")
 					if (uiState.userIsLoggedIn) {
-						onBroadCastUrl(url)
+						viewModel.generateCollabUrl(userId = uiState.boardDetails!!.userId, boardId = uiState.boardDetails!!.boardId)
+						scope.launch {
+							uiState.collabUrl?.let { url ->
+								onBroadCastUrl(url)
+							}
+						}
 					} else {
 						scope.launch {
 							val action = snackbarHostState.showSnackbar(
@@ -141,7 +149,8 @@ fun DrawingBoard(
 							navigate(Screens.OnBoardingScreen)
 						}
 					}
-				}
+				},
+				collabUrl = uiState.collabUrl
 			)
 		},
 		bottomBar = {
@@ -246,6 +255,8 @@ fun DrawingBoard(
 										cap = StrokeCap.Round
 									)
 								}
+
+								viewModel.updatePathInDb(paths)
 							}
 						}
 					}

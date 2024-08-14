@@ -1,5 +1,6 @@
 package dev.borisochieng.sketchpad.ui.screens.drawingboard.alt
 
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -29,6 +30,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.borisochieng.sketchpad.R
 import dev.borisochieng.sketchpad.ui.screens.dialog.ColorPickerDialog
 import dev.borisochieng.sketchpad.ui.screens.dialog.SizePickerDialog
@@ -121,7 +123,8 @@ fun PaletteTopBar(
     unUndoClicked: () -> Unit,
     unRedoClicked: () -> Unit,
     onExportClicked: () -> Unit,
-    onBroadCastUrl: (String) -> Unit
+    onBroadCastUrl: (Uri) -> Unit,
+    collabUrl: Uri?
 ) {
     Row(
         modifier = modifier
@@ -172,8 +175,10 @@ fun PaletteTopBar(
 
         IconButton(
             onClick = {
-                val url = "https://collaborate.jcsketchpad/"
-                onBroadCastUrl(url) }
+               collabUrl?.let {
+                   onBroadCastUrl(it)
+               }
+            }
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.collaboration),
