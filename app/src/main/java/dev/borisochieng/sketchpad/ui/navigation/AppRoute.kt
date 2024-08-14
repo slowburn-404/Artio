@@ -43,7 +43,7 @@ fun AppRoute(
 		composable(AppRoute.HomeScreen.route) {
 			HomeScreen(
 				bottomPadding = paddingValues.calculateBottomPadding(),
-				savedSketches = homeViewModel.savedSketches,
+				uiState = homeViewModel.uiState,
 				actions = homeViewModel::actions,
 				navigate = navActions::navigate
 			)
@@ -53,12 +53,16 @@ fun AppRoute(
 			animationDirection = AnimationDirection.UpDown
 		) { backStackEntry ->
 			val sketchId = backStackEntry.arguments?.getString("sketchId") ?: ""
+			val boardId = backStackEntry.arguments?.getString("boardId") ?: ""
+			val userId = backStackEntry.arguments?.getString("userId") ?: ""
 			LaunchedEffect(true) {
 				sketchPadViewModel.fetchSketch(sketchId)
 			}
 
 			DrawingBoard(
+				sketch = sketchPadViewModel.sketch,
 				exportSketch = saveImage,
+				actions = sketchPadViewModel::actions,
 				navigate = navActions::navigate,
 				onBroadCastUrl = broadCastUrl
 			)

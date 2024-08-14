@@ -8,7 +8,7 @@ class NavActions(private val navController: NavHostController) {
     fun navigate(screen: Screens) {
         when (screen) {
             Screens.HomeScreen -> navigateToHomeScreen()
-            is Screens.SketchPad -> navigateToSketchPad(screen.sketchId)
+            is Screens.SketchPad -> navigateToSketchPad(screen.sketchId, screen.boardId, screen.userId)
             Screens.SettingsScreen -> navigateToSettingsScreen()
             Screens.ProfileScreen -> navigateToProfileScreen()
             Screens.Back -> navController.navigateUp()
@@ -29,9 +29,13 @@ class NavActions(private val navController: NavHostController) {
         }
     }
 
-    private fun navigateToSketchPad(sketchId: String) {
+    private fun navigateToSketchPad(
+        sketchId: String,
+        boardId: String,
+        userId: String
+    ) {
         navController.navigate(
-            AppRoute.SketchPad.routeWithId(sketchId)
+            AppRoute.SketchPad.routeWithIds(sketchId, boardId, userId)
         )
     }
 
@@ -78,8 +82,12 @@ class NavActions(private val navController: NavHostController) {
 @SuppressLint("DefaultLocale")
 sealed class AppRoute(val route: String) {
     data object HomeScreen : AppRoute("home_screen")
-    data object SketchPad : AppRoute("sketchpad/{sketchId}") {
-        fun routeWithId(sketchId: String) = String.format("sketchpad/%s", sketchId)
+    data object SketchPad : AppRoute("sketchpad/{sketchId}/{boardId}/{userId}") {
+        fun routeWithIds(
+            sketchId: String,
+            boardId: String,
+            userId: String
+        ) = String.format("sketchpad/%s/%2s/%3s", sketchId, boardId, userId)
     }
 
     data object SettingsScreen : AppRoute("settings_screen")
@@ -93,7 +101,11 @@ sealed class AppRoute(val route: String) {
 
 sealed class Screens {
     data object HomeScreen : Screens()
-    data class SketchPad(val sketchId: String) : Screens()
+    data class SketchPad(
+        val sketchId: String,
+        val boardId: String = "",
+        val userId: String = ""
+    ) : Screens()
     data object SettingsScreen : Screens()
     data object ProfileScreen : Screens()
     data object Back : Screens()

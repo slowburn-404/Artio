@@ -10,37 +10,42 @@ import dev.borisochieng.sketchpad.auth.data.FirebaseResponse
 import dev.borisochieng.sketchpad.collab.domain.CollabRepository
 import dev.borisochieng.sketchpad.database.Sketch
 import dev.borisochieng.sketchpad.database.repository.SketchRepository
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import okhttp3.internal.wait
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 class HomeViewModel : ViewModel(), KoinComponent {
 
     private val sketchRepository by inject<SketchRepository>()
-
     private val collabRepository by inject<CollabRepository>()
-
     private val firebaseUser by inject<FirebaseUser>()
 
     private var localSketches by mutableStateOf<List<Sketch>>(emptyList()) // for internal use only
-    var savedSketches by mutableStateOf<List<Sketch>>(emptyList()); private set // for UI
     private var synced by mutableStateOf(false)
 
-    init {
-        viewModelScope.launch {
-            sketchRepository.getAllSketches().collect {
-                localSketches = it
-                if (synced) {
-                    savedSketches = it
-                    return@collect
-                }
-                refreshDatabase()
-            }
-        }
-    }
+	private val _uiState = MutableStateFlow(HomeUiState())
+	var uiState by mutableStateOf(_uiState.value); private set
+
+	init {
+		viewModelScope.launch {
+			_uiState.collect { uiState = it }
+		}
+		viewModelScope.launch {
+			sketchRepository.getAllSketches().collect { sketches ->
+				localSketches = sketches
+				if (synced) {
+					_uiState.update { it.copy(savedSketches = sketches) }
+					delay(1000)
+					_uiState.update { it.copy(isLoading = false) }
+					return@collect
+				}
+				refreshDatabase()
+			}
+		}
+	}
 
     fun actions(action: HomeActions) {
         when (action) {

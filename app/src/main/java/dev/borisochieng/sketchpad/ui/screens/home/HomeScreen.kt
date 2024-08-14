@@ -1,5 +1,6 @@
 package dev.borisochieng.sketchpad.ui.screens.home
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -34,14 +35,17 @@ import dev.borisochieng.sketchpad.database.Sketch
 import dev.borisochieng.sketchpad.ui.components.HomeTopBar
 import dev.borisochieng.sketchpad.ui.navigation.Screens
 import dev.borisochieng.sketchpad.ui.screens.dialog.ItemMenuSheet
+import dev.borisochieng.sketchpad.utils.ShimmerBoxItem
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
     bottomPadding: Dp,
-    savedSketches: List<Sketch>,
+    uiState: HomeUiState,
     actions: (HomeActions) -> Unit,
     navigate: (Screens) -> Unit
 ) {
+    val (savedSketches, isLoading) = uiState
     val selectedSketch = remember { mutableStateOf<Sketch?>(null) }
 
     Scaffold(
@@ -63,10 +67,18 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp),
+                .padding(paddingValues),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            when {
+                isLoading -> {
+                    LoadingScreen(Modifier.padding(bottom = bottomPadding))
+                }
+                savedSketches.isEmpty() && !isLoading -> {
+                    EmptyScreen(Modifier.padding(bottom = bottomPadding))
+                }
+            }
+
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(150.dp),
                 modifier = Modifier.padding(start = 10.dp),
@@ -76,14 +88,11 @@ fun HomeScreen(
                     val sketch = savedSketches[index]
                     SketchPoster(
                         sketch = sketch,
+                        modifier = Modifier.animateItemPlacement(),
                         onClick = { navigate(Screens.SketchPad(it)) },
                         onMenuClicked = { selectedSketch.value = it }
                     )
                 }
-            }
-
-            if (savedSketches.isEmpty()) {
-                EmptyScreen(Modifier.padding(bottom = bottomPadding))
             }
         }
 
@@ -93,6 +102,22 @@ fun HomeScreen(
                 action = actions,
                 onDismiss = { selectedSketch.value = null }
             )
+        }
+    }
+}
+
+@Composable
+private fun LoadingScreen(
+    modifier: Modifier = Modifier,
+    isLoading: Boolean = true
+) {
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(150.dp),
+        modifier = modifier.padding(start = 10.dp),
+        contentPadding = PaddingValues(bottom = 100.dp)
+    ) {
+        items(10) {
+            ShimmerBoxItem(isLoading)
         }
     }
 }

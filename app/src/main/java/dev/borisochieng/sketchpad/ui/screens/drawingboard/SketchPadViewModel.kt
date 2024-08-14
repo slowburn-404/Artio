@@ -50,22 +50,22 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
         listenForSketchChanges()
     }
 
-    fun fetchSketch(sketchId: String) {
-        _uiState.update { it.copy(sketch = null) }
-        viewModelScope.launch {
-            sketchRepository.getSketch(sketchId).collect { sketch ->
-                _uiState.update { it.copy(sketch = sketch) }
-            }
-        }
-    }
+	fun fetchSketch(sketchId: String) {
+		sketch = null
+		viewModelScope.launch {
+			sketchRepository.getSketch(sketchId).collect { fetchedSketch ->
+				sketch = fetchedSketch
+			}
+		}
+	}
 
-    fun actions(action: SketchPadActions) {
-        when (action) {
-            is SketchPadActions.SaveSketch -> saveSketch(action.sketch)
-            is SketchPadActions.UpdateSketch -> updateSketch(action.paths)
-            SketchPadActions.SketchClosed -> _uiState.update { it.copy(sketch = null) }
-        }
-    }
+	fun actions(action: SketchPadActions) {
+		when (action) {
+			is SketchPadActions.SaveSketch -> saveSketch(action.sketch)
+			is SketchPadActions.UpdateSketch -> updateSketch(action.paths)
+			SketchPadActions.SketchClosed -> sketch = null
+		}
+	}
 
     private fun saveSketch(sketch: Sketch) {
         viewModelScope.launch {
@@ -74,14 +74,26 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
             saveSketchToRemoteDb(sketch)
         }
     }
-
+	private fun updateSketch(paths: List<PathProperties>) {
+		viewModelScope.launch {
+			if (sketch == null) return@launch
+			val updatedSketch = Sketch(
+				id = sketch!!.id,
+				name = sketch!!.name,
+				dateCreated = sketch!!.dateCreated,
+				pathList = paths
+			)
+			sketchRepository.updateSketch(updatedSketch)
+		}
+	}
+    
     private fun saveSketchToRemoteDb(sketch: Sketch) {
-        viewModelScope.launch {
-            val dbSketch = sketch.toDBSketch()
-            val response = collabRepository.createSketch(
-                userId = firebaseUser.uid,
-                sketch = dbSketch
-            )
+		viewModelScope.launch {
+			val dbSketch = sketch.toDBSketch()
+			val response = collabRepository.createSketch(
+				userId = firebaseUser.uid,
+				sketch = dbSketch
+			)
 
             when (response) {
                 is FirebaseResponse.Success -> {
@@ -98,19 +110,6 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
                     _uiEvents.emit(CanvasUiEvents.SnackBarEvent(response.message))
                 }
             }
-        }
-    }
-
-    private fun updateSketch(paths: List<PathProperties>) {
-        viewModelScope.launch {
-            val sketch = uiState.value.sketch ?: return@launch
-            val updatedSketch = Sketch(
-                id = sketch.id,
-                name = sketch.name,
-                dateCreated = sketch.dateCreated,
-                pathList = paths
-            )
-            sketchRepository.updateSketch(updatedSketch)
         }
     }
 
