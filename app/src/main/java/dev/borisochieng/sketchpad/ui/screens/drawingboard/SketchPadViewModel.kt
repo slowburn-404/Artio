@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseUser
 import dev.borisochieng.sketchpad.auth.data.FirebaseResponse
 import dev.borisochieng.sketchpad.auth.domain.AuthRepository
+import dev.borisochieng.sketchpad.collab.data.toDBPathProperties
 import dev.borisochieng.sketchpad.collab.data.toDBSketch
 import dev.borisochieng.sketchpad.collab.domain.CollabRepository
 import dev.borisochieng.sketchpad.database.Sketch
@@ -49,10 +50,10 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 	}
 
 	fun fetchSketch(sketchId: String) {
-		_uiState.update { it.copy(sketch = null) }
+		sketch = null
 		viewModelScope.launch {
-			sketchRepository.getSketch(sketchId).collect { sketch ->
-				_uiState.update { it.copy(sketch = sketch) }
+			sketchRepository.getSketch(sketchId).collect { fetchedSketch ->
+				sketch = fetchedSketch
 			}
 		}
 	}
@@ -61,7 +62,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 		when (action) {
 			is SketchPadActions.SaveSketch -> saveSketch(action.sketch)
 			is SketchPadActions.UpdateSketch -> updateSketch(action.paths)
-			SketchPadActions.SketchClosed -> _uiState.update { it.copy(sketch = null) }
+			SketchPadActions.SketchClosed -> sketch = null
 		}
 	}
 
@@ -101,11 +102,11 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 
 	private fun updateSketch(paths: List<PathProperties>) {
 		viewModelScope.launch {
-			val sketch = uiState.value.sketch ?: return@launch
+			if (sketch == null) return@launch
 			val updatedSketch = Sketch(
-				id = sketch.id,
-				name = sketch.name,
-				dateCreated = sketch.dateCreated,
+				id = sketch!!.id,
+				name = sketch!!.name,
+				dateCreated = sketch!!.dateCreated,
 				pathList = paths
 			)
 			sketchRepository.updateSketch(updatedSketch)
