@@ -5,11 +5,12 @@ import androidx.room.PrimaryKey
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.alt.PathProperties
 import java.util.Calendar
 import java.util.Date
+import java.util.UUID
 
 @Entity
 data class Sketch(
-	@PrimaryKey(autoGenerate = true)
-	val id: Int = 0,
+	@PrimaryKey
+	val id: String = UUID.randomUUID().toString(),
 	val name: String,
 	val dateCreated: Date = Calendar.getInstance().time,
 	val lastModified: Date = Calendar.getInstance().time,
