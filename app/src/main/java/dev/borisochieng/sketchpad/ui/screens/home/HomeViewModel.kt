@@ -7,6 +7,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.borisochieng.sketchpad.database.Sketch
 import dev.borisochieng.sketchpad.database.repository.SketchRepository
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -16,15 +19,22 @@ class HomeViewModel : ViewModel(), KoinComponent {
 	private val sketchRepository by inject<SketchRepository>()
 
 	private var localSketches by mutableStateOf<List<Sketch>>(emptyList()) // for internal use only
-	var savedSketches by mutableStateOf<List<Sketch>>(emptyList()); private set // for UI
 	private var synced by mutableStateOf(false)
+
+	private val _uiState = MutableStateFlow(HomeUiState())
+	var uiState by mutableStateOf(_uiState.value); private set
 
 	init {
 		viewModelScope.launch {
-			sketchRepository.getAllSketches().collect {
-				localSketches = it
+			_uiState.collect { uiState = it }
+		}
+		viewModelScope.launch {
+			sketchRepository.getAllSketches().collect { sketches ->
+				localSketches = sketches
 				if (synced) {
-					savedSketches = it
+					_uiState.update { it.copy(savedSketches = sketches) }
+					delay(1000)
+					_uiState.update { it.copy(isLoading = false) }
 					return@collect
 				}
 				refreshDatabase()
