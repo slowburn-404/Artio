@@ -47,12 +47,10 @@ import dev.borisochieng.sketchpad.ui.screens.dialog.Sizes
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.CanvasUiEvents
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadActions
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadViewModel
-import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.rememberDrawController
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
-import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.BitmapFactory.getBitmap
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.ExportOption
-import io.ak1.drawbox.rememberDrawController
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.rememberDrawController
 
 @Composable
 fun DrawingBoard(
@@ -242,7 +240,7 @@ fun DrawingBoard(
 											absolutePaths.clear()
 											absolutePaths.addAll(paths)
 
-											viewModel.updatePathInDb(path)
+											viewModel.updatePathInDb(paths)
 										}
 									}
 							) {
