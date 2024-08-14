@@ -20,6 +20,7 @@ class DrawController internal constructor() {
 
     fun saveBitmap(config: Bitmap.Config = Bitmap.Config.ARGB_8888) =
         _bitmapGenerators.tryEmit(config)
+
     fun trackBitmaps(
         it: View,
         coroutineScope: CoroutineScope,
@@ -32,6 +33,6 @@ class DrawController internal constructor() {
 }
 
 @Composable
-fun rememberDrawController(): dev.borisochieng.sketchpad.ui.screens.drawingboard.data.DrawController {
+fun rememberDrawController(): DrawController {
     return remember { DrawController() }
 }

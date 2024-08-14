@@ -14,7 +14,7 @@ interface AuthRepository {
 
     suspend fun checkIfUserIsLoggedIn(): Boolean
 
-    suspend fun updateUserProfile(displayName: String, imageUrl: Uri,): FirebaseResponse<User>
+    suspend fun updateUserProfile(displayName: String, imageUrl: Uri): FirebaseResponse<User>
 
     suspend fun uploadImageToFireStore(uri: Uri): FirebaseResponse<Uri>
 

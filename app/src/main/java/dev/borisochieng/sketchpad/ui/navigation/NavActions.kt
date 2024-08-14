@@ -12,7 +12,7 @@ class NavActions(private val navController: NavHostController) {
             Screens.SettingsScreen -> navigateToSettingsScreen()
             Screens.ProfileScreen -> navigateToProfileScreen()
             Screens.Back -> navController.navigateUp()
-            Screens.OnBoardingScreen -> Unit
+            Screens.OnBoardingScreen -> navigateToOnBoardingScreen()
             Screens.SignUpScreen -> navigateToSignUpScreen()
             Screens.LoginScreen -> navigateToLoginScreen()
             Screens.UpdateProfileScreen -> navigateToUpdateProfileScreen()
@@ -41,6 +41,10 @@ class NavActions(private val navController: NavHostController) {
 
     private fun navigateToProfileScreen() {
         navController.navigate(AppRoute.ProfileScreen.route)
+    }
+
+    private fun navigateToOnBoardingScreen() {
+        navController.navigate(AppRoute.OnBoardingScreen.route)
     }
 
     private fun navigateToSignUpScreen() {

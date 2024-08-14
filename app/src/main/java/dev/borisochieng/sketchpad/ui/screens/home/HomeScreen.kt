@@ -47,7 +47,7 @@ fun HomeScreen(
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navigate(Screens.SketchPad("0")) },
+                onClick = { navigate(Screens.SketchPad("0000")) },
                 modifier = Modifier.padding(bottom = bottomPadding),
                 containerColor = colorScheme.primary,
                 contentColor = colorScheme.onPrimary
