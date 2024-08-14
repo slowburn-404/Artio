@@ -69,10 +69,10 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun shareCollaborateUrl(url: String) {
+    private fun shareCollaborateUrl(url: Uri) {
         val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plan"
-            putExtra(Intent.EXTRA_TEXT, url)
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, url.toString())
         }
         val chooser = Intent.createChooser(intent, "Invite collaborator via")
         startActivity(chooser)
@@ -88,11 +88,14 @@ class MainActivity : ComponentActivity() {
         val data: Uri? = intent.data
 
         if(action == Intent.ACTION_VIEW && data != null) {
-            val url = data.toString()
+            val userId = data.getQueryParameter("user_id")
+            val boardId = data.getQueryParameter("board_id")
 
-            Log.d("DeepLink", "Received URL: $url")
+            //TODO(navigate to drawing board)
 
-            Toast.makeText(this, url, Toast.LENGTH_SHORT).show()
+            Log.d("DeepLink", "User id: $userId \n BoardId: $boardId")
+
+            Toast.makeText(this, "User id: $userId \n BoardId: $boardId", Toast.LENGTH_SHORT).show()
         }
     }
 }

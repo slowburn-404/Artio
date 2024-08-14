@@ -1,6 +1,10 @@
 package dev.borisochieng.sketchpad.collab.data.models
 
 data class DBSketch(
-    val title: String,
-    val paths: List<DBPathProperties>
+    val id: String = "",
+    val dateCreated: String = "",
+    val lastModified: String = "",
+    val title: String = "",
+    val paths: List<DBPathProperties> = emptyList()
+
 )
