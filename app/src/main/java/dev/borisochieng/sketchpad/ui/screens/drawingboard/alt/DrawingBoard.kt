@@ -153,8 +153,7 @@ fun DrawingBoard(
 						}
 					}
 				},
-				collabUrl = uiState.collabUrl
-				},
+				collabUrl = uiState.collabUrl,
 				onExportClickedAsPdf = {
 					exportOption = ExportOption.PDF
 					drawController.saveBitmap()
