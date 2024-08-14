@@ -39,17 +39,21 @@ import dev.borisochieng.sketchpad.ui.screens.dialog.NameSketchDialog
 import dev.borisochieng.sketchpad.ui.screens.dialog.Sizes
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadActions
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.BitmapFactory.getBitmap
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.ExportOption
 import io.ak1.drawbox.rememberDrawController
 
 @Composable
 fun DrawingBoard(
 	sketch: Sketch?,
 	exportSketch: (Bitmap) -> Unit,
+	exportSketchAsPdf: (Bitmap) -> Unit,
 	actions: (SketchPadActions) -> Unit,
 	navigate: (Screens) -> Unit,
 	onBroadCastUrl: (String) -> Unit
 ) {
 	val drawController = dev.borisochieng.sketchpad.ui.screens.drawingboard.data.rememberDrawController()
+	var exportOption by remember { mutableStateOf(ExportOption.PNG) }
+
 	val absolutePaths = remember { mutableStateListOf<PathProperties>() }
 	var paths by remember { mutableStateOf<List<PathProperties>>(emptyList()) }
 	var drawMode by remember { mutableStateOf(DrawMode.Draw) }
@@ -93,18 +97,16 @@ fun DrawingBoard(
 					paths += nextPath
 				},
 				onExportClicked = {
-
+					exportOption = ExportOption.PNG
 					drawController.saveBitmap()
-				/*	sketchBitmap?.let {
-						exportSketch(it)
-					} ?: Toast.makeText(context, "Oops... Unable to export sketch", Toast.LENGTH_SHORT).show()
+				},
+				onExportClickedAsPdf = {
+					exportOption = ExportOption.PDF
+					drawController.saveBitmap()
 				},
 				onBroadCastUrl = { url ->
 					onBroadCastUrl(url)
-				*/},
-				onBroadCastUrl = { url ->
-					onBroadCastUrl(url)
-				}
+				},
 			)
 		},
 		containerColor = Color.White,
@@ -115,7 +117,7 @@ fun DrawingBoard(
 				pencilSize = pencilSize,
 				onColorChanged = { color = it },
 				onSizeChanged = { pencilSize = it },
-				onDrawModeChanged = { drawMode = it }
+				onDrawModeChanged = { drawMode = it },
 			)
 		}
 	) { paddingValues ->
@@ -154,10 +156,14 @@ fun DrawingBoard(
 					ComposeView(context).apply {
 
 						setContent {
+
 							LaunchedEffect(drawController) {
 								drawController.trackBitmaps(this@apply, this, onCaptured = { imageBitmap, error ->
-									imageBitmap?.let {
-										exportSketch(it.asAndroidBitmap())
+									imageBitmap?.let { bitmap ->
+										when (exportOption) {
+											ExportOption.PNG -> exportSketch(bitmap.asAndroidBitmap())
+											ExportOption.PDF -> exportSketchAsPdf(bitmap.asAndroidBitmap())
+										}
 									}
 								})
 							}

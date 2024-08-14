@@ -31,6 +31,7 @@ fun AppRoute(
 	navActions: NavActions,
 	navController: NavHostController,
 	saveImage: (Bitmap) -> Unit,
+	saveImageAsPdf: (Bitmap) -> Unit,
 	authViewModel: AuthViewModel = koinViewModel(),
 	homeViewModel: HomeViewModel = koinViewModel(),
 	sketchPadViewModel: SketchPadViewModel = koinViewModel(),
@@ -61,6 +62,7 @@ fun AppRoute(
 			DrawingBoard(
 				sketch = sketchPadViewModel.sketch,
 				exportSketch = saveImage,
+				exportSketchAsPdf = saveImageAsPdf,
 				actions = sketchPadViewModel::actions,
 				navigate = navActions::navigate,
 				onBroadCastUrl = broadCastUrl

@@ -24,6 +24,7 @@ import dev.borisochieng.sketchpad.ui.screens.drawingboard.Root
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.activityChooser
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.checkAndAskPermission
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.saveImage
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.savePdf
 import dev.borisochieng.sketchpad.ui.theme.AppTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -54,7 +55,17 @@ class MainActivity : ComponentActivity() {
                                     CoroutineScope(Dispatchers.IO).launch {
                                         val uri = saveImage(it)
                                         withContext(Dispatchers.Main) {
-                                            startActivity(activityChooser(uri))
+                                        startActivity(activityChooser(uri))
+                                        }
+                                    }
+                                }
+                            },
+                            saveImageAsPdf = {
+                                checkAndAskPermission {
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        val pdfUri = savePdf(it)
+                                        withContext(Dispatchers.Main) {
+                                            startActivity(activityChooser(pdfUri))
                                         }
                                     }
                                 }
