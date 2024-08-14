@@ -53,7 +53,7 @@ class AuthViewModel : ViewModel(), KoinComponent {
                 startScreen = if(hasFinishedOnboarding) {
                     AppRoute.HomeScreen
                 } else {
-                    AppRoute.SignUpScreen
+                    AppRoute.OnBoardingScreen
                 }.route
             }
         }

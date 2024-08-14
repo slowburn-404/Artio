@@ -14,12 +14,17 @@ class SketchRepositoryImpl: SketchRepository, KoinComponent {
 		return sketchDao.getAllSketches()
 	}
 
-	override fun getSketch(sketchId: Int): Flow<Sketch> {
+	override fun getSketch(sketchId: String): Flow<Sketch> {
 		return sketchDao.getSketch(sketchId)
 	}
 
 	override suspend fun saveSketch(sketch: Sketch) {
 		return sketchDao.saveSketch(sketch)
+	}
+
+	override suspend fun refreshDatabase(sketches: List<Sketch>) {
+		sketchDao.clearDatabase()
+		return sketchDao.insertSketches(sketches)
 	}
 
 	override suspend fun updateSketch(sketch: Sketch) {

@@ -14,8 +14,11 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults.outlinedButtonColors
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -33,7 +36,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import dev.borisochieng.sketchpad.auth.presentation.viewmodels.AuthViewModel
@@ -50,9 +52,7 @@ fun ProfileScreen(
     navigate: (Screens) -> Unit,
     viewModel: AuthViewModel = koinViewModel()
 ) {
-
     val uiState by viewModel.uiState.collectAsState()
-
 
     Scaffold(
         modifier = Modifier.padding(bottom = bottomPadding),
@@ -85,7 +85,6 @@ fun ProfileScreen(
                     ),
                 contentAlignment = Alignment.Center,
             ) {
-
                 if (uiState.user?.imageUrl == null) {
                     Text(
                         text = "No profile photo",
@@ -151,67 +150,62 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            OutlinedButton(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                onClick = {
-                    navigate(Screens.UpdateProfileScreen)
-                },
-                enabled = !uiState.isLoading
-            ) {
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+            if (uiState.isLoggedIn) {
+                OutlinedButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    onClick = { navigate(Screens.UpdateProfileScreen) },
+                    enabled = !uiState.isLoading,
+                    colors = outlinedButtonColors(contentColor = colorScheme.primary)
                 ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            modifier = Modifier.padding(horizontal = 8.dp),
+                            text = "Update Profile",
+                            style = AppTypography.labelLarge
+                        )
 
-
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
+                            contentDescription = "Update profile"
+                        )
+                    }
+                }
+                OutlinedButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    onClick = { viewModel.logoutUser() },
+                    enabled = !uiState.isLoading
+                ) {
                     Text(
-                        modifier = Modifier.padding(horizontal = 8.dp),
-                        text = "Update Profile",
+                        text = "Logout",
                         style = AppTypography.labelLarge,
                         color = lightScheme.primary,
                     )
-
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
-                        contentDescription = "Update profile",
-                        tint = lightScheme.primary
-                    )
+                }
+            } else {
+                Button(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    onClick = { navigate(Screens.OnBoardingScreen) }
+                ) {
+                    Text("Login", style = AppTypography.labelLarge)
                 }
             }
-
-            OutlinedButton(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                onClick = {
-                    viewModel.logoutUser()
-                    navigate(Screens.LoginScreen)
-                },
-                enabled = !uiState.isLoading
-            ) {
-
-
-                Text(
-                    text = "Logout",
-                    style = AppTypography.labelLarge,
-                    color = lightScheme.primary,
-                )
-            }
-
-
         }
     }
 }
-
-
 
 @Preview(showBackground = true)
 @Composable
 fun ProfileScreenPreview() {
     AppTheme {
-        ProfileScreen(0.dp, navigate = {}, viewModel = viewModel())
+        ProfileScreen(0.dp, {})
     }
 }

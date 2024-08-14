@@ -45,10 +45,10 @@ fun HomeScreen(
     val selectedSketch = remember { mutableStateOf<Sketch?>(null) }
 
     Scaffold(
-        modifier = Modifier.padding(bottom = bottomPadding),
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navigate(Screens.SketchPad("0")) },
+                onClick = { navigate(Screens.SketchPad("0000")) },
+                modifier = Modifier.padding(bottom = bottomPadding),
                 containerColor = colorScheme.primary,
                 contentColor = colorScheme.onPrimary
             ) {
@@ -83,7 +83,7 @@ fun HomeScreen(
             }
 
             if (savedSketches.isEmpty()) {
-                EmptyScreen()
+                EmptyScreen(Modifier.padding(bottom = bottomPadding))
             }
         }
 
@@ -98,11 +98,11 @@ fun HomeScreen(
 }
 
 @Composable
-private fun EmptyScreen() {
+private fun EmptyScreen(modifier: Modifier = Modifier) {
     val displayText = "No drawings saved"
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(30.dp)

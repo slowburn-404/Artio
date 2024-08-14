@@ -10,6 +10,7 @@ import androidx.navigation.compose.composable
 import dev.borisochieng.sketchpad.auth.presentation.screens.LoginScreen
 import dev.borisochieng.sketchpad.auth.presentation.screens.OnBoardingScreen
 import dev.borisochieng.sketchpad.auth.presentation.screens.ProfileScreen
+import dev.borisochieng.sketchpad.auth.presentation.screens.ResetPasswordScreen
 import dev.borisochieng.sketchpad.auth.presentation.screens.SignUpScreen
 import dev.borisochieng.sketchpad.auth.presentation.screens.UpdateProfileScreen
 import dev.borisochieng.sketchpad.auth.presentation.viewmodels.AuthViewModel
@@ -17,9 +18,6 @@ import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadViewModel
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.alt.DrawingBoard
 import dev.borisochieng.sketchpad.ui.screens.home.HomeScreen
 import dev.borisochieng.sketchpad.ui.screens.home.HomeViewModel
-import dev.borisochieng.sketchpad.auth.presentation.screens.ProfileScreen
-import dev.borisochieng.sketchpad.auth.presentation.screens.ResetPasswordScreen
-import dev.borisochieng.sketchpad.auth.presentation.screens.UpdateProfileScreen
 import dev.borisochieng.sketchpad.ui.screens.settings.SettingsScreen
 import dev.borisochieng.sketchpad.utils.AnimationDirection
 import dev.borisochieng.sketchpad.utils.animatedComposable
@@ -56,14 +54,12 @@ fun AppRoute(
 		) { backStackEntry ->
 			val sketchId = backStackEntry.arguments?.getString("sketchId") ?: ""
 			LaunchedEffect(true) {
-				sketchPadViewModel.fetchSketch(sketchId.toInt())
+				sketchPadViewModel.fetchSketch(sketchId)
 			}
 
 			DrawingBoard(
-				sketch = sketchPadViewModel.sketch,
 				exportSketch = saveImage,
 				exportSketchAsPdf = saveImageAsPdf,
-				actions = sketchPadViewModel::actions,
 				navigate = navActions::navigate,
 				onBroadCastUrl = broadCastUrl
 			)

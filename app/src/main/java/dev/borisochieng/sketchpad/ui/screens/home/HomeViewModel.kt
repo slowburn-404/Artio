@@ -15,12 +15,19 @@ class HomeViewModel : ViewModel(), KoinComponent {
 
 	private val sketchRepository by inject<SketchRepository>()
 
-	var savedSketches by mutableStateOf<List<Sketch>>(emptyList()); private set
+	private var localSketches by mutableStateOf<List<Sketch>>(emptyList()) // for internal use only
+	var savedSketches by mutableStateOf<List<Sketch>>(emptyList()); private set // for UI
+	private var synced by mutableStateOf(false)
 
 	init {
 		viewModelScope.launch {
 			sketchRepository.getAllSketches().collect {
-				savedSketches = it
+				localSketches = it
+				if (synced) {
+					savedSketches = it
+					return@collect
+				}
+				refreshDatabase()
 			}
 		}
 	}
@@ -29,6 +36,18 @@ class HomeViewModel : ViewModel(), KoinComponent {
 		when (action) {
 			is HomeActions.RenameSketch -> renameSketch(action.sketch)
 			is HomeActions.DeleteSketch -> deleteSketch(action.sketch)
+		}
+	}
+
+	private fun refreshDatabase() {
+		synced = true
+		viewModelScope.launch {
+//			val remoteSketches = listOf(Sketch((1..10000).random(), "Jankz", pathList = emptyList())) // for testing
+			val remoteSketches = emptyList<Sketch>() // TODO(change this to the function for fetching remote sketches)
+			val unsyncedSketches = localSketches.filterNot { sketch ->
+				sketch.name in remoteSketches.map { it.name }
+			}
+			sketchRepository.refreshDatabase(remoteSketches + unsyncedSketches)
 		}
 	}
 

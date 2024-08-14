@@ -1,32 +1,60 @@
 package dev.borisochieng.sketchpad.collab.data
 
+import android.util.Log
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.database.ChildEventListener
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import dev.borisochieng.sketchpad.auth.data.FirebaseResponse
+import dev.borisochieng.sketchpad.collab.data.models.BoardDetails
 import dev.borisochieng.sketchpad.collab.domain.CollabRepository
 import dev.borisochieng.sketchpad.collab.data.models.DBPathProperties
+import dev.borisochieng.sketchpad.collab.data.models.DBSketch
+import dev.borisochieng.sketchpad.collab.domain.toPathProperties
+import dev.borisochieng.sketchpad.collab.domain.toSketch
+import dev.borisochieng.sketchpad.database.Sketch
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.alt.PathProperties
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import org.koin.core.component.KoinComponent
+import org.koin.java.KoinJavaComponent.inject
+import kotlin.coroutines.resume
 
-class CollabRepositoryImpl : CollabRepository {
-    override suspend fun saveSketchToDB(
+class CollabRepositoryImpl : CollabRepository, KoinComponent {
+    override suspend fun createSketch(
         userId: String,
         title: String,
         paths: List<DBPathProperties>
-    ): FirebaseResponse<String> =
+    ): FirebaseResponse<BoardDetails> =
         withContext(Dispatchers.IO) {
             try {
                 val database = FirebaseDatabase.getInstance().reference
+                // generate board ids
                 val boardId = database.child("Users").child(userId).child("boards").push().key
 
                 if (boardId != null) {
+                    //create a map of generated path IDS to the corresponding DBProperties
+                    val pathData = paths.associateBy { _ ->
+                        val pathId = database.push().key ?: ""
+                        pathId
+                    }
+
                     val boardData = mapOf(
                         "title" to title,
-                        "paths" to paths.associateBy {
-                            database.push().key ?: ""
-                        }
+                        "paths" to pathData
                     )
 
+
+                        //save sketch to database
                     database.child("Users")
                         .child(userId)
                         .child("boards")
@@ -34,7 +62,13 @@ class CollabRepositoryImpl : CollabRepository {
                         .setValue(boardData)
                         .await()
 
-                    FirebaseResponse.Success("Sketch saved")
+                    val boardDetails = BoardDetails(
+                        userId = userId,
+                        boardId = boardId,
+                        pathIds = pathData.keys.toList()
+                    )
+
+                    FirebaseResponse.Success(boardDetails)
                 } else {
                     FirebaseResponse.Error("Failed to generate sketch")
                 }
@@ -44,4 +78,116 @@ class CollabRepositoryImpl : CollabRepository {
             }
 
         }
+
+    override suspend fun updatePathInDB(
+        userId: String,
+        boardId: String,
+        paths: List<DBPathProperties>,
+        pathIds: List<String>
+    ): FirebaseResponse<String> =
+        withContext(Dispatchers.IO) {
+            val database = FirebaseDatabase.getInstance().reference
+            val pathRef =
+                database.child("Users")
+                    .child(userId)
+                    .child("boards")
+                    .child(boardId)
+                    .child("paths")
+
+            return@withContext try {
+
+                suspendCancellableCoroutine<FirebaseResponse<String>> { continuation ->
+
+                    //create a map of pathid to path
+                    val pathsMap = pathIds.zip(paths).toMap()
+
+                    pathRef.setValue(pathsMap.mapValues { it.value }) //update all paths
+                        .addOnSuccessListener {
+                            //suspend coroutine and resume when setValue() completes
+                            continuation.resume(
+                                FirebaseResponse.Success("")
+                            )
+                        }
+                        .addOnFailureListener { error ->
+                            error.printStackTrace()
+                            Log.e("Add path to DB", error.message.toString())
+                            continuation.resume(
+                                FirebaseResponse.Error("Error syncing sketches")
+                            )
+                        }
+                }
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Log.e("Update path", e.message.toString())
+                FirebaseResponse.Error("Something went wrong. Check your internet connection and try again")
+            }
+
+        }
+
+
+    override suspend fun listenForSketchChanges(
+        userId: String,
+        boardId: String
+    ): Flow<FirebaseResponse<List<PathProperties>>> =
+        callbackFlow {
+            val database = FirebaseDatabase.getInstance().reference
+            val boardRef = database.child("Users").child(userId).child("boards").child(boardId).child("paths")
+
+            val pathsFromDb = mutableListOf<DBPathProperties>()
+
+            val listener = object : ChildEventListener {
+                override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
+                    val path = snapshot.getValue(DBPathProperties::class.java)
+
+                    if(path != null) {
+                        pathsFromDb.add(path)
+                        val domainPaths = pathsFromDb.map { it.toPathProperties() }
+
+                        trySend(FirebaseResponse.Success(domainPaths))
+                    }
+                }
+
+                override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
+                    val path = snapshot.getValue(DBPathProperties::class.java)
+                    if (path != null) {
+                        val index = pathsFromDb.indexOfFirst { it == path }
+
+                        if (index != -1) {
+                            pathsFromDb[index] = path
+                            val domainPaths = pathsFromDb.map { it.toPathProperties() }
+
+                            trySend(FirebaseResponse.Success(domainPaths))
+                        }
+                    }
+                }
+
+                override fun onChildRemoved(snapshot: DataSnapshot) {
+                    val path = snapshot.getValue(DBPathProperties::class.java)
+                    if(path != null) {
+                        pathsFromDb.removeAll{ it == path }
+                        val domainPaths = pathsFromDb.map { it.toPathProperties() }
+                        trySend(FirebaseResponse.Success(domainPaths))
+                    }
+                }
+
+                override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
+                    TODO("Not yet implemented")
+                }
+
+
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e("Update Child", error.message)
+                    trySend(FirebaseResponse.Error("Failed to fetch latest path: ${error.message}"))
+                }
+
+            }
+
+            boardRef.addChildEventListener(listener)
+
+            awaitClose {
+                boardRef.removeEventListener(listener)
+            }
+        }.flowOn(Dispatchers.IO)
+
 }

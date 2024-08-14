@@ -14,15 +14,21 @@ interface SketchDao {
 	fun getAllSketches(): Flow<List<Sketch>>
 
 	@Query("SELECT * FROM sketch WHERE id LIKE :sketchId")
-	fun getSketch(sketchId: Int): Flow<Sketch>
+	fun getSketch(sketchId: String): Flow<Sketch>
 
 	@Insert
 	suspend fun saveSketch(sketch: Sketch)
+
+	@Insert
+	suspend fun insertSketches(sketches: List<Sketch>)
 
 	@Update
 	suspend fun updateSketch(sketch: Sketch)
 
 	@Delete
 	suspend fun deleteSketch(sketch: Sketch)
+
+	@Query("DELETE FROM sketch")
+	suspend fun clearDatabase()
 
 }

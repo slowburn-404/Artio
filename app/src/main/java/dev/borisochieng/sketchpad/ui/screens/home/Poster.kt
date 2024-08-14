@@ -43,7 +43,7 @@ fun SketchPoster(
 			.padding(end = 10.dp, bottom = 10.dp)
 			.clip(MaterialTheme.shapes.large)
 			.background(MaterialTheme.colorScheme.surfaceContainer)
-			.clickable { onClick(sketch.id.toString()) },
+			.clickable { onClick(sketch.id) },
 		horizontalAlignment = Alignment.CenterHorizontally
 	) {
 		Box(
@@ -81,14 +81,14 @@ fun SketchPoster(
 		Text(
 			text = sketch.name,
 			modifier = Modifier
-				.padding(top = 10.dp)
+				.padding(start = 10.dp, top = 10.dp, end = 10.dp)
 				.basicMarquee(),
 			softWrap = false
 		)
 		Text(
 			text = sketch.lastModified.formatDate(),
 			modifier = Modifier
-				.padding(bottom = 10.dp)
+				.padding(start = 10.dp, end = 10.dp, bottom = 10.dp)
 				.alpha(0.8f),
 			fontSize = 14.sp
 		)
