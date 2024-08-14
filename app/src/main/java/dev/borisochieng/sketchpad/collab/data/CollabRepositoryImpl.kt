@@ -1,5 +1,6 @@
 package dev.borisochieng.sketchpad.collab.data
 
+import android.net.Uri
 import android.util.Log
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.ChildEventListener
@@ -7,6 +8,7 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.getValue
 import dev.borisochieng.sketchpad.auth.data.FirebaseResponse
 import dev.borisochieng.sketchpad.collab.data.models.BoardDetails
 import dev.borisochieng.sketchpad.collab.domain.CollabRepository
@@ -32,8 +34,7 @@ import kotlin.coroutines.resume
 class CollabRepositoryImpl : CollabRepository, KoinComponent {
     override suspend fun createSketch(
         userId: String,
-        title: String,
-        paths: List<DBPathProperties>
+        sketch: DBSketch
     ): FirebaseResponse<BoardDetails> =
         withContext(Dispatchers.IO) {
             try {
@@ -43,18 +44,21 @@ class CollabRepositoryImpl : CollabRepository, KoinComponent {
 
                 if (boardId != null) {
                     //create a map of generated path IDS to the corresponding DBProperties
-                    val pathData = paths.associateBy { _ ->
+                    val pathData = sketch.paths.associateBy { _ ->
                         val pathId = database.push().key ?: ""
                         pathId
                     }
 
                     val boardData = mapOf(
-                        "title" to title,
-                        "paths" to pathData
+                        "id" to boardId,
+                        "title" to sketch.title,
+                        "paths" to pathData,
+                        "dateCreated" to sketch.dateCreated,
+                        "lastModified" to sketch.lastModified
                     )
 
 
-                        //save sketch to database
+                    //save sketch to database
                     database.child("Users")
                         .child(userId)
                         .child("boards")
@@ -77,6 +81,44 @@ class CollabRepositoryImpl : CollabRepository, KoinComponent {
                 FirebaseResponse.Error("Something went wrong please try again")
             }
 
+        }
+
+    override suspend fun fetchExistingSketches(userId: String): FirebaseResponse<List<Sketch>> =
+        withContext(Dispatchers.IO) {
+            val database = FirebaseDatabase.getInstance()
+            val userRef = database.getReference("Users").child(userId).child("boards")
+
+            return@withContext try {
+                val snapshot = userRef.get().await()
+                val sketchesList = mutableListOf<DBSketch>()
+
+                //check if snapshot has children
+                if(snapshot.exists()){
+                    //iterate over each child and cast to DBSKetch class
+                snapshot.children.forEach { boardSnapshot ->
+                    val board = boardSnapshot.value as? Map<String, DBSketch>
+                    if (board != null) {
+                        val dbSketch = DBSketch(
+                            id = board["id"] as? String ?: "",
+                            title = board["title"] as? String ?: "",
+                            dateCreated = board["dateCreated"] as? String ?: "",
+                            lastModified = board["lastModified"] as? String ?: "",
+                            paths = board["paths"] as? List<DBPathProperties> ?: emptyList()
+                        )
+
+                        sketchesList.add(dbSketch)
+                    }
+                }
+            }
+                val domainSketches = sketchesList.map { it.toSketch() }
+
+                FirebaseResponse.Success(domainSketches)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Log.e("Fetch sketches", e.message.toString())
+                FirebaseResponse.Error("Cannot fetch sketches, check your internet connection and try again")
+
+            }
         }
 
     override suspend fun updatePathInDB(
@@ -132,7 +174,8 @@ class CollabRepositoryImpl : CollabRepository, KoinComponent {
     ): Flow<FirebaseResponse<List<PathProperties>>> =
         callbackFlow {
             val database = FirebaseDatabase.getInstance().reference
-            val boardRef = database.child("Users").child(userId).child("boards").child(boardId).child("paths")
+            val boardRef =
+                database.child("Users").child(userId).child("boards").child(boardId).child("paths")
 
             val pathsFromDb = mutableListOf<DBPathProperties>()
 
@@ -140,7 +183,7 @@ class CollabRepositoryImpl : CollabRepository, KoinComponent {
                 override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
                     val path = snapshot.getValue(DBPathProperties::class.java)
 
-                    if(path != null) {
+                    if (path != null) {
                         pathsFromDb.add(path)
                         val domainPaths = pathsFromDb.map { it.toPathProperties() }
 
@@ -164,8 +207,8 @@ class CollabRepositoryImpl : CollabRepository, KoinComponent {
 
                 override fun onChildRemoved(snapshot: DataSnapshot) {
                     val path = snapshot.getValue(DBPathProperties::class.java)
-                    if(path != null) {
-                        pathsFromDb.removeAll{ it == path }
+                    if (path != null) {
+                        pathsFromDb.removeAll { it == path }
                         val domainPaths = pathsFromDb.map { it.toPathProperties() }
                         trySend(FirebaseResponse.Success(domainPaths))
                     }
@@ -189,5 +232,18 @@ class CollabRepositoryImpl : CollabRepository, KoinComponent {
                 boardRef.removeEventListener(listener)
             }
         }.flowOn(Dispatchers.IO)
+
+    override suspend fun generateCollabUrl(userId: String, boardId: String): Uri =
+        withContext(Dispatchers.Default) {
+            val baseUrl = "https://collaborate.jcsketchpad/"
+            val collabUri = Uri.parse(baseUrl)
+                .buildUpon()
+                .appendQueryParameter("user_id", userId)
+                .appendQueryParameter("board_id", boardId)
+                .build()
+
+            collabUri //return Uri
+        }
+
 
 }

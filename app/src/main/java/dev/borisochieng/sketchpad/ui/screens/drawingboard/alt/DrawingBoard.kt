@@ -1,6 +1,8 @@
 package dev.borisochieng.sketchpad.ui.screens.drawingboard.alt
 
 import android.graphics.Bitmap
+import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
@@ -54,11 +56,13 @@ import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.rememberDrawContr
 
 @Composable
 fun DrawingBoard(
+	sketch: Sketch?,
 	exportSketch: (Bitmap) -> Unit,
+	actions: (SketchPadActions) -> Unit,
 	exportSketchAsPdf: (Bitmap) -> Unit,
 	navigate: (Screens) -> Unit,
-    onBroadCastUrl: (String) -> Unit,
-    viewModel: SketchPadViewModel = koinViewModel()
+	onBroadCastUrl: (Uri) -> Unit,
+	viewModel: SketchPadViewModel = koinViewModel()
 ) {
 	var exportOption by remember { mutableStateOf(ExportOption.PNG) }
 	val drawController = rememberDrawController()
@@ -82,7 +86,7 @@ fun DrawingBoard(
 			val newSketch = Sketch(name = name, pathList = paths)
 			SketchPadActions.SaveSketch(newSketch)
 		}
-		viewModel.actions(action)
+		actions(action)
 		Toast.makeText(context, "Sketch saved", Toast.LENGTH_SHORT).show()
 		navigate(Screens.Back)
 	}
@@ -113,11 +117,11 @@ fun DrawingBoard(
 	Scaffold(
 		topBar = {
 			PaletteTopBar(
-				canSave = paths != uiState.sketch?.pathList,
+				canSave = paths != sketch?.pathList,
 				canUndo = paths.isNotEmpty(),
 				canRedo = paths.size < absolutePaths.size,
 				onSaveClicked = {
-					if (uiState.sketch == null) {
+					if (sketch == null) {
 						openNameSketchDialog.value = true
 					} else {
 						save(null)
@@ -129,9 +133,15 @@ fun DrawingBoard(
 					paths += nextPath
 				},
 				onExportClicked = { drawController.saveBitmap() },
-				onBroadCastUrl = { url ->
+				onBroadCastUrl = {
+					Log.d("Credentials", "User id: ${uiState.boardDetails!!.userId} \n Board id: ${uiState.boardDetails!!.boardId}")
 					if (uiState.userIsLoggedIn) {
-						onBroadCastUrl(url)
+						viewModel.generateCollabUrl(userId = uiState.boardDetails!!.userId, boardId = uiState.boardDetails!!.boardId)
+						scope.launch {
+							uiState.collabUrl?.let { url ->
+								onBroadCastUrl(url)
+							}
+						}
 					} else {
 						scope.launch {
 							val action = snackbarHostState.showSnackbar(
@@ -142,6 +152,8 @@ fun DrawingBoard(
 							navigate(Screens.OnBoardingScreen)
 						}
 					}
+				},
+				collabUrl = uiState.collabUrl
 				},
 				onExportClickedAsPdf = {
 					exportOption = ExportOption.PDF
@@ -162,8 +174,8 @@ fun DrawingBoard(
 		snackbarHost = { SnackbarHost(snackbarHostState) },
 		containerColor = Color.White
 	) { paddingValues ->
-		LaunchedEffect(uiState.sketch) {
-			val sketch = uiState.sketch ?: return@LaunchedEffect
+		LaunchedEffect(sketch) {
+			if (sketch == null) return@LaunchedEffect
 			absolutePaths.clear(); paths = emptyList()
 			absolutePaths.addAll(sketch.pathList)
 			paths = sketch.pathList
@@ -242,6 +254,7 @@ fun DrawingBoard(
 
 											viewModel.updatePathInDb(paths)
 										}
+										viewModel.updatePathInDb(paths)
 									}
 							) {
 								paths.forEach { path ->
@@ -253,6 +266,8 @@ fun DrawingBoard(
 										cap = StrokeCap.Round
 									)
 								}
+
+								viewModel.updatePathInDb(paths)
 							}
 						}
 					}
@@ -269,7 +284,7 @@ fun DrawingBoard(
 		}
 
 		if (openSavePromptDialog.value) {
-			val sketchIsNew = uiState.sketch == null
+			val sketchIsNew = sketch == null
 			SavePromptDialog(
 				sketchIsNew = sketchIsNew,
 				onSave = {
@@ -285,11 +300,11 @@ fun DrawingBoard(
 		}
 
 		DisposableEffect(Unit) {
-			onDispose { viewModel.actions(SketchPadActions.SketchClosed) }
+			onDispose { actions(SketchPadActions.SketchClosed) }
 		}
 
 		// onBackPress, if canvas has new lines drawn, prompt user to save sketch or changes
-		if (paths.isNotEmpty() && paths != uiState.sketch?.pathList) {
+		if (paths.isNotEmpty() && paths != sketch?.pathList) {
 			BackHandler { openSavePromptDialog.value = true }
 		}
 	}

@@ -1,6 +1,7 @@
 package dev.borisochieng.sketchpad.ui.navigation
 
 import android.graphics.Bitmap
+import android.net.Uri
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,7 +34,7 @@ fun AppRoute(
 	authViewModel: AuthViewModel = koinViewModel(),
 	homeViewModel: HomeViewModel = koinViewModel(),
 	sketchPadViewModel: SketchPadViewModel = koinViewModel(),
-	broadCastUrl: (String) -> Unit
+	broadCastUrl: (Uri) -> Unit
 ) {
 	NavHost(
 //		modifier = Modifier.padding(paddingValues), this gives the app unnecessary padding
@@ -43,7 +44,7 @@ fun AppRoute(
 		composable(AppRoute.HomeScreen.route) {
 			HomeScreen(
 				bottomPadding = paddingValues.calculateBottomPadding(),
-				savedSketches = homeViewModel.savedSketches,
+				uiState = homeViewModel.uiState,
 				actions = homeViewModel::actions,
 				navigate = navActions::navigate
 			)
@@ -53,12 +54,16 @@ fun AppRoute(
 			animationDirection = AnimationDirection.UpDown
 		) { backStackEntry ->
 			val sketchId = backStackEntry.arguments?.getString("sketchId") ?: ""
+			val boardId = backStackEntry.arguments?.getString("boardId") ?: ""
+			val userId = backStackEntry.arguments?.getString("userId") ?: ""
 			LaunchedEffect(true) {
 				sketchPadViewModel.fetchSketch(sketchId)
 			}
 
 			DrawingBoard(
+				sketch = sketchPadViewModel.sketch,
 				exportSketch = saveImage,
+				actions = sketchPadViewModel::actions,
 				exportSketchAsPdf = saveImageAsPdf,
 				navigate = navActions::navigate,
 				onBroadCastUrl = broadCastUrl
