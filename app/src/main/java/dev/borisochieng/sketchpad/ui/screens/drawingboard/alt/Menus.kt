@@ -175,9 +175,9 @@ fun PaletteTopBar(
 
         IconButton(
             onClick = {
-               collabUrl?.let {
-                   onBroadCastUrl(it)
-               }
+                collabUrl?.let {
+                    onBroadCastUrl(it)
+                }
             }
         ) {
             Icon(

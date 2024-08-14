@@ -42,12 +42,16 @@ class CollabRepositoryImpl : CollabRepository, KoinComponent {
                 // generate board ids
                 val boardId = database.child("Users").child(userId).child("boards").push().key
 
-                if (boardId != null) {
-                    //create a map of generated path IDS to the corresponding DBProperties
-                    val pathData = sketch.paths.associateBy { _ ->
-                        val pathId = database.push().key ?: ""
-                        pathId
-                    }
+                if (boardId == null) {
+                   Log.e("CreateSketch", "failed to generate board id")
+                    //return early if board id has not been generated
+                    return@withContext FirebaseResponse.Error("Falied to generate board id")
+                }
+                //create a map of generated path IDS to the corresponding DBProperties
+                val pathData = sketch.paths.associateBy { _ ->
+                    val pathId = database.push().key ?: ""
+                    pathId
+                }
 
                     val boardData = mapOf(
                         "id" to boardId,
@@ -73,11 +77,9 @@ class CollabRepositoryImpl : CollabRepository, KoinComponent {
                     )
 
                     FirebaseResponse.Success(boardDetails)
-                } else {
-                    FirebaseResponse.Error("Failed to generate sketch")
-                }
             } catch (e: Exception) {
                 e.printStackTrace()
+                Log.e("Create sketch", e.message.toString())
                 FirebaseResponse.Error("Something went wrong please try again")
             }
 
@@ -137,13 +139,25 @@ class CollabRepositoryImpl : CollabRepository, KoinComponent {
                     .child("paths")
 
             return@withContext try {
-
+                //create a map of exisiting paths in the database
+                val existingPathsSnapshot = pathRef.get().await()
+                val existingPaths = existingPathsSnapshot.children.associateBy { it.key ?: "" }
                 suspendCancellableCoroutine<FirebaseResponse<String>> { continuation ->
 
-                    //create a map of pathid to path
-                    val pathsMap = pathIds.zip(paths).toMap()
 
-                    pathRef.setValue(pathsMap.mapValues { it.value }) //update all paths
+                    //match path objects to pathids
+                    val pathsMap = pathIds.zip(paths).toMap().toMutableMap()
+
+                    //add any new paths not in the database
+                    paths.forEachIndexed { index, path ->
+                        val pathId = pathIds.getOrNull(index) ?: pathRef.push().key ?: ""
+                        if (!existingPaths.containsKey(pathId)) {
+                            pathsMap[pathId] = path
+                        }
+                    }
+
+                    //update database with new paths or updated paths
+                    pathRef.setValue(pathsMap.mapValues { it.value })
                         .addOnSuccessListener {
                             //suspend coroutine and resume when setValue() completes
                             continuation.resume(
@@ -187,6 +201,7 @@ class CollabRepositoryImpl : CollabRepository, KoinComponent {
                         pathsFromDb.add(path)
                         val domainPaths = pathsFromDb.map { it.toPathProperties() }
 
+                        //emit new values
                         trySend(FirebaseResponse.Success(domainPaths))
                     }
                 }
@@ -233,8 +248,7 @@ class CollabRepositoryImpl : CollabRepository, KoinComponent {
             }
         }.flowOn(Dispatchers.IO)
 
-    override suspend fun generateCollabUrl(userId: String, boardId: String): Uri =
-        withContext(Dispatchers.Default) {
+    override fun generateCollabUrl(userId: String, boardId: String): Uri {
             val baseUrl = "https://collaborate.jcsketchpad/"
             val collabUri = Uri.parse(baseUrl)
                 .buildUpon()
@@ -242,8 +256,8 @@ class CollabRepositoryImpl : CollabRepository, KoinComponent {
                 .appendQueryParameter("board_id", boardId)
                 .build()
 
-            collabUri //return Uri
-        }
+            return collabUri
+    }
 
 
 }

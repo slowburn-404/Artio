@@ -55,246 +55,250 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun DrawingBoard(
-	sketch: Sketch?,
-	exportSketch: (Bitmap) -> Unit,
-	actions: (SketchPadActions) -> Unit,
-	navigate: (Screens) -> Unit,
-	onBroadCastUrl: (Uri) -> Unit,
-	viewModel: SketchPadViewModel = koinViewModel()
+    sketch: Sketch?,
+    exportSketch: (Bitmap) -> Unit,
+    actions: (SketchPadActions) -> Unit,
+    navigate: (Screens) -> Unit,
+    onBroadCastUrl: (Uri) -> Unit,
+    viewModel: SketchPadViewModel = koinViewModel()
 ) {
-	val drawController = rememberDrawController()
-	val absolutePaths = remember { mutableStateListOf<PathProperties>() }
-	var paths by remember { mutableStateOf<List<PathProperties>>(emptyList()) }
-	var drawMode by remember { mutableStateOf(DrawMode.Draw) }
-	var pencilSize by remember { mutableFloatStateOf(Sizes.Small.strokeWidth) }
-	var color by remember { mutableStateOf(Color.Black) }
-	var scale by remember { mutableFloatStateOf(1f) }
-	var offset by remember { mutableStateOf(Offset.Zero) }
-	val openNameSketchDialog = rememberSaveable { mutableStateOf(false) }
-	val openSavePromptDialog = rememberSaveable { mutableStateOf(false) }
-	val snackbarHostState = remember { SnackbarHostState() }
-	val scope = rememberCoroutineScope()
-	val context = LocalContext.current
-	val save: (String?) -> Unit = { name ->
-		val action = if (name == null) {
-			SketchPadActions.UpdateSketch(paths)
-		} else {
-			openNameSketchDialog.value = false
-			val newSketch = Sketch(name = name, pathList = paths)
-			SketchPadActions.SaveSketch(newSketch)
-		}
-		actions(action)
-		Toast.makeText(context, "Sketch saved", Toast.LENGTH_SHORT).show()
-		navigate(Screens.Back)
-	}
+    val drawController = rememberDrawController()
+    val absolutePaths = remember { mutableStateListOf<PathProperties>() }
+    var paths by remember { mutableStateOf<List<PathProperties>>(emptyList()) }
+    var drawMode by remember { mutableStateOf(DrawMode.Draw) }
+    var pencilSize by remember { mutableFloatStateOf(Sizes.Small.strokeWidth) }
+    var color by remember { mutableStateOf(Color.Black) }
+    var scale by remember { mutableFloatStateOf(1f) }
+    var offset by remember { mutableStateOf(Offset.Zero) }
+    val openNameSketchDialog = rememberSaveable { mutableStateOf(false) }
+    val openSavePromptDialog = rememberSaveable { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val save: (String?) -> Unit = { name ->
+        val action = if (name == null) {
+            SketchPadActions.UpdateSketch(paths)
+        } else {
+            openNameSketchDialog.value = false
+            val newSketch = Sketch(name = name, pathList = paths)
+            SketchPadActions.SaveSketch(newSketch)
+        }
+        actions(action)
+        Toast.makeText(context, "Sketch saved", Toast.LENGTH_SHORT).show()
+        navigate(Screens.Back)
+    }
 
-	val uiState by viewModel.uiState.collectAsState()
-	val uiEvents by viewModel.uiEvents.collectAsState(initial = null)
+    val uiState by viewModel.uiState.collectAsState()
+    val uiEvents by viewModel.uiEvents.collectAsState(initial = null)
 
-	//listen for path changes
-	LaunchedEffect(uiState.paths) {
-		if (!uiState.userIsLoggedIn) return@LaunchedEffect
-		absolutePaths.clear()
-		paths = uiState.paths
-		absolutePaths.addAll(paths)
-	}
+    //listen for path changes
+    LaunchedEffect(uiState.paths) {
+        if (!uiState.userIsLoggedIn) return@LaunchedEffect
+        absolutePaths.clear()
+        paths = uiState.paths
+        absolutePaths.addAll(paths)
+    }
 
-	LaunchedEffect(uiEvents) {
-		uiEvents?.let { event ->
-			when (event) {
-				is CanvasUiEvents.SnackBarEvent -> {
-					// Showing Snackbar with the message
-					snackbarHostState.showSnackbar(event.message)
-				}
-				// Handle other events if any
-			}
-		}
-	}
+    LaunchedEffect(uiEvents) {
+        uiEvents?.let { event ->
+            when (event) {
+                is CanvasUiEvents.SnackBarEvent -> {
+                    // Showing Snackbar with the message
+                    snackbarHostState.showSnackbar(event.message)
+                }
+                // Handle other events if any
+            }
+        }
+    }
 
-	Scaffold(
-		topBar = {
-			PaletteTopBar(
-				canSave = paths != sketch?.pathList,
-				canUndo = paths.isNotEmpty(),
-				canRedo = paths.size < absolutePaths.size,
-				onSaveClicked = {
-					if (sketch == null) {
-						openNameSketchDialog.value = true
-					} else {
-						save(null)
-					}
-				},
-				unUndoClicked = { paths -= paths.last() },
-				unRedoClicked = {
-					val nextPath = absolutePaths[paths.size]
-					paths += nextPath
-				},
-				onExportClicked = { drawController.saveBitmap() },
-				onBroadCastUrl = {
-					Log.d("Credentials", "User id: ${uiState.boardDetails!!.userId} \n Board id: ${uiState.boardDetails!!.boardId}")
-					if (uiState.userIsLoggedIn) {
-						viewModel.generateCollabUrl(userId = uiState.boardDetails!!.userId, boardId = uiState.boardDetails!!.boardId)
-						scope.launch {
-							uiState.collabUrl?.let { url ->
-								onBroadCastUrl(url)
-							}
-						}
-					} else {
-						scope.launch {
-							val action = snackbarHostState.showSnackbar(
-								message = "Sign up to avail collaborative feature",
-								actionLabel = "SIGN UP", duration = SnackbarDuration.Short
-							)
-							if (action != SnackbarResult.ActionPerformed) return@launch
-							navigate(Screens.OnBoardingScreen)
-						}
-					}
-				},
-				collabUrl = uiState.collabUrl
-			)
-		},
-		bottomBar = {
-			PaletteMenu(
-				drawMode = drawMode,
-				selectedColor = color,
-				pencilSize = pencilSize,
-				onColorChanged = { color = it },
-				onSizeChanged = { pencilSize = it },
-				onDrawModeChanged = { drawMode = it }
-			)
-		},
-		snackbarHost = { SnackbarHost(snackbarHostState) },
-		containerColor = Color.White
-	) { paddingValues ->
-		LaunchedEffect(sketch) {
-			if (sketch == null) return@LaunchedEffect
-			absolutePaths.clear(); paths = emptyList()
-			absolutePaths.addAll(sketch.pathList)
-			paths = sketch.pathList
-		}
+    Scaffold(
+        topBar = {
+            PaletteTopBar(
+                canSave = paths != sketch?.pathList,
+                canUndo = paths.isNotEmpty(),
+                canRedo = paths.size < absolutePaths.size,
+                onSaveClicked = {
+                    if (sketch == null) {
+                        openNameSketchDialog.value = true
+                    } else {
+                        save(null)
+                    }
+                },
+                unUndoClicked = { paths -= paths.last() },
+                unRedoClicked = {
+                    val nextPath = absolutePaths[paths.size]
+                    paths += nextPath
+                },
+                onExportClicked = { drawController.saveBitmap() },
+                onBroadCastUrl = {
+                    Log.d(
+                        "Credentials",
+                        "User id: ${uiState.boardDetails.userId} \n Board id: ${uiState.boardDetails.boardId}"
+                    )
+                    if (uiState.userIsLoggedIn) {
+                        val url = viewModel.generateCollabUrl(
+                            boardId = uiState.boardDetails.boardId
+                        )
+                        onBroadCastUrl(url)
 
-		BoxWithConstraints(
-			modifier = Modifier
-				.fillMaxSize()
-				.padding(paddingValues),
-			contentAlignment = Alignment.BottomCenter
-		) {
-			val state = rememberTransformableState { zoomChange, panChange, _ ->
-				if (drawMode != DrawMode.Touch) return@rememberTransformableState
-				scale = (scale * zoomChange).coerceIn(1f, 5f)
+                    } else {
+                        scope.launch {
+                            val action = snackbarHostState.showSnackbar(
+                                message = "Sign up to avail collaborative feature",
+                                actionLabel = "SIGN UP", duration = SnackbarDuration.Short
+                            )
+                            if (action != SnackbarResult.ActionPerformed) return@launch
+                            navigate(Screens.OnBoardingScreen)
+                        }
+                    }
+                },
+                collabUrl = viewModel.generateCollabUrl(
+                    boardId = uiState.boardDetails.boardId
+                )
+            )
+        },
+        bottomBar = {
+            PaletteMenu(
+                drawMode = drawMode,
+                selectedColor = color,
+                pencilSize = pencilSize,
+                onColorChanged = { color = it },
+                onSizeChanged = { pencilSize = it },
+                onDrawModeChanged = { drawMode = it }
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = Color.White
+    ) { paddingValues ->
+        LaunchedEffect(sketch) {
+            if (sketch == null) return@LaunchedEffect
+            absolutePaths.clear(); paths = emptyList()
+            absolutePaths.addAll(sketch.pathList)
+            paths = sketch.pathList
+        }
 
-				val extraWidth = (scale - 1) * constraints.maxWidth
-				val extraHeight = (scale - 1) * constraints.maxHeight
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            val state = rememberTransformableState { zoomChange, panChange, _ ->
+                if (drawMode != DrawMode.Touch) return@rememberTransformableState
+                scale = (scale * zoomChange).coerceIn(1f, 5f)
 
-				val maxX = extraWidth / 2
-				val maxY = extraHeight / 2
+                val extraWidth = (scale - 1) * constraints.maxWidth
+                val extraHeight = (scale - 1) * constraints.maxHeight
 
-				offset = Offset(
-					x = (offset.x + scale * panChange.x).coerceIn(-maxX, maxX),
-					y = (offset.y + scale * panChange.y).coerceIn(-maxY, maxY)
-				)
-			}
+                val maxX = extraWidth / 2
+                val maxY = extraHeight / 2
 
-			AndroidView(
-				factory = {
-					ComposeView(context).apply {
-						setContent {
-							LaunchedEffect(drawController) {
-								drawController.trackBitmaps(
-									it = this@apply, coroutineScope = this,
-									onCaptured = { imageBitmap, error ->
-										imageBitmap?.let {
-											exportSketch(it.asAndroidBitmap())
-										}
-									}
-								)
-							}
+                offset = Offset(
+                    x = (offset.x + scale * panChange.x).coerceIn(-maxX, maxX),
+                    y = (offset.y + scale * panChange.y).coerceIn(-maxY, maxY)
+                )
+            }
 
-							Canvas(
-								modifier = Modifier
-									.fillMaxSize()
-									.background(Color.White)
-									.graphicsLayer {
-										scaleX = scale
-										scaleY = scale
-										translationX = offset.x
-										translationY = offset.y
-									}
-									.transformable(state)
-									.pointerInput(true) {
-										if (drawMode == DrawMode.Touch) return@pointerInput
-										detectDragGestures { change, dragAmount ->
-											change.consume()
-											val eraseMode = drawMode == DrawMode.Erase
-											val path = PathProperties(
-												color = when (drawMode) {
-													DrawMode.Erase -> Color.White
-													DrawMode.Draw -> color
-													else -> Color.Transparent
-												},
-												eraseMode = eraseMode,
-												start = change.position - dragAmount,
-												end = change.position,
-												strokeWidth = pencilSize
-											)
+            AndroidView(
+                factory = {
+                    ComposeView(context).apply {
+                        setContent {
+                            LaunchedEffect(drawController) {
+                                drawController.trackBitmaps(
+                                    it = this@apply, coroutineScope = this,
+                                    onCaptured = { imageBitmap, error ->
+                                        imageBitmap?.let {
+                                            exportSketch(it.asAndroidBitmap())
+                                        }
+                                    }
+                                )
+                            }
 
-											paths += path
-											absolutePaths.clear()
-											absolutePaths.addAll(paths)
+                            Canvas(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(Color.White)
+                                    .graphicsLayer {
+                                        scaleX = scale
+                                        scaleY = scale
+                                        translationX = offset.x
+                                        translationY = offset.y
+                                    }
+                                    .transformable(state)
+                                    .pointerInput(true) {
+                                        if (drawMode == DrawMode.Touch) return@pointerInput
+                                        detectDragGestures { change, dragAmount ->
+                                            change.consume()
+                                            val eraseMode = drawMode == DrawMode.Erase
+                                            val path = PathProperties(
+                                                color = when (drawMode) {
+                                                    DrawMode.Erase -> Color.White
+                                                    DrawMode.Draw -> color
+                                                    else -> Color.Transparent
+                                                },
+                                                eraseMode = eraseMode,
+                                                start = change.position - dragAmount,
+                                                end = change.position,
+                                                strokeWidth = pencilSize
+                                            )
 
-										}
-										viewModel.updatePathInDb(paths)
-									}
-							) {
-								paths.forEach { path ->
-									drawLine(
-										color = path.color,
-										start = path.start,
-										end = path.end,
-										strokeWidth = path.strokeWidth,
-										cap = StrokeCap.Round
-									)
-								}
+                                            paths += path
+                                            absolutePaths.clear()
+                                            absolutePaths.addAll(paths)
 
-								viewModel.updatePathInDb(paths)
-							}
-						}
-					}
-				},
-				modifier = Modifier.fillMaxSize()
-			)
-		}
+                                        }
+                                    }
+                            ) {
+                                paths.forEach { path ->
+                                    drawLine(
+                                        color = path.color,
+                                        start = path.start,
+                                        end = path.end,
+                                        strokeWidth = path.strokeWidth,
+                                        cap = StrokeCap.Round
+                                    )
+                                }
 
-		if (openNameSketchDialog.value) {
-			NameSketchDialog(
-				onNamed = { name -> save(name) },
-				onDismiss = { openNameSketchDialog.value = false }
-			)
-		}
+                                //send newly drawn paths to database
+                                viewModel.updatePathInDb(paths)
+                            }
+                        }
+                    }
+                },
+                modifier = Modifier.fillMaxSize()
+            )
+        }
 
-		if (openSavePromptDialog.value) {
-			val sketchIsNew = sketch == null
-			SavePromptDialog(
-				sketchIsNew = sketchIsNew,
-				onSave = {
-					if (sketchIsNew) {
-						openNameSketchDialog.value = true
-					} else {
-						save(null)
-					}
-				},
-				onDiscard = { navigate(Screens.Back) },
-				onDismiss = { openSavePromptDialog.value = false }
-			)
-		}
+        if (openNameSketchDialog.value) {
+            NameSketchDialog(
+                onNamed = { name -> save(name) },
+                onDismiss = { openNameSketchDialog.value = false }
+            )
+        }
 
-		DisposableEffect(Unit) {
-			onDispose { actions(SketchPadActions.SketchClosed) }
-		}
+        if (openSavePromptDialog.value) {
+            val sketchIsNew = sketch == null
+            SavePromptDialog(
+                sketchIsNew = sketchIsNew,
+                onSave = {
+                    if (sketchIsNew) {
+                        openNameSketchDialog.value = true
+                    } else {
+                        save(null)
+                    }
+                },
+                onDiscard = { navigate(Screens.Back) },
+                onDismiss = { openSavePromptDialog.value = false }
+            )
+        }
 
-		// onBackPress, if canvas has new lines drawn, prompt user to save sketch or changes
-		if (paths.isNotEmpty() && paths != sketch?.pathList) {
-			BackHandler { openSavePromptDialog.value = true }
-		}
-	}
+        DisposableEffect(Unit) {
+            onDispose { actions(SketchPadActions.SketchClosed) }
+        }
+
+        // onBackPress, if canvas has new lines drawn, prompt user to save sketch or changes
+        if (paths.isNotEmpty() && paths != sketch?.pathList) {
+            BackHandler { openSavePromptDialog.value = true }
+        }
+    }
 }

@@ -8,8 +8,7 @@ import dev.borisochieng.sketchpad.ui.screens.drawingboard.alt.PathProperties
 @Immutable
 data class CanvasUiState(
     val userIsLoggedIn: Boolean = false,
-    val boardDetails: BoardDetails? = null,
+    val boardDetails: BoardDetails = BoardDetails("", "", emptyList()),
     val error: String = "",
     val paths: List<PathProperties> = emptyList(),
-    val collabUrl: Uri? = null
 )

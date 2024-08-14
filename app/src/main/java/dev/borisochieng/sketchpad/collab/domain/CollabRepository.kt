@@ -19,7 +19,7 @@ interface CollabRepository {
 
     suspend fun updatePathInDB(userId: String, boardId: String, paths: List<DBPathProperties>, pathIds: List<String>): FirebaseResponse<String>
 
-    suspend fun generateCollabUrl(userId: String, boardId: String): Uri
+    fun generateCollabUrl(userId: String, boardId: String): Uri
 
 
 
