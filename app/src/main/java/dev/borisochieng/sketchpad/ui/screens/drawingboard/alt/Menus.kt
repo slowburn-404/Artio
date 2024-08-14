@@ -7,22 +7,33 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.PictureAsPdf
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.Brush
 import androidx.compose.material.icons.rounded.LineWeight
 import androidx.compose.material.icons.rounded.PersonAdd
 import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material.icons.rounded.TouchApp
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,7 +54,7 @@ fun PaletteMenu(
     pencilSize: Float,
     onColorChanged: (Color) -> Unit,
     onSizeChanged: (Float) -> Unit,
-    onDrawModeChanged: (DrawMode) -> Unit
+    onDrawModeChanged: (DrawMode) -> Unit,
 ) {
     var currentDrawMode = drawMode
     val openColorPickerDialog = remember { mutableStateOf(false) }
@@ -124,8 +135,11 @@ fun PaletteTopBar(
     unRedoClicked: () -> Unit,
     onExportClicked: () -> Unit,
     onBroadCastUrl: (Uri) -> Unit,
-    collabUrl: Uri?
+    collabUrl: Uri?,
+    onExportClickedAsPdf: () -> Unit,
+
 ) {
+    var expanded by remember { mutableStateOf(false) }
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -163,15 +177,33 @@ fun PaletteTopBar(
                 contentDescription = "Redo"
             )
         }
-        IconButton(
-            onClick = onExportClicked,
-            enabled = canUndo
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.ic_download),
-                contentDescription = "Export sketch"
-            )
-        }
+            IconButton(onClick = { expanded = true }) {
+                Icon(
+                    painterResource(R.drawable.ic_download),
+                    contentDescription = "Localized description"
+                )
+            }
+            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                DropdownMenuItem(
+                    text = { Text("Save as PNG") },
+                    onClick = {
+
+                        onExportClicked()
+                        expanded = false
+                    },
+                    leadingIcon = { Icon(Icons.Outlined.Image, contentDescription = null) }
+                )
+                DropdownMenuItem(
+                    text = { Text("Save as PDF") },
+                    onClick = {
+                        onExportClickedAsPdf()
+                        expanded = false
+                    },
+                    leadingIcon = { Icon(Icons.Outlined.PictureAsPdf, contentDescription = null) }
+                )
+
+            }
+
 
         IconButton(
             onClick = {

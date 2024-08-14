@@ -1,6 +1,5 @@
 package dev.borisochieng.sketchpad.ui.screens.drawingboard
 
-import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue

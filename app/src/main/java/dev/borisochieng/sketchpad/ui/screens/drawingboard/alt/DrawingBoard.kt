@@ -49,19 +49,22 @@ import dev.borisochieng.sketchpad.ui.screens.dialog.Sizes
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.CanvasUiEvents
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadActions
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadViewModel
-import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.rememberDrawController
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.ExportOption
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.rememberDrawController
 
 @Composable
 fun DrawingBoard(
 	sketch: Sketch?,
 	exportSketch: (Bitmap) -> Unit,
 	actions: (SketchPadActions) -> Unit,
+	exportSketchAsPdf: (Bitmap) -> Unit,
 	navigate: (Screens) -> Unit,
 	onBroadCastUrl: (Uri) -> Unit,
 	viewModel: SketchPadViewModel = koinViewModel()
 ) {
+	var exportOption by remember { mutableStateOf(ExportOption.PNG) }
 	val drawController = rememberDrawController()
 	val absolutePaths = remember { mutableStateListOf<PathProperties>() }
 	var paths by remember { mutableStateOf<List<PathProperties>>(emptyList()) }
@@ -150,7 +153,11 @@ fun DrawingBoard(
 						}
 					}
 				},
-				collabUrl = uiState.collabUrl
+				collabUrl = uiState.collabUrl,
+				onExportClickedAsPdf = {
+					exportOption = ExportOption.PDF
+					drawController.saveBitmap()
+				},
 			)
 		},
 		bottomBar = {
@@ -160,7 +167,7 @@ fun DrawingBoard(
 				pencilSize = pencilSize,
 				onColorChanged = { color = it },
 				onSizeChanged = { pencilSize = it },
-				onDrawModeChanged = { drawMode = it }
+				onDrawModeChanged = { drawMode = it },
 			)
 		},
 		snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -199,14 +206,16 @@ fun DrawingBoard(
 				factory = {
 					ComposeView(context).apply {
 						setContent {
+
 							LaunchedEffect(drawController) {
-								drawController.trackBitmaps(
-									it = this@apply, coroutineScope = this,
-									onCaptured = { imageBitmap, error ->
-										imageBitmap?.let {
-											exportSketch(it.asAndroidBitmap())
+								drawController.trackBitmaps(this@apply, this, onCaptured = { imageBitmap, error ->
+									imageBitmap?.let { bitmap ->
+										when (exportOption) {
+											ExportOption.PNG -> exportSketch(bitmap.asAndroidBitmap())
+											ExportOption.PDF -> exportSketchAsPdf(bitmap.asAndroidBitmap())
 										}
 									}
+                                }
 								)
 							}
 
@@ -242,6 +251,7 @@ fun DrawingBoard(
 											absolutePaths.clear()
 											absolutePaths.addAll(paths)
 
+											viewModel.updatePathInDb(paths)
 										}
 										viewModel.updatePathInDb(paths)
 									}

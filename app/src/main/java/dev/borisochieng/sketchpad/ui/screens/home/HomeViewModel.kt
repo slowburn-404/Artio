@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import dev.borisochieng.sketchpad.auth.data.FirebaseResponse
 import dev.borisochieng.sketchpad.collab.domain.CollabRepository
@@ -23,29 +24,31 @@ class HomeViewModel : ViewModel(), KoinComponent {
     private val collabRepository by inject<CollabRepository>()
     private val firebaseUser by inject<FirebaseUser>()
 
+  //  private val firebaseUser = FirebaseAuth.getInstance().currentUser
+
     private var localSketches by mutableStateOf<List<Sketch>>(emptyList()) // for internal use only
     private var synced by mutableStateOf(false)
 
-	private val _uiState = MutableStateFlow(HomeUiState())
-	var uiState by mutableStateOf(_uiState.value); private set
+    private val _uiState = MutableStateFlow(HomeUiState())
+    var uiState by mutableStateOf(_uiState.value); private set
 
-	init {
-		viewModelScope.launch {
-			_uiState.collect { uiState = it }
-		}
-		viewModelScope.launch {
-			sketchRepository.getAllSketches().collect { sketches ->
-				localSketches = sketches
-				if (synced) {
-					_uiState.update { it.copy(savedSketches = sketches) }
-					delay(1000)
-					_uiState.update { it.copy(isLoading = false) }
-					return@collect
-				}
-				refreshDatabase()
-			}
-		}
-	}
+    init {
+        viewModelScope.launch {
+            _uiState.collect { uiState = it }
+        }
+        viewModelScope.launch {
+            sketchRepository.getAllSketches().collect { sketches ->
+                localSketches = sketches
+                if (synced) {
+                    _uiState.update { it.copy(savedSketches = sketches) }
+                    delay(1000)
+                    _uiState.update { it.copy(isLoading = false) }
+                    return@collect
+                }
+                refreshDatabase()
+            }
+        }
+    }
 
     fun actions(action: HomeActions) {
         when (action) {
@@ -73,7 +76,7 @@ class HomeViewModel : ViewModel(), KoinComponent {
     }
 
     private suspend fun fetchSketchesFromRemoteDB(): List<Sketch>? {
-        val response = collabRepository.fetchExistingSketches(firebaseUser.uid)
+        val response = firebaseUser?.let { collabRepository.fetchExistingSketches(it.uid) }
 
         return when (response) {
             is FirebaseResponse.Success -> {
@@ -81,6 +84,10 @@ class HomeViewModel : ViewModel(), KoinComponent {
             }
 
             is FirebaseResponse.Error -> {
+                emptyList()
+            }
+
+            null -> {
                 emptyList()
             }
         }
