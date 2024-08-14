@@ -50,7 +50,7 @@ fun SketchPoster(
 			modifier = Modifier
 				.fillMaxWidth()
 				.background(Color.White)
-				.height(120.dp),
+				.height(140.dp),
 			contentAlignment = Alignment.Center
 		) {
 			Canvas(
