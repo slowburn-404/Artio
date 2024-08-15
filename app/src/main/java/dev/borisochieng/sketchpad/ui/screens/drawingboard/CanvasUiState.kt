@@ -13,5 +13,6 @@ data class CanvasUiState(
     val sketchIsBackedUp: Boolean = false,
     val error: String = "",
     val sketch: Sketch? = null,
+    val collabUrl: Uri? = null,
     val paths: List<PathProperties> = emptyList(),
 )

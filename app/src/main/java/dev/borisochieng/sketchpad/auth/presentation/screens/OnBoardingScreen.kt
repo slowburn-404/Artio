@@ -69,7 +69,7 @@ fun OnBoardingScreen(navigate: (Screens) -> Unit) {
                         )
                     }
                 } else {
-                    navigate(Screens.SignUpScreen)
+                    navigate(Screens.LoginScreen)
                 }
             }
         ) {

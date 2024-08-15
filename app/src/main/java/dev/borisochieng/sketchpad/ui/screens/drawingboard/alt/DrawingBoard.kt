@@ -59,6 +59,7 @@ import dev.borisochieng.sketchpad.ui.screens.dialog.NameSketchDialog
 import dev.borisochieng.sketchpad.ui.screens.dialog.SavePromptDialog
 import dev.borisochieng.sketchpad.ui.screens.dialog.Sizes
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.CanvasUiEvents
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.CanvasUiState
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadActions
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadViewModel
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.ExportOption
@@ -68,7 +69,7 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun DrawingBoard(
-	sketch: Sketch?,
+	uiState: CanvasUiState, // passing the state in the way fixes state management issue
 	exportSketch: (Bitmap) -> Unit,
 	actions: (SketchPadActions) -> Unit,
 	exportSketchAsPdf: (Bitmap) -> Unit,
@@ -76,7 +77,8 @@ fun DrawingBoard(
 	onBroadCastUrl: (Uri) -> Unit,
 	viewModel: SketchPadViewModel = koinViewModel()
 ) {
-    var currentTextInput by remember { mutableStateOf(TextInput()) }
+	val (userIsLoggedIn, boardDetails, sketchIsBackedUp, _, sketch, collabUrl) = uiState
+  var currentTextInput by remember { mutableStateOf(TextInput()) }
 	var exportOption by remember { mutableStateOf(ExportOption.PNG) }
 	val drawController = rememberDrawController()
 	val absolutePaths = remember { mutableStateListOf<PathProperties>() }
@@ -104,12 +106,11 @@ fun DrawingBoard(
 		navigate(Screens.Back)
 	}
 
-	val uiState by viewModel.uiState.collectAsState()
 	val uiEvents by viewModel.uiEvents.collectAsState(initial = null)
 
 	//listen for path changes
 	LaunchedEffect(uiState.paths) {
-		if (!uiState.userIsLoggedIn) return@LaunchedEffect
+		if (!userIsLoggedIn) return@LaunchedEffect
 		absolutePaths.clear()
 		paths = uiState.paths
 		absolutePaths.addAll(paths)
@@ -149,16 +150,13 @@ fun DrawingBoard(
 				},
 				onExportClicked = { drawController.saveBitmap() },
 				onBroadCastUrl = {
-					if (uiState.userIsLoggedIn) {
-						if (!uiState.sketchIsBackedUp) {
+					Log.d("Credentials", "User id: ${boardDetails.userId} \n Board id: ${boardDetails.boardId}")
+					if (userIsLoggedIn) {
+						if (!sketchIsBackedUp || collabUrl == null) {
 							scope.launch { snackbarHostState.showSnackbar("Sketch is not backed up yet") }
 							return@PaletteTopBar
 						}
-						val collabUrl = uiState.sketch?.let { viewModel.generateCollabUrl(sketch = it) }
-						if(collabUrl != null) {
-							onBroadCastUrl(collabUrl)
-						}
-
+						onBroadCastUrl(collabUrl)
 					} else {
 						scope.launch {
 							val action = snackbarHostState.showSnackbar(
@@ -170,7 +168,6 @@ fun DrawingBoard(
 						}
 					}
 				},
-				collabUrl = uiState.sketch?.let { viewModel.generateCollabUrl(sketch = it) },
 				onExportClickedAsPdf = {
 					exportOption = ExportOption.PDF
 					drawController.saveBitmap()
