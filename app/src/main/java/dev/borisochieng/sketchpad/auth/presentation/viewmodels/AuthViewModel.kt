@@ -74,7 +74,7 @@ class AuthViewModel : ViewModel(), KoinComponent {
                     error = ""
                 )
             }
-            val response = authRepository.signUp(email, password)
+            val response = authRepository.signUp(email.trim(), password)
 
             _uiState.update {
                 it.copy(
@@ -120,7 +120,7 @@ class AuthViewModel : ViewModel(), KoinComponent {
                     error = ""
                 )
             }
-            val response = authRepository.login(email, password)
+            val response = authRepository.login(email.trim(), password)
 
             _uiState.update {
                 it.copy(

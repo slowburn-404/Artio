@@ -1,26 +1,21 @@
 package dev.borisochieng.sketchpad.ui.screens.drawingboard.alt
 
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.PictureAsPdf
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.TextFields
 import androidx.compose.material.icons.rounded.Brush
 import androidx.compose.material.icons.rounded.LineWeight
-import androidx.compose.material.icons.rounded.PersonAdd
 import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material.icons.rounded.TouchApp
 import androidx.compose.material3.DropdownMenu
@@ -31,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -40,6 +36,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import dev.borisochieng.sketchpad.R
 import dev.borisochieng.sketchpad.ui.screens.dialog.ColorPickerDialog
@@ -146,9 +143,9 @@ fun PaletteTopBar(
     unUndoClicked: () -> Unit,
     unRedoClicked: () -> Unit,
     onExportClicked: () -> Unit,
-    onExportClickedAsPdf: () -> Unit,
-    onBroadCastUrl: (String) -> Unit,
-
+    onBroadCastUrl: (Uri) -> Unit,
+    collabUrl: Uri?,
+    onExportClickedAsPdf: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
     Row(
@@ -188,38 +185,40 @@ fun PaletteTopBar(
                 contentDescription = "Redo"
             )
         }
-            IconButton(onClick = { expanded = true }) {
-                Icon(
-                    painterResource(R.drawable.ic_download),
-                    contentDescription = "Localized description"
-                )
-            }
-            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                DropdownMenuItem(
-                    text = { Text("Save as PNG") },
-                    onClick = {
-
-                        onExportClicked()
-                        expanded = false
-                    },
-                    leadingIcon = { Icon(Icons.Outlined.Image, contentDescription = null) }
-                )
-                DropdownMenuItem(
-                    text = { Text("Save as PDF") },
-                    onClick = {
-                        onExportClickedAsPdf()
-                        expanded = false
-                    },
-                    leadingIcon = { Icon(Icons.Outlined.PictureAsPdf, contentDescription = null) }
-                )
-
-            }
-
-
+        IconButton(onClick = { expanded = true }) {
+            Icon(
+                painterResource(R.drawable.ic_download),
+                contentDescription = "Localized description"
+            )
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+           // offset = DpOffset(-dropDownMenuOffset.dp, 0.dp)
+        ) {
+            DropdownMenuItem(
+                text = { Text("Save as PNG") },
+                onClick = {
+                    onExportClicked()
+                    expanded = false
+                },
+                leadingIcon = { Icon(Icons.Outlined.Image, contentDescription = null) }
+            )
+            DropdownMenuItem(
+                text = { Text("Save as PDF") },
+                onClick = {
+                    onExportClickedAsPdf()
+                    expanded = false
+                },
+                leadingIcon = { Icon(Icons.Outlined.PictureAsPdf, contentDescription = null) }
+            )
+        }
         IconButton(
             onClick = {
-                val url = "https://collaborate.jcsketchpad/"
-                onBroadCastUrl(url) }
+                collabUrl?.let {
+                    onBroadCastUrl(it)
+                }
+            }
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.collaboration),
