@@ -120,13 +120,13 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
                     }
                 }
 
-                is FirebaseResponse.Error -> {
-                    _uiState.update { it.copy(error = response.message) }
-                    _uiEvents.emit(CanvasUiEvents.SnackBarEvent(response.message))
+                    is FirebaseResponse.Error -> {
+                        _uiState.update { it.copy(error = response.message) }
+                        _uiEvents.emit(CanvasUiEvents.SnackBarEvent(response.message))
+                    }
                 }
             }
         }
-    }
 
     private fun isLoggedIn() = viewModelScope.launch {
         val response = authRepository.checkIfUserIsLoggedIn()
@@ -135,7 +135,6 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 	    if (uiState.sketch != null) generateCollabUrl(uiState.sketch!!.id)
 	    fetchSketchesFromRemoteDB()
     }
-
     private fun listenForSketchChanges() =
         viewModelScope.launch {
 			if (!uiState.userIsLoggedIn || !uiState.sketchIsBackedUp) return@launch
@@ -226,13 +225,13 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 
     fun generateCollabUrl(boardId: String) =
         viewModelScope.launch {
-	        Log.i("SketchInfo", "User is logged in: ${uiState.userIsLoggedIn}")
+			Log.i("SketchInfo", "User is logged in: ${uiState.userIsLoggedIn}")
 			if (!uiState.userIsLoggedIn) return@launch
 
-            val uri = collabRepository.generateCollabUrl(firebaseUser.uid, boardId)
-	        Log.i("SketchInfo", "Uri: $uri")
-            _uiState.update { it.copy(collabUrl = uri) }
-        }
+			val uri = collabRepository.generateCollabUrl(firebaseUser.uid, boardId)
+			Log.i("SketchInfo", "Uri: $uri")
+			_uiState.update { it.copy(collabUrl = uri) }
+		}
 
 	private suspend fun fetchSketchesFromRemoteDB(): List<Sketch> {
 		if (!authRepository.checkIfUserIsLoggedIn()) {

@@ -33,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -64,6 +65,8 @@ import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadActions
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadViewModel
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.ExportOption
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.rememberDrawController
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -114,6 +117,14 @@ fun DrawingBoard(
 		absolutePaths.clear()
 		paths = uiState.paths
 		absolutePaths.addAll(paths)
+	}
+
+	//update paths in db
+	LaunchedEffect(paths) {
+		if (!uiState.userIsLoggedIn) return@LaunchedEffect
+		delay(300)
+		viewModel.updatePathInDb(paths)
+
 	}
 
 	LaunchedEffect(uiEvents) {
@@ -260,14 +271,14 @@ fun DrawingBoard(
 												strokeWidth = pencilSize
 											)
 
-											paths += path
-											absolutePaths.clear()
-											absolutePaths.addAll(paths)
+											absolutePaths += path
+											paths = absolutePaths.toList()
 
-											viewModel.updatePathInDb(paths)
+											scope.launch {
+												delay(100)
+												viewModel.updatePathInDb(paths)
+											}
 										}
-										//update remote db with new paths drawn
-										viewModel.updatePathInDb(paths)
 									}
 							) {
 								paths.forEach { path ->
