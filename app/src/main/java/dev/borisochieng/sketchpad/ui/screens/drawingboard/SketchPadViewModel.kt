@@ -113,7 +113,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
                 is FirebaseResponse.Success -> {
                     _uiState.update {
                         it.copy(
-                            boardDetails = response.data,
+                            boardDetails = response.data ?: BoardDetails("", "", emptyList()),
                             error = ""
                         )
                     }
@@ -139,18 +139,21 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
         viewModelScope.launch {
             val boardId = _uiState.value.boardDetails?.boardId
             if (boardId != null) {
-                val response = collabRepository.listenForSketchChanges(
+                val response = collabRepository.listenForPathChanges(
                     userId = firebaseUser.uid,
                     boardId = boardId
                 )
                 response.collectLatest { dbResponse ->
                     when (dbResponse) {
                         is FirebaseResponse.Success -> {
+	                        val newPaths = dbResponse.data ?: emptyList()
+	                        val mergedPaths = _uiState.value.paths + newPaths
+
                             _uiState.update {
                                 it.copy(
 	                                sketchIsBackedUp = true,
                                     error = "",
-                                    paths = dbResponse.data ?: emptyList()
+                                    paths = mergedPaths
                                 )
                             }
                         }
@@ -168,7 +171,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
     fun updatePathInDb(paths: List<PathProperties>) =
         viewModelScope.launch {
             val boardDetails = _uiState.value.boardDetails
-            if (boardDetails != null && paths.isNotEmpty()) {
+            if (paths.isNotEmpty()) {
                 val pathIds =
                     boardDetails.pathIds.take(paths.size) //ensure paths id matches path count
                 val response =
@@ -185,6 +188,41 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
                 }
             }
         }
+
+	//TODO(Integrate function to the Canvas)
+	fun fetchSingleSketch(boardId: String) =
+		viewModelScope.launch {
+			val sketchResponse = collabRepository.fetchSingleSketch(
+				userId = firebaseUser!!.uid,
+				boardId = boardId
+			)
+
+			when (sketchResponse) {
+				is FirebaseResponse.Success -> {
+					_uiState.update {
+						it.copy(
+							sketch = sketchResponse.data,
+							error = ""
+						)
+					}
+				}
+
+				is FirebaseResponse.Error -> {
+					_uiState.update {
+						it.copy(
+							error = sketchResponse.message,
+							sketch = null
+						)
+					}
+				}
+			}
+		}
+
+	//TODO(Handle network interruptions)
+//    fun handleReconnection() {
+//        listenForSketchChanges()
+//        fetchSketch(_uiState.value.boardDetails.boardId)
+//    }
 
     fun generateCollabUrl(boardId: String) =
         viewModelScope.launch {

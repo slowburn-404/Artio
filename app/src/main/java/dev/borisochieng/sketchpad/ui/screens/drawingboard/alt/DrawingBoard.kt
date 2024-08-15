@@ -253,6 +253,7 @@ fun DrawingBoard(
 
 											viewModel.updatePathInDb(paths)
 										}
+										//update remote db with new paths drawn
 										viewModel.updatePathInDb(paths)
 									}
 							) {
