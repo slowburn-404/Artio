@@ -29,7 +29,6 @@ class HomeViewModel : ViewModel(), KoinComponent {
 
 	private var localSketches by mutableStateOf<List<Sketch>>(emptyList()) // for internal use only
 	private var synced by mutableStateOf(false)
-	private var userIsLoggedIn by mutableStateOf(false) // for internal use only
 
 	private val _uiState = MutableStateFlow(HomeUiState())
 	var uiState by mutableStateOf(_uiState.value); private set
@@ -87,7 +86,6 @@ class HomeViewModel : ViewModel(), KoinComponent {
 
 	private fun refreshDatabase() {
 		synced = true
-		_uiState.update { it.copy(isLoading = true) }
 		viewModelScope.launch {
 //			val remoteSketches = listOf(Sketch(name = "Jankz", pathList = emptyList())) // for testing
 			val remoteSketches = fetchSketchesFromRemoteDB()
@@ -113,11 +111,10 @@ class HomeViewModel : ViewModel(), KoinComponent {
 
 	private fun isLoggedIn(warmCheck: Boolean) = viewModelScope.launch {
 		val response = authRepository.checkIfUserIsLoggedIn()
-		_uiState.update { it.copy(userIsLoggedIn = response) }
-		if (userIsLoggedIn == response) return@launch
+		if (uiState.userIsLoggedIn == response) return@launch
 		// if userIsLoggedIn and function isn't triggered on cold start...
 		if (response && warmCheck) refreshDatabase()
-		userIsLoggedIn = response
+		_uiState.update { it.copy(userIsLoggedIn = response) }
 	}
 
 	private suspend fun fetchSketchesFromRemoteDB(): List<Sketch> {

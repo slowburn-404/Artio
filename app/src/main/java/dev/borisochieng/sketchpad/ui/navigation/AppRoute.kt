@@ -53,15 +53,15 @@ fun AppRoute(
 			route = AppRoute.SketchPad.route,
 			animationDirection = AnimationDirection.UpDown
 		) { backStackEntry ->
-			val sketchId = backStackEntry.arguments?.getString("sketchId") ?: ""
-			val boardId = backStackEntry.arguments?.getString("boardId") ?: ""
-			val userId = backStackEntry.arguments?.getString("userId") ?: ""
+			val sketchId = backStackEntry.arguments?.getString("sketchId") ?: "" // sketchId is the same as boardId
 			LaunchedEffect(true) {
 				sketchPadViewModel.fetchSketch(sketchId)
+				sketchPadViewModel.generateCollabUrl(sketchId)
 			}
 
 			DrawingBoard(
 				sketch = sketchPadViewModel.sketch,
+				uiState = sketchPadViewModel.uiState,
 				exportSketch = saveImage,
 				actions = sketchPadViewModel::actions,
 				exportSketchAsPdf = saveImageAsPdf,

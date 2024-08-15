@@ -47,6 +47,7 @@ import dev.borisochieng.sketchpad.ui.screens.dialog.NameSketchDialog
 import dev.borisochieng.sketchpad.ui.screens.dialog.SavePromptDialog
 import dev.borisochieng.sketchpad.ui.screens.dialog.Sizes
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.CanvasUiEvents
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.CanvasUiState
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadActions
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadViewModel
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.ExportOption
@@ -57,6 +58,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun DrawingBoard(
 	sketch: Sketch?,
+	uiState: CanvasUiState, // passing the state in the way fixes state management issue
 	exportSketch: (Bitmap) -> Unit,
 	actions: (SketchPadActions) -> Unit,
 	exportSketchAsPdf: (Bitmap) -> Unit,
@@ -91,7 +93,6 @@ fun DrawingBoard(
 		navigate(Screens.Back)
 	}
 
-	val uiState by viewModel.uiState.collectAsState()
 	val uiEvents by viewModel.uiEvents.collectAsState(initial = null)
 
 	//listen for path changes
@@ -136,18 +137,13 @@ fun DrawingBoard(
 				},
 				onExportClicked = { drawController.saveBitmap() },
 				onBroadCastUrl = {
-					Log.d("Credentials", "User id: ${uiState.boardDetails!!.userId} \n Board id: ${uiState.boardDetails!!.boardId}")
+					Log.d("Credentials", "User id: ${uiState.boardDetails?.userId} \n Board id: ${uiState.boardDetails?.boardId}")
 					if (uiState.userIsLoggedIn) {
-						if (!uiState.sketchIsBackedUp) {
+						if (!uiState.sketchIsBackedUp || uiState.collabUrl == null) {
 							scope.launch { snackbarHostState.showSnackbar("Sketch is not backed up yet") }
 							return@PaletteTopBar
 						}
-						viewModel.generateCollabUrl(userId = uiState.boardDetails!!.userId, boardId = uiState.boardDetails!!.boardId)
-						scope.launch {
-							uiState.collabUrl?.let { url ->
-								onBroadCastUrl(url)
-							}
-						}
+						onBroadCastUrl(uiState.collabUrl)
 					} else {
 						scope.launch {
 							val action = snackbarHostState.showSnackbar(
@@ -159,7 +155,6 @@ fun DrawingBoard(
 						}
 					}
 				},
-				collabUrl = uiState.collabUrl,
 				onExportClickedAsPdf = {
 					exportOption = ExportOption.PDF
 					drawController.saveBitmap()

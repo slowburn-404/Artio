@@ -5,6 +5,7 @@ import java.util.Date
 import java.util.Locale
 
 const val DATE_PATTERN = "dd/MM/yyyy"
+const val VOID_ID = "0000"
 
 object Extensions {
 

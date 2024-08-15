@@ -1,11 +1,11 @@
 package dev.borisochieng.sketchpad.ui.screens.drawingboard.alt
 
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -26,7 +26,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -36,7 +35,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import dev.borisochieng.sketchpad.R
 import dev.borisochieng.sketchpad.ui.screens.dialog.ColorPickerDialog
@@ -130,11 +128,11 @@ fun PaletteTopBar(
     unUndoClicked: () -> Unit,
     unRedoClicked: () -> Unit,
     onExportClicked: () -> Unit,
-    onBroadCastUrl: (Uri) -> Unit,
-    collabUrl: Uri?,
+    onBroadCastUrl: () -> Unit,
     onExportClickedAsPdf: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -172,41 +170,36 @@ fun PaletteTopBar(
                 contentDescription = "Redo"
             )
         }
-        IconButton(onClick = { expanded = true }) {
-            Icon(
-                painterResource(R.drawable.ic_download),
-                contentDescription = "Localized description"
-            )
-        }
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            offset = DpOffset(-dropDownMenuOffset.dp, 0.dp)
-        ) {
-            DropdownMenuItem(
-                text = { Text("Save as PNG") },
-                onClick = {
-                    onExportClicked()
-                    expanded = false
-                },
-                leadingIcon = { Icon(Icons.Outlined.Image, contentDescription = null) }
-            )
-            DropdownMenuItem(
-                text = { Text("Save as PDF") },
-                onClick = {
-                    onExportClickedAsPdf()
-                    expanded = false
-                },
-                leadingIcon = { Icon(Icons.Outlined.PictureAsPdf, contentDescription = null) }
-            )
-        }
-        IconButton(
-            onClick = {
-               collabUrl?.let {
-                   onBroadCastUrl(it)
-               }
+        Column {
+            IconButton(onClick = { expanded = true }) {
+                Icon(
+                    painterResource(R.drawable.ic_download),
+                    contentDescription = "Localized description"
+                )
             }
-        ) {
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                DropdownMenuItem(
+                    text = { Text("Save as PNG") },
+                    onClick = {
+                        onExportClicked()
+                        expanded = false
+                    },
+                    leadingIcon = { Icon(Icons.Outlined.Image, contentDescription = null) }
+                )
+                DropdownMenuItem(
+                    text = { Text("Save as PDF") },
+                    onClick = {
+                        onExportClickedAsPdf()
+                        expanded = false
+                    },
+                    leadingIcon = { Icon(Icons.Outlined.PictureAsPdf, contentDescription = null) }
+                )
+            }
+        }
+        IconButton(onClick = onBroadCastUrl) {
             Icon(
                 painter = painterResource(id = R.drawable.collaboration),
                 contentDescription = "Invite Collaborator",

@@ -43,6 +43,7 @@ import dev.borisochieng.sketchpad.ui.components.HomeTopBar
 import dev.borisochieng.sketchpad.ui.navigation.Screens
 import dev.borisochieng.sketchpad.ui.screens.dialog.ItemMenuSheet
 import dev.borisochieng.sketchpad.utils.ShimmerBoxItem
+import dev.borisochieng.sketchpad.utils.VOID_ID
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -65,7 +66,7 @@ fun HomeScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navigate(Screens.SketchPad("0000")) },
+                onClick = { navigate(Screens.SketchPad(VOID_ID)) },
                 modifier = Modifier.padding(bottom = bottomPadding),
                 containerColor = colorScheme.primary,
                 contentColor = colorScheme.onPrimary

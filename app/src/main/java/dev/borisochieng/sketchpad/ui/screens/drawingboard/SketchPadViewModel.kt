@@ -1,5 +1,6 @@
 package dev.borisochieng.sketchpad.ui.screens.drawingboard
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -14,12 +15,11 @@ import dev.borisochieng.sketchpad.collab.domain.CollabRepository
 import dev.borisochieng.sketchpad.database.Sketch
 import dev.borisochieng.sketchpad.database.repository.SketchRepository
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.alt.PathProperties
+import dev.borisochieng.sketchpad.utils.VOID_ID
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -29,24 +29,29 @@ import org.koin.core.component.inject
 class SketchPadViewModel : ViewModel(), KoinComponent {
 
     private val authRepository: AuthRepository by inject()
-
     private val sketchRepository by inject<SketchRepository>()
-
     private val collabRepository by inject<CollabRepository>()
-
     private val firebaseUser by inject<FirebaseUser>()
 
     private val _uiState = MutableStateFlow(CanvasUiState())
-    val uiState: StateFlow<CanvasUiState> get() = _uiState.asStateFlow()
+    var uiState by mutableStateOf(_uiState.value)
 
     private val _uiEvents = MutableSharedFlow<CanvasUiEvents>()
     val uiEvents: SharedFlow<CanvasUiEvents> get() = _uiEvents.asSharedFlow()
 
     var sketch by mutableStateOf<Sketch?>(null); private set
+	private var remoteSketches by mutableStateOf<List<Sketch>>(emptyList())
 
     init {
         isLoggedIn()
         listenForSketchChanges()
+
+	    viewModelScope.launch {
+			fetchSketchesFromRemoteDB()
+	    }
+	    viewModelScope.launch {
+			_uiState.collect { uiState = it }
+	    }
     }
 
 	fun fetchSketch(sketchId: String) {
@@ -54,8 +59,14 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 		viewModelScope.launch {
 			sketchRepository.getSketch(sketchId).collect { fetchedSketch ->
 				sketch = fetchedSketch
-				val remoteSketches = fetchSketchesFromRemoteDB()
-				_uiState.update { it.copy(sketchIsBackedUp = sketch in remoteSketches) }
+//				val remoteSketches = fetchSketchesFromRemoteDB()
+				if (sketchId == VOID_ID) {
+					_uiState.update { it.copy(sketchIsBackedUp = false) }
+					return@collect
+				}
+				_uiState.update { state -> state.copy(
+					sketchIsBackedUp = fetchedSketch.id in remoteSketches.map { it.id }
+				) }
 			}
 		}
 	}
@@ -119,6 +130,9 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
     private fun isLoggedIn() = viewModelScope.launch {
         val response = authRepository.checkIfUserIsLoggedIn()
         _uiState.update { it.copy(userIsLoggedIn = response) }
+	    if (!response) return@launch
+	    if (sketch != null) generateCollabUrl(sketch!!.id)
+	    fetchSketchesFromRemoteDB()
     }
 
     private fun listenForSketchChanges() =
@@ -172,18 +186,28 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
             }
         }
 
-    fun generateCollabUrl(userId: String, boardId: String) =
+    fun generateCollabUrl(boardId: String) =
         viewModelScope.launch {
-            val uri = collabRepository.generateCollabUrl(userId, boardId)
+	        Log.i("SketchInfo", "User is logged in: ${uiState.userIsLoggedIn}")
+			if (!uiState.userIsLoggedIn) return@launch
+
+            val uri = collabRepository.generateCollabUrl(firebaseUser.uid, boardId)
+	        Log.i("SketchInfo", "Uri: $uri")
             _uiState.update { it.copy(collabUrl = uri) }
         }
 
 	private suspend fun fetchSketchesFromRemoteDB(): List<Sketch> {
-		if (!authRepository.checkIfUserIsLoggedIn()) return emptyList()
-		val response = firebaseUser.let { collabRepository.fetchExistingSketches(it.uid) }
+		if (!authRepository.checkIfUserIsLoggedIn()) {
+			remoteSketches = emptyList()
+			return remoteSketches
+		}
+		val response = collabRepository.fetchExistingSketches(firebaseUser.uid)
 
 		return when (response) {
-			is FirebaseResponse.Success -> response.data ?: emptyList()
+			is FirebaseResponse.Success -> {
+				remoteSketches = response.data ?: emptyList()
+				remoteSketches
+			}
 			else -> emptyList()
 		}
 	}
