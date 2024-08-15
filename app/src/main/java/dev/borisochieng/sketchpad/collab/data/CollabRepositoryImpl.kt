@@ -2,13 +2,10 @@ package dev.borisochieng.sketchpad.collab.data
 
 import android.net.Uri
 import android.util.Log
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.getValue
 import dev.borisochieng.sketchpad.auth.data.FirebaseResponse
 import dev.borisochieng.sketchpad.collab.data.models.BoardDetails
 import dev.borisochieng.sketchpad.collab.domain.CollabRepository
@@ -22,16 +19,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import org.koin.core.component.KoinComponent
-import org.koin.java.KoinJavaComponent.inject
 import kotlin.coroutines.resume
 
-class CollabRepositoryImpl : CollabRepository, KoinComponent {
+class CollabRepositoryImpl : CollabRepository {
     override suspend fun createSketch(
         userId: String,
         sketch: DBSketch
@@ -107,6 +101,8 @@ class CollabRepositoryImpl : CollabRepository, KoinComponent {
                             lastModified = board["lastModified"] as? String ?: "",
                             paths = board["paths"] as? List<DBPathProperties> ?: emptyList()
                         )
+
+                        Log.d("DBSketch", dbSketch.toString())
 
                         sketchesList.add(dbSketch)
                     }
@@ -194,11 +190,12 @@ class CollabRepositoryImpl : CollabRepository, KoinComponent {
             val pathsFromDb = mutableListOf<DBPathProperties>()
 
             val listener = object : ChildEventListener {
+                //monitor drawing of new lines
                 override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-                    val path = snapshot.getValue(DBPathProperties::class.java)
+                    val newPath = snapshot.getValue(DBPathProperties::class.java)
 
-                    if (path != null) {
-                        pathsFromDb.add(path)
+                    if (newPath != null) {
+                        pathsFromDb.add(newPath)
                         val domainPaths = pathsFromDb.map { it.toPathProperties() }
 
                         //emit new values
@@ -206,13 +203,14 @@ class CollabRepositoryImpl : CollabRepository, KoinComponent {
                     }
                 }
 
+                //monitor modification of existing lines
                 override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
-                    val path = snapshot.getValue(DBPathProperties::class.java)
-                    if (path != null) {
-                        val index = pathsFromDb.indexOfFirst { it == path }
+                    val updatedPath = snapshot.getValue(DBPathProperties::class.java)
+                    if (updatedPath != null) {
+                        val index = pathsFromDb.indexOfFirst { it == updatedPath }
 
                         if (index != -1) {
-                            pathsFromDb[index] = path
+                            pathsFromDb[index] = updatedPath
                             val domainPaths = pathsFromDb.map { it.toPathProperties() }
 
                             trySend(FirebaseResponse.Success(domainPaths))
@@ -220,10 +218,11 @@ class CollabRepositoryImpl : CollabRepository, KoinComponent {
                     }
                 }
 
+                //monitor drawing erasure
                 override fun onChildRemoved(snapshot: DataSnapshot) {
-                    val path = snapshot.getValue(DBPathProperties::class.java)
-                    if (path != null) {
-                        pathsFromDb.removeAll { it == path }
+                    val removedPath = snapshot.getValue(DBPathProperties::class.java)
+                    if (removedPath != null) {
+                        pathsFromDb.removeAll { it == removedPath }
                         val domainPaths = pathsFromDb.map { it.toPathProperties() }
                         trySend(FirebaseResponse.Success(domainPaths))
                     }
@@ -258,6 +257,36 @@ class CollabRepositoryImpl : CollabRepository, KoinComponent {
 
             return collabUri
     }
+
+    override suspend fun fetchSingleSketch(
+        userId: String,
+        boardId: String
+    ): FirebaseResponse<Sketch> =
+        withContext(Dispatchers.IO) {
+            try {
+                val database = FirebaseDatabase.getInstance().reference
+                val boardRef = database.child("Users").child(userId).child("boards").child(boardId)
+
+                //fetch board data
+                val dataSnapshot = boardRef.get().await()
+
+                //cast snapshot to DBSKetch
+                val dbSketch = dataSnapshot.getValue(DBSketch::class.java)
+
+                if(dbSketch != null) {
+                    FirebaseResponse.Success(dbSketch.toSketch())
+                } else {
+                    FirebaseResponse.Error("Board not found")
+                }
+
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Log.e("Fetch single sketch", e.message.toString())
+                FirebaseResponse.Error("Failed to fetch sketch")
+
+            }
+        }
 
 
 }

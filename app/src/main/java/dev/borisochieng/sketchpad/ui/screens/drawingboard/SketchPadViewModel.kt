@@ -172,6 +172,35 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
             }
         }
 
+
+    //TODO(Integrate function to the Canvas)
+    fun fetchSingleSketch(boardId: String) =
+        viewModelScope.launch {
+            val sketchResponse = collabRepository.fetchSingleSketch(
+                userId = firebaseUser.uid,
+                boardId = boardId
+            )
+
+            when(sketchResponse) {
+                is FirebaseResponse.Success -> {
+                    _uiState.update {
+                        it.copy(
+                            sketch = sketchResponse.data,
+                            error = ""
+                        )
+                    }
+                }
+                is FirebaseResponse.Error -> {
+                    _uiState.update {
+                        it.copy(
+                            error = sketchResponse.message,
+                            sketch = null
+                        )
+                    }
+                }
+            }
+        }
+
     //TODO(Handle network interruptions)
 //    fun handleReconnection() {
 //        listenForSketchChanges()
