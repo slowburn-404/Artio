@@ -60,7 +60,6 @@ fun AppRoute(
 			}
 
 			DrawingBoard(
-				sketch = sketchPadViewModel.sketch,
 				uiState = sketchPadViewModel.uiState,
 				exportSketch = saveImage,
 				actions = sketchPadViewModel::actions,

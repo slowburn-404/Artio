@@ -1,12 +1,12 @@
 package dev.borisochieng.sketchpad.ui.screens.home
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import dev.borisochieng.sketchpad.auth.data.FirebaseResponse
 import dev.borisochieng.sketchpad.auth.domain.AuthRepository
 import dev.borisochieng.sketchpad.collab.data.toDBSketch
@@ -116,9 +116,9 @@ class HomeViewModel : ViewModel(), KoinComponent {
 	private fun isLoggedIn(warmCheck: Boolean) = viewModelScope.launch {
 		val response = authRepository.checkIfUserIsLoggedIn()
 		if (uiState.userIsLoggedIn == response) return@launch
+		_uiState.update { it.copy(userIsLoggedIn = response) }
 		// if userIsLoggedIn and function isn't triggered on cold start...
 		if (response && warmCheck) refreshDatabase()
-		_uiState.update { it.copy(userIsLoggedIn = response) }
 	}
 
 	private suspend fun fetchSketchesFromRemoteDB(): List<Sketch> {
@@ -126,7 +126,14 @@ class HomeViewModel : ViewModel(), KoinComponent {
 		val response = firebaseUser?.let { collabRepository.fetchExistingSketches(it.uid) }
 
 		return when (response) {
-			is FirebaseResponse.Success -> response.data ?: emptyList()
+			is FirebaseResponse.Success -> {
+				Log.i("SketchInfo", "Remote home sketches: ${response.data}")
+				response.data ?: emptyList()
+			}
+			is FirebaseResponse.Error -> {
+				Log.i("SketchInfo", "Remote home sketches: ${response.message}")
+				emptyList()
+			}
 			else -> emptyList()
 		}
 	}

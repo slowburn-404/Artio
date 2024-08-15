@@ -85,9 +85,7 @@ fun HomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             when {
-                isLoading -> {
-                    LoadingScreen(Modifier.padding(bottom = bottomPadding))
-                }
+                isLoading -> LoadingScreen()
                 localSketches.isNotEmpty() && !isLoading -> {
                     LazyVerticalGrid(
                         columns = GridCells.Adaptive(150.dp),

@@ -57,7 +57,6 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun DrawingBoard(
-	sketch: Sketch?,
 	uiState: CanvasUiState, // passing the state in the way fixes state management issue
 	exportSketch: (Bitmap) -> Unit,
 	actions: (SketchPadActions) -> Unit,
@@ -66,6 +65,7 @@ fun DrawingBoard(
 	onBroadCastUrl: (Uri) -> Unit,
 	viewModel: SketchPadViewModel = koinViewModel()
 ) {
+	val (userIsLoggedIn, boardDetails, sketchIsBackedUp, _, sketch, collabUrl) = uiState
 	var exportOption by remember { mutableStateOf(ExportOption.PNG) }
 	val drawController = rememberDrawController()
 	val absolutePaths = remember { mutableStateListOf<PathProperties>() }
@@ -97,7 +97,7 @@ fun DrawingBoard(
 
 	//listen for path changes
 	LaunchedEffect(uiState.paths) {
-		if (!uiState.userIsLoggedIn) return@LaunchedEffect
+		if (!userIsLoggedIn) return@LaunchedEffect
 		absolutePaths.clear()
 		paths = uiState.paths
 		absolutePaths.addAll(paths)
@@ -137,13 +137,13 @@ fun DrawingBoard(
 				},
 				onExportClicked = { drawController.saveBitmap() },
 				onBroadCastUrl = {
-					Log.d("Credentials", "User id: ${uiState.boardDetails?.userId} \n Board id: ${uiState.boardDetails?.boardId}")
-					if (uiState.userIsLoggedIn) {
-						if (!uiState.sketchIsBackedUp || uiState.collabUrl == null) {
+					Log.d("Credentials", "User id: ${boardDetails.userId} \n Board id: ${boardDetails.boardId}")
+					if (userIsLoggedIn) {
+						if (!sketchIsBackedUp || collabUrl == null) {
 							scope.launch { snackbarHostState.showSnackbar("Sketch is not backed up yet") }
 							return@PaletteTopBar
 						}
-						onBroadCastUrl(uiState.collabUrl)
+						onBroadCastUrl(collabUrl)
 					} else {
 						scope.launch {
 							val action = snackbarHostState.showSnackbar(
