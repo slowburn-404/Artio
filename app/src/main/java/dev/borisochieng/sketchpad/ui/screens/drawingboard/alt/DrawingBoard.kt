@@ -8,11 +8,14 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -40,6 +43,15 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import dev.borisochieng.sketchpad.database.Sketch
 import dev.borisochieng.sketchpad.ui.navigation.Screens
@@ -66,6 +78,7 @@ fun DrawingBoard(
 	viewModel: SketchPadViewModel = koinViewModel()
 ) {
 	val (userIsLoggedIn, boardDetails, sketchIsBackedUp, _, sketch, collabUrl) = uiState
+  var currentTextInput by remember { mutableStateOf(TextInput()) }
 	var exportOption by remember { mutableStateOf(ExportOption.PNG) }
 	val drawController = rememberDrawController()
 	val absolutePaths = remember { mutableStateListOf<PathProperties>() }
@@ -218,7 +231,7 @@ fun DrawingBoard(
 									}
                                 })
 							}
-
+                            var showTextBox by remember { mutableStateOf(false) }
 							Canvas(
 								modifier = Modifier
 									.fillMaxSize()
@@ -269,6 +282,20 @@ fun DrawingBoard(
 
 								viewModel.updatePathInDb(paths)
 							}
+                            Box(modifier = Modifier.size(240.dp))   {
+                                LaunchedEffect(drawMode) {
+                                    if (drawMode == DrawMode.Text) {
+                                        showTextBox = true
+                                    }
+                                }
+
+                                if (showTextBox) {
+                                    MovableTextBox(
+                                        onRemove = { showTextBox = false },
+                                        drawMode = drawMode
+                                    )
+                                }
+                            }
 						}
 					}
 				},
@@ -309,3 +336,13 @@ fun DrawingBoard(
 		}
 	}
 }
+
+data class TextInput(
+    val text: String = "",
+    val position: Offset = Offset.Zero,
+    val fontSize: Int = 16,
+    val fontColor: Color = Color.Black,
+    val fontStyle: FontStyle = FontStyle.Normal,
+    val fontWeight: FontWeight = FontWeight.Normal,
+    val fontFamily: FontFamily = FontFamily.Default
+)

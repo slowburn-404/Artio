@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.PictureAsPdf
+import androidx.compose.material.icons.outlined.TextFields
 import androidx.compose.material.icons.rounded.Brush
 import androidx.compose.material.icons.rounded.LineWeight
 import androidx.compose.material.icons.rounded.Save
@@ -96,6 +97,19 @@ fun PaletteMenu(
                 contentDescription = "Erase mode",
                 modifier = Modifier.scale(0.5f),
                 tint = if (currentDrawMode == DrawMode.Erase) Color.Black else Color.Gray
+            )
+        }
+        IconButton(
+            onClick = {
+                currentDrawMode =
+                    if (currentDrawMode == DrawMode.Text) DrawMode.Draw else DrawMode.Text
+                onDrawModeChanged(currentDrawMode)
+            }
+        ) {
+            Icon(
+                Icons.Outlined.TextFields,
+                contentDescription = "Text mode",
+                tint = if (currentDrawMode == DrawMode.Text) Color.Black else Color.Gray
             )
         }
     }
@@ -260,5 +274,5 @@ private fun Pencil(
 }
 
 enum class DrawMode {
-    Draw, Erase, Touch
+    Draw, Erase, Touch, Text
 }
