@@ -9,9 +9,11 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -46,6 +48,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import dev.borisochieng.sketchpad.database.Sketch
@@ -69,7 +72,7 @@ fun DrawingBoard(
     onBroadCastUrl: (String) -> Unit,
     viewModel: SketchPadViewModel = koinViewModel()
 ) {
-    val textInputs = remember { mutableStateListOf<TextInput>() }
+
     var currentTextInput by remember { mutableStateOf(TextInput()) }
 
     var exportOption by remember { mutableStateOf(ExportOption.PNG) }
@@ -203,23 +206,6 @@ fun DrawingBoard(
                 )
             }
 
-            val textMeasurer = rememberTextMeasurer()
-            val textInputs = remember { mutableStateListOf<TextInput>() }
-
-        var currentTextInput by remember { mutableStateOf(TextInput()) }
-        var isEditingText by remember { mutableStateOf(false) }
-        val textLayoutResults = remember(textInputs) {textInputs.map { text ->
-
-            val textStyle = TextStyle(
-                color = text.fontColor,
-                fontSize = text.fontSize.sp,
-                fontWeight = text.fontWeight,
-                fontStyle = text.fontStyle,
-                fontFamily = text.fontFamily
-            )
-            textMeasurer.measure(text = AnnotatedString(text.text), style = textStyle)
-        }
-        }
             AndroidView(
                 factory = {
                     ComposeView(context).apply {
@@ -239,7 +225,7 @@ fun DrawingBoard(
                                     }
                                 )
                             }
-
+                            var showTextBox by remember { mutableStateOf(false) }
                             Canvas(
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -275,54 +261,8 @@ fun DrawingBoard(
                                             viewModel.updatePathInDb(paths)
                                         }
                                     }
-                                    .pointerInput(Unit) {
-                                        if (drawMode == DrawMode.Text)  return@pointerInput
-                                            detectTapGestures { offset ->
-                                                val tappedTextIndex = textInputs.indexOfFirst { textInput ->
-                                                    val paint = android.graphics.Paint().apply {
-                                                        textSize = textInput.fontSize.sp.toPx()
-                                                    }
-                                                    val textWidth = paint.measureText(textInput.text)
-                                                    val textHeight = paint.fontMetrics.descent - paint.fontMetrics.ascent
-                                                    offset.x in textInput.position.x..(textInput.position.x + textWidth) &&
-                                                            offset.y in textInput.position.y..(textInput.position.y + textHeight)
-                                                }
-                                                if (tappedTextIndex != -1) {
-                                                    // Start editing existing text
-                                                    currentTextInput = textInputs[tappedTextIndex]
-                                                    isEditingText = true
-                                                } else {
-                                                    // Add new text at the tapped position
-                                                    textInputs.add(currentTextInput.copy(position = offset))
-                                                    currentTextInput = TextInput() // Reset for potential next input
-                                                    isEditingText = false
-                                                }
-                                            }
-                                            detectDragGestures { change, dragAmount ->
-                                                if (isEditingText) {
-                                                    // Update position of the currently edited text
-                                                    val index = textInputs.indexOf(currentTextInput)
-                                                    if (index != -1) {
-                                                        textInputs[index] = currentTextInput.copy(
-                                                            position = currentTextInput.position + dragAmount
-                                                        )
-                                                    }
-                                                }
-                                            }
 
-                                    }
                             ) {
-
-                                if (drawMode == DrawMode.Text) {
-                                    textInputs.forEachIndexed { index, text ->
-                                        if (index < textLayoutResults.size) { // Check if index is valid
-                                            drawText(
-                                                textLayoutResult = textLayoutResults[index],
-                                                topLeft = text.position
-                                            )
-                                        }
-                                    }
-                                }
                                 paths.forEach { path ->
                                     drawLine(
                                         color = path.color,
@@ -330,6 +270,20 @@ fun DrawingBoard(
                                         end = path.end,
                                         strokeWidth = path.strokeWidth,
                                         cap = StrokeCap.Round
+                                    )
+                                }
+                            }
+                         Box(modifier = Modifier.size(240.dp))   {
+                                LaunchedEffect(drawMode) {
+                                    if (drawMode == DrawMode.Text) {
+                                        showTextBox = true
+                                    }
+                                }
+
+                                if (showTextBox) {
+                                    MovableTextBox(
+                                        onRemove = { showTextBox = false },
+                                        drawMode = drawMode
                                     )
                                 }
                             }
