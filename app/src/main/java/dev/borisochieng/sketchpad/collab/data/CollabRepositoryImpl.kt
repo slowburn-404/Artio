@@ -135,39 +135,12 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
                     .child("paths")
 
             return@withContext try {
-                //create a map of exisiting paths in the database
-                val existingPathsSnapshot = pathRef.get().await()
-                val existingPaths = existingPathsSnapshot.children.associateBy { it.key ?: "" }
-                suspendCancellableCoroutine<FirebaseResponse<String>> { continuation ->
-
-
                     //match path objects to pathids
-                    val pathsMap = pathIds.zip(paths).toMap().toMutableMap()
+                    val pathsMap = pathIds.zip(paths).associate { it.first to it.second }
 
-                    //add any new paths not in the database
-                    paths.forEachIndexed { index, path ->
-                        val pathId = pathIds.getOrNull(index) ?: pathRef.push().key ?: ""
-                        if (!existingPaths.containsKey(pathId)) {
-                            pathsMap[pathId] = path
-                        }
-                    }
+                pathRef.updateChildren(pathsMap.mapValues { it.value }).await()
+                FirebaseResponse.Success("")
 
-                    //update database with new paths or updated paths
-                    pathRef.setValue(pathsMap.mapValues { it.value })
-                        .addOnSuccessListener {
-                            //suspend coroutine and resume when setValue() completes
-                            continuation.resume(
-                                FirebaseResponse.Success("")
-                            )
-                        }
-                        .addOnFailureListener { error ->
-                            error.printStackTrace()
-                            Log.e("Add path to DB", error.message.toString())
-                            continuation.resume(
-                                FirebaseResponse.Error("Error syncing sketches")
-                            )
-                        }
-                }
 
             } catch (e: Exception) {
                 e.printStackTrace()
