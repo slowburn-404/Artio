@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import dev.borisochieng.sketchpad.auth.data.FirebaseResponse
 import dev.borisochieng.sketchpad.auth.domain.AuthRepository
@@ -24,8 +25,7 @@ class HomeViewModel : ViewModel(), KoinComponent {
 	private val authRepository by inject<AuthRepository>()
     private val sketchRepository by inject<SketchRepository>()
     private val collabRepository by inject<CollabRepository>()
-    private val firebaseUser by inject<FirebaseUser>()
-//    private val firebaseUser = FirebaseAuth.getInstance().currentUser
+    private val firebaseUser = FirebaseAuth.getInstance().currentUser
 
 	private var localSketches by mutableStateOf<List<Sketch>>(emptyList()) // for internal use only
 	private var synced by mutableStateOf(false)
@@ -67,19 +67,24 @@ class HomeViewModel : ViewModel(), KoinComponent {
 	private fun saveSketchToRemoteDb(sketch: Sketch) {
 		viewModelScope.launch {
 			if (!authRepository.checkIfUserIsLoggedIn()) return@launch
-			val response = collabRepository.createSketch(
-				userId = firebaseUser.uid,
-				sketch = sketch.toDBSketch()
-			)
 
-			when (response) {
-				is FirebaseResponse.Success -> {
-					_uiState.update {
-						it.copy(feedback = "'${sketch.name}' successfully backed up")
+			firebaseUser?.let {
+				val response = collabRepository.createSketch(
+					userId = it.uid,
+					sketch = sketch.toDBSketch()
+				)
+
+
+				when (response) {
+					is FirebaseResponse.Success -> {
+						_uiState.update {
+							it.copy(feedback = "'${sketch.name}' successfully backed up")
+						}
 					}
-				}
-				is FirebaseResponse.Error -> {
-					_uiState.update { it.copy(feedback = response.message) }
+
+					is FirebaseResponse.Error -> {
+						_uiState.update { it.copy(feedback = response.message) }
+					}
 				}
 			}
 		}
@@ -122,7 +127,7 @@ class HomeViewModel : ViewModel(), KoinComponent {
 
 	private suspend fun fetchSketchesFromRemoteDB(): List<Sketch> {
 		if (!authRepository.checkIfUserIsLoggedIn()) return emptyList()
-		val response = firebaseUser.let { collabRepository.fetchExistingSketches(it.uid) }
+		val response = firebaseUser?.let { collabRepository.fetchExistingSketches(it.uid) }
 
 		return when (response) {
 			is FirebaseResponse.Success -> response.data ?: emptyList()

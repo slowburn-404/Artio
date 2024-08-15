@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import dev.borisochieng.sketchpad.auth.data.FirebaseResponse
 import dev.borisochieng.sketchpad.auth.domain.AuthRepository
@@ -34,7 +35,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 
     private val collabRepository by inject<CollabRepository>()
 
-    private val firebaseUser by inject<FirebaseUser>()
+    private val firebaseUser = FirebaseAuth.getInstance().currentUser
 
     private val _uiState = MutableStateFlow(CanvasUiState())
     val uiState: StateFlow<CanvasUiState> get() = _uiState.asStateFlow()
@@ -94,7 +95,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 		viewModelScope.launch {
 			val dbSketch = sketch.toDBSketch()
 			val response = collabRepository.createSketch(
-				userId = firebaseUser.uid,
+				userId = firebaseUser?.uid ?: "",
 				sketch = dbSketch
 			)
 
@@ -126,7 +127,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
             val boardId = _uiState.value.boardDetails?.boardId
             if (boardId != null) {
                 val response = collabRepository.listenForSketchChanges(
-                    userId = firebaseUser.uid,
+                    userId = firebaseUser?.uid ?: "",
                     boardId = boardId
                 )
                 response.collectLatest { dbResponse ->
@@ -180,7 +181,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 
 	private suspend fun fetchSketchesFromRemoteDB(): List<Sketch> {
 		if (!authRepository.checkIfUserIsLoggedIn()) return emptyList()
-		val response = firebaseUser.let { collabRepository.fetchExistingSketches(it.uid) }
+		val response = firebaseUser?.let { collabRepository.fetchExistingSketches(it.uid) }
 
 		return when (response) {
 			is FirebaseResponse.Success -> response.data ?: emptyList()
