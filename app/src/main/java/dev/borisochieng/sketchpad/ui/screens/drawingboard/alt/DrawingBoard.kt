@@ -136,18 +136,16 @@ fun DrawingBoard(
 				},
 				onExportClicked = { drawController.saveBitmap() },
 				onBroadCastUrl = {
-					Log.d("Credentials", "User id: ${uiState.boardDetails!!.userId} \n Board id: ${uiState.boardDetails!!.boardId}")
 					if (uiState.userIsLoggedIn) {
 						if (!uiState.sketchIsBackedUp) {
 							scope.launch { snackbarHostState.showSnackbar("Sketch is not backed up yet") }
 							return@PaletteTopBar
 						}
-						viewModel.generateCollabUrl(userId = uiState.boardDetails!!.userId, boardId = uiState.boardDetails!!.boardId)
-						scope.launch {
-							uiState.collabUrl?.let { url ->
-								onBroadCastUrl(url)
-							}
+						val collabUrl = uiState.sketch?.let { viewModel.generateCollabUrl(sketch = it) }
+						if(collabUrl != null) {
+							onBroadCastUrl(collabUrl)
 						}
+
 					} else {
 						scope.launch {
 							val action = snackbarHostState.showSnackbar(
@@ -159,7 +157,7 @@ fun DrawingBoard(
 						}
 					}
 				},
-				collabUrl = uiState.collabUrl,
+				collabUrl = uiState.sketch?.let { viewModel.generateCollabUrl(sketch = it) },
 				onExportClickedAsPdf = {
 					exportOption = ExportOption.PDF
 					drawController.saveBitmap()
@@ -258,6 +256,7 @@ fun DrawingBoard(
 
 											viewModel.updatePathInDb(paths)
 										}
+										//update remote db with new paths drawn
 										viewModel.updatePathInDb(paths)
 									}
 							) {

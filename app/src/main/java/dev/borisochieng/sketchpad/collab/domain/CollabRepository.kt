@@ -18,21 +18,12 @@ interface CollabRepository {
 
     suspend fun fetchExistingSketches(userId: String): FirebaseResponse<List<Sketch>>
 
-    suspend fun listenForSketchChanges(
-	    userId: String,
-	    boardId: String
-    ): Flow<FirebaseResponse<List<PathProperties>>>
+    suspend fun listenForPathChanges(userId: String, boardId: String): Flow<FirebaseResponse<List<PathProperties>>>
 
-    suspend fun updatePathInDB(
-	    userId: String,
-	    boardId: String,
-	    paths: List<DBPathProperties>,
-	    pathIds: List<String>
-    ): FirebaseResponse<String>
+    suspend fun fetchSingleSketch(userId: String, boardId: String): FirebaseResponse<Sketch>
 
-    suspend fun generateCollabUrl(
-	    userId: String,
-	    boardId: String,
-    ): Uri
+    suspend fun updatePathInDB(userId: String, boardId: String, paths: List<DBPathProperties>, pathIds: List<String>): FirebaseResponse<String>
+
+    fun generateCollabUrl(userId: String, boardId: String): Uri
 
 }
