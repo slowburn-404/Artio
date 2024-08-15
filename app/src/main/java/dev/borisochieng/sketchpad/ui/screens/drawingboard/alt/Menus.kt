@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.PictureAsPdf
+import androidx.compose.material.icons.outlined.TextFields
 import androidx.compose.material.icons.rounded.Brush
 import androidx.compose.material.icons.rounded.LineWeight
 import androidx.compose.material.icons.rounded.Save
