@@ -7,6 +7,7 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.GenericTypeIndicator
+import com.google.firebase.database.getValue
 import dev.borisochieng.sketchpad.auth.data.FirebaseResponse
 import dev.borisochieng.sketchpad.collab.data.models.BoardDetails
 import dev.borisochieng.sketchpad.collab.data.models.DBOffset
@@ -71,7 +72,7 @@ class CollabRepositoryImpl : CollabRepository {
                     boardId = boardId,
                     pathIds = pathData.keys.toList()
                 )
-                Log.i("Board details", boardDetails.toString())
+                Log.i("BoardDetails", boardDetails.toString())
 
                 FirebaseResponse.Success(boardDetails)
             } catch (e: Exception) {
@@ -95,7 +96,8 @@ class CollabRepositoryImpl : CollabRepository {
                 if (snapshot.exists()) {
                     //iterate over each child and cast to DBSKetch class
                     for (boardSnapshot in snapshot.children) {
-                        val board = boardSnapshot.getValue(object : GenericTypeIndicator<Map<String, Any>>() {})
+                        val board = boardSnapshot.getValue(object :
+                            GenericTypeIndicator<Map<String, Any>>() {})
                         if (board != null) {
                             Log.i("Board", board.toString())
 
@@ -105,24 +107,29 @@ class CollabRepositoryImpl : CollabRepository {
                                 title = board["title"] as? String ?: "",
                                 dateCreated = board["dateCreated"] as? String ?: "",
                                 lastModified = board["lastModified"] as? String ?: "",
-                                paths = (board["paths"] as? Map<*,*>)
+                                paths = (board["paths"] as? Map<*, *>)
                                     ?.mapNotNull { (pathId, pathObject) ->
                                         //ensure pathmap is a map
                                         if (pathId is String && pathObject is Map<*, *>) {
                                             DBPathProperties(
-                                                alpha = (pathObject["alpha"] as? Number)?.toFloat() ?: 0f,
+                                                alpha = (pathObject["alpha"] as? Number)?.toFloat()
+                                                    ?: 0f,
                                                 color = pathObject["color"] as? String ?: "",
                                                 eraseMode = pathObject["eraseMode"] as Boolean,
                                                 start = (pathObject["start"] as? Map<*, *>)?.let { startMap ->
                                                     DBOffset(
-                                                        y = (startMap["y"] as? Number)?.toFloat() ?: 0f,
-                                                        x = (startMap["x"] as? Number)?.toFloat() ?: 0f
+                                                        y = (startMap["y"] as? Number)?.toFloat()
+                                                            ?: 0f,
+                                                        x = (startMap["x"] as? Number)?.toFloat()
+                                                            ?: 0f
                                                     )
                                                 } ?: DBOffset(0f, 0f),
                                                 end = (pathObject["end"] as? Map<*, *>)?.let { endMap ->
                                                     DBOffset(
-                                                        x = (endMap["x"] as? Number)?.toFloat()?: 0f,
-                                                        y = (endMap["y"] as? Number)?.toFloat() ?: 0f
+                                                        x = (endMap["x"] as? Number)?.toFloat()
+                                                            ?: 0f,
+                                                        y = (endMap["y"] as? Number)?.toFloat()
+                                                            ?: 0f
                                                     )
                                                 } ?: DBOffset(0f, 0f),
                                                 strokeWidth = (pathObject["strokeWidth"] as? Number)?.toFloat()
@@ -155,56 +162,47 @@ class CollabRepositoryImpl : CollabRepository {
         userId: String,
         boardId: String,
         paths: List<DBPathProperties>,
-        pathIds: List<String>
     ): FirebaseResponse<String> =
         withContext(Dispatchers.IO) {
-            val database = FirebaseDatabase.getInstance().reference
-            val pathRef =
-                database.child("Users")
-                    .child(userId)
-                    .child("boards")
-                    .child(boardId)
-                    .child("paths")
-
-            return@withContext try {
-                //create a map of exisiting paths in the database
+            try {
+                val database = FirebaseDatabase.getInstance().reference
+                val pathRef =
+                    database.child("Users")
+                        .child(userId)
+                        .child("boards")
+                        .child(boardId)
+                        .child("paths")
+                //fetch existing paths in the db
                 val existingPathsSnapshot = pathRef.get().await()
                 val existingPaths = existingPathsSnapshot.children.associateBy { it.key ?: "" }
-                suspendCancellableCoroutine<FirebaseResponse<String>> { continuation ->
+
+                //map for updates and new paths
+                val updates = mutableMapOf<String, Any?>()
 
 
-                    //match path objects to pathids
-                    val pathsMap = pathIds.zip(paths).toMap().toMutableMap()
+                for (path in paths) {
+                    //find an existing path id or create a new one if it doesn't exist
+                    val pathId =
+                        existingPaths.entries.find {
+                            it.value.getValue(DBPathProperties::class.java) == path
+                        }?.key
+                            ?: pathRef.push().key
 
-                    //add any new paths not in the database
-                    paths.forEachIndexed { index, path ->
-                        val pathId = pathIds.getOrNull(index) ?: pathRef.push().key ?: ""
-                        if (!existingPaths.containsKey(pathId)) {
-                            pathsMap[pathId] = path
-                        }
+                    pathId?.let {
+                        //add path to updates
+                        updates[it] = path
                     }
-
-                    //update database with new paths or updated paths
-                    pathRef.setValue(pathsMap.mapValues { it.value })
-                        .addOnSuccessListener {
-                            //suspend coroutine and resume when setValue() completes
-                            continuation.resume(
-                                FirebaseResponse.Success("")
-                            )
-                        }
-                        .addOnFailureListener { error ->
-                            error.printStackTrace()
-                            Log.e("Add path to DB", error.message.toString())
-                            continuation.resume(
-                                FirebaseResponse.Error("Error syncing sketches")
-                            )
-                        }
                 }
+
+                //update database
+                pathRef.updateChildren(updates).await()
+
+                FirebaseResponse.Success("")
 
             } catch (e: Exception) {
                 e.printStackTrace()
                 Log.e("Update path", e.message.toString())
-                FirebaseResponse.Error("Something went wrong. Check your internet connection and try again")
+                FirebaseResponse.Error("Error syncing sketches")
             }
 
         }

@@ -254,7 +254,7 @@ fun DrawingBoard(
 											absolutePaths.clear()
 											absolutePaths.addAll(paths)
 
-											viewModel.updatePathInDb(paths)
+											//viewModel.updatePathInDb(paths)
 										}
 										//update remote db with new paths drawn
 										viewModel.updatePathInDb(paths)
