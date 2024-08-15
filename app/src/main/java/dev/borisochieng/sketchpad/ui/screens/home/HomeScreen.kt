@@ -18,10 +18,17 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult.ActionPerformed
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -36,6 +43,7 @@ import dev.borisochieng.sketchpad.ui.components.HomeTopBar
 import dev.borisochieng.sketchpad.ui.navigation.Screens
 import dev.borisochieng.sketchpad.ui.screens.dialog.ItemMenuSheet
 import dev.borisochieng.sketchpad.utils.ShimmerBoxItem
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -45,10 +53,16 @@ fun HomeScreen(
     actions: (HomeActions) -> Unit,
     navigate: (Screens) -> Unit
 ) {
-    val (savedSketches, isLoading) = uiState
+    val (localSketches, remoteSketches, userIsLoggedIn, isLoading, feedback) = uiState
     val selectedSketch = remember { mutableStateOf<Sketch?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) { actions(HomeActions.CheckIfUserIsLogged) }
 
     Scaffold(
+        topBar = { HomeTopBar() },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { navigate(Screens.SketchPad("0000")) },
@@ -61,8 +75,7 @@ fun HomeScreen(
                     contentDescription = "New sketch"
                 )
             }
-        },
-        topBar = { HomeTopBar() }
+        }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -74,24 +87,25 @@ fun HomeScreen(
                 isLoading -> {
                     LoadingScreen(Modifier.padding(bottom = bottomPadding))
                 }
-                savedSketches.isEmpty() && !isLoading -> {
-                    EmptyScreen(Modifier.padding(bottom = bottomPadding))
+                localSketches.isNotEmpty() && !isLoading -> {
+                    LazyVerticalGrid(
+                        columns = GridCells.Adaptive(150.dp),
+                        modifier = Modifier.padding(start = 10.dp),
+                        contentPadding = PaddingValues(bottom = 100.dp)
+                    ) {
+                        items(localSketches.size) { index ->
+                            val sketch = localSketches[index]
+                            SketchPoster(
+                                sketch = sketch,
+                                modifier = Modifier.animateItemPlacement(),
+                                onClick = { navigate(Screens.SketchPad(it)) },
+                                onMenuClicked = { selectedSketch.value = it }
+                            )
+                        }
+                    }
                 }
-            }
-
-            LazyVerticalGrid(
-                columns = GridCells.Adaptive(150.dp),
-                modifier = Modifier.padding(start = 10.dp),
-                contentPadding = PaddingValues(bottom = 100.dp)
-            ) {
-                items(savedSketches.size) { index ->
-                    val sketch = savedSketches[index]
-                    SketchPoster(
-                        sketch = sketch,
-                        modifier = Modifier.animateItemPlacement(),
-                        onClick = { navigate(Screens.SketchPad(it)) },
-                        onMenuClicked = { selectedSketch.value = it }
-                    )
+                else -> {
+                    EmptyScreen(Modifier.padding(bottom = bottomPadding))
                 }
             }
         }
@@ -99,10 +113,31 @@ fun HomeScreen(
         if (selectedSketch.value != null) {
             ItemMenuSheet(
                 sketch = selectedSketch.value!!,
+                backedUp = selectedSketch.value in remoteSketches,
+                userIsLoggedIn = userIsLoggedIn,
                 action = actions,
+                onPromptToLogin = {
+                    scope.launch {
+                        val action = snackbarHostState.showSnackbar(
+                            message = "Sign up to avail backup feature",
+                            actionLabel = "SIGN UP", duration = SnackbarDuration.Short
+                        )
+                        if (action != ActionPerformed) return@launch
+                        navigate(Screens.OnBoardingScreen)
+                    }
+                },
                 onDismiss = { selectedSketch.value = null }
             )
         }
+    }
+
+    LaunchedEffect(feedback) {
+        if (feedback == null) return@LaunchedEffect
+        scope.launch { snackbarHostState.showSnackbar(feedback) }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose { actions(HomeActions.ClearFeedback) }
     }
 }
 

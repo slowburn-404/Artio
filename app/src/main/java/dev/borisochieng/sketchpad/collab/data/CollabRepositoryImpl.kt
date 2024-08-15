@@ -2,18 +2,15 @@ package dev.borisochieng.sketchpad.collab.data
 
 import android.net.Uri
 import android.util.Log
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.getValue
 import dev.borisochieng.sketchpad.auth.data.FirebaseResponse
 import dev.borisochieng.sketchpad.collab.data.models.BoardDetails
-import dev.borisochieng.sketchpad.collab.domain.CollabRepository
 import dev.borisochieng.sketchpad.collab.data.models.DBPathProperties
 import dev.borisochieng.sketchpad.collab.data.models.DBSketch
+import dev.borisochieng.sketchpad.collab.domain.CollabRepository
 import dev.borisochieng.sketchpad.collab.domain.toPathProperties
 import dev.borisochieng.sketchpad.collab.domain.toSketch
 import dev.borisochieng.sketchpad.database.Sketch
@@ -22,13 +19,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
-import org.koin.java.KoinJavaComponent.inject
 import kotlin.coroutines.resume
 
 class CollabRepositoryImpl : CollabRepository, KoinComponent {
@@ -93,23 +88,24 @@ class CollabRepositoryImpl : CollabRepository, KoinComponent {
                 val sketchesList = mutableListOf<DBSketch>()
 
                 //check if snapshot has children
-                if(snapshot.exists()){
+                if(snapshot.exists()) {
                     //iterate over each child and cast to DBSKetch class
-                snapshot.children.forEach { boardSnapshot ->
-                    val board = boardSnapshot.value as? Map<String, DBSketch>
-                    if (board != null) {
-                        val dbSketch = DBSketch(
-                            id = board["id"] as? String ?: "",
-                            title = board["title"] as? String ?: "",
-                            dateCreated = board["dateCreated"] as? String ?: "",
-                            lastModified = board["lastModified"] as? String ?: "",
-                            paths = board["paths"] as? List<DBPathProperties> ?: emptyList()
-                        )
+                    snapshot.children.forEach { boardSnapshot ->
+                        val board = boardSnapshot.value as? Map<String, DBSketch>
+                        if (board != null) {
+                            val dbSketch = DBSketch(
+                                id = board["id"] as? String ?: "",
+                                title = board["title"] as? String ?: "",
+                                dateCreated = board["dateCreated"] as? String ?: "",
+                                lastModified = board["lastModified"] as? String ?: "",
+                                paths = board["paths"] as? List<DBPathProperties> ?: emptyList()
+                            )
 
-                        sketchesList.add(dbSketch)
+                            Log.i("SketchInfo", "$dbSketch")
+                            sketchesList.add(dbSketch)
+                        }
                     }
                 }
-            }
                 val domainSketches = sketchesList.map { it.toSketch() }
 
                 FirebaseResponse.Success(domainSketches)
