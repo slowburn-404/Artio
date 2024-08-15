@@ -181,7 +181,7 @@ fun PaletteTopBar(
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            offset = DpOffset(-dropDownMenuOffset.dp, 0.dp)
+           // offset = DpOffset(-dropDownMenuOffset.dp, 0.dp)
         ) {
             DropdownMenuItem(
                 text = { Text("Save as PNG") },

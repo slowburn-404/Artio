@@ -6,8 +6,10 @@ import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.GenericTypeIndicator
 import dev.borisochieng.sketchpad.auth.data.FirebaseResponse
 import dev.borisochieng.sketchpad.collab.data.models.BoardDetails
+import dev.borisochieng.sketchpad.collab.data.models.DBOffset
 import dev.borisochieng.sketchpad.collab.data.models.DBPathProperties
 import dev.borisochieng.sketchpad.collab.data.models.DBSketch
 import dev.borisochieng.sketchpad.collab.domain.CollabRepository
@@ -37,7 +39,7 @@ class CollabRepositoryImpl : CollabRepository {
                 val boardId = database.child("Users").child(userId).child("boards").push().key
 
                 if (boardId == null) {
-                   Log.e("CreateSketch", "failed to generate board id")
+                    Log.e("CreateSketch", "failed to generate board id")
                     //return early if board id has not been generated
                     return@withContext FirebaseResponse.Error("Falied to generate board id")
                 }
@@ -47,30 +49,31 @@ class CollabRepositoryImpl : CollabRepository {
                     pathId
                 }
 
-                    val boardData = mapOf(
-                        "id" to boardId,
-                        "title" to sketch.title,
-                        "paths" to pathData,
-                        "dateCreated" to sketch.dateCreated,
-                        "lastModified" to sketch.lastModified
-                    )
+                val boardData = mapOf(
+                    "id" to boardId,
+                    "title" to sketch.title,
+                    "paths" to pathData,
+                    "dateCreated" to sketch.dateCreated,
+                    "lastModified" to sketch.lastModified
+                )
 
 
-                    //save sketch to database
-                    database.child("Users")
-                        .child(userId)
-                        .child("boards")
-                        .child(boardId)
-                        .setValue(boardData)
-                        .await()
+                //save sketch to database
+                database.child("Users")
+                    .child(userId)
+                    .child("boards")
+                    .child(boardId)
+                    .setValue(boardData)
+                    .await()
 
-                    val boardDetails = BoardDetails(
-                        userId = userId,
-                        boardId = boardId,
-                        pathIds = pathData.keys.toList()
-                    )
+                val boardDetails = BoardDetails(
+                    userId = userId,
+                    boardId = boardId,
+                    pathIds = pathData.keys.toList()
+                )
+                Log.i("Board details", boardDetails.toString())
 
-                    FirebaseResponse.Success(boardDetails)
+                FirebaseResponse.Success(boardDetails)
             } catch (e: Exception) {
                 e.printStackTrace()
                 Log.e("Create sketch", e.message.toString())
@@ -89,17 +92,47 @@ class CollabRepositoryImpl : CollabRepository {
                 val sketchesList = mutableListOf<DBSketch>()
 
                 //check if snapshot has children
-                if(snapshot.exists()) {
+                if (snapshot.exists()) {
                     //iterate over each child and cast to DBSKetch class
-                    snapshot.children.forEach { boardSnapshot ->
-                        val board = boardSnapshot.value as? Map<String, DBSketch>
+                    for (boardSnapshot in snapshot.children) {
+                        val board = boardSnapshot.getValue(object : GenericTypeIndicator<Map<String, Any>>() {})
                         if (board != null) {
+                            Log.i("Board", board.toString())
+
+                            //convert firebase response to data level object
                             val dbSketch = DBSketch(
                                 id = board["id"] as? String ?: "",
                                 title = board["title"] as? String ?: "",
                                 dateCreated = board["dateCreated"] as? String ?: "",
                                 lastModified = board["lastModified"] as? String ?: "",
-                                paths = board["paths"] as? List<DBPathProperties> ?: emptyList()
+                                paths = (board["paths"] as? Map<*,*>)
+                                    ?.mapNotNull { (pathId, pathObject) ->
+                                        //ensure pathmap is a map
+                                        if (pathId is String && pathObject is Map<*, *>) {
+                                            DBPathProperties(
+                                                alpha = pathObject["alpha"] as? Double ?: 0.0,
+                                                color = pathObject["color"] as? String ?: "",
+                                                eraseMode = pathObject["eraseMode"] as Boolean,
+                                                start = (pathObject["start"] as? Map<*, *>)?.let { startMap ->
+                                                    DBOffset(
+                                                        y = startMap["y"] as? Double ?: 0.0,
+                                                        x = startMap["x"] as? Double ?: 0.0
+                                                    )
+                                                } ?: DBOffset(0.0, 0.0),
+                                                end = (pathObject["end"] as? Map<*, *>)?.let { endMap ->
+                                                    DBOffset(
+                                                        x = endMap["x"] as? Double ?: 0.0,
+                                                        y = endMap["y"] as? Double ?: 0.0
+                                                    )
+                                                } ?: DBOffset(0.0, 0.0),
+                                                strokeWidth = pathObject["strokeWidth"] as? Double
+                                                    ?: 0.0
+
+                                            )
+                                        } else {
+                                            null
+                                        }
+                                    } ?: emptyList()
                             )
 
                             Log.i("SketchInfo", "$dbSketch")
@@ -177,7 +210,7 @@ class CollabRepositoryImpl : CollabRepository {
         }
 
 
-    override suspend fun listenForSketchChanges(
+    override suspend fun listenForPathChanges(
         userId: String,
         boardId: String
     ): Flow<FirebaseResponse<List<PathProperties>>> =
@@ -217,7 +250,7 @@ class CollabRepositoryImpl : CollabRepository {
                     }
                 }
 
-                //monitor drawing erasure
+                //monitor removal of lines
                 override fun onChildRemoved(snapshot: DataSnapshot) {
                     val removedPath = snapshot.getValue(DBPathProperties::class.java)
                     if (removedPath != null) {
@@ -247,14 +280,14 @@ class CollabRepositoryImpl : CollabRepository {
         }.flowOn(Dispatchers.IO)
 
     override fun generateCollabUrl(userId: String, boardId: String): Uri {
-            val baseUrl = "https://collaborate.jcsketchpad/"
-            val collabUri = Uri.parse(baseUrl)
-                .buildUpon()
-                .appendQueryParameter("user_id", userId)
-                .appendQueryParameter("board_id", boardId)
-                .build()
+        val baseUrl = "https://collaborate.jcsketchpad/"
+        val collabUri = Uri.parse(baseUrl)
+            .buildUpon()
+            .appendQueryParameter("user_id", userId)
+            .appendQueryParameter("board_id", boardId)
+            .build()
 
-            return collabUri
+        return collabUri
     }
 
     override suspend fun fetchSingleSketch(
@@ -272,7 +305,7 @@ class CollabRepositoryImpl : CollabRepository {
                 //cast snapshot to DBSKetch
                 val dbSketch = dataSnapshot.getValue(DBSketch::class.java)
 
-                if(dbSketch != null) {
+                if (dbSketch != null) {
                     FirebaseResponse.Success(dbSketch.toSketch())
                 } else {
                     FirebaseResponse.Error("Board not found")

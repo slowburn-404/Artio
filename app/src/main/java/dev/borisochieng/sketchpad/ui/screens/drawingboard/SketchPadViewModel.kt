@@ -126,7 +126,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
         viewModelScope.launch {
             val boardId = _uiState.value.boardDetails?.boardId
             if (boardId != null) {
-                val response = collabRepository.listenForSketchChanges(
+                val response = collabRepository.listenForPathChanges(
                     userId = firebaseUser?.uid ?: "",
                     boardId = boardId
                 )

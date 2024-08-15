@@ -18,7 +18,7 @@ interface CollabRepository {
 
     suspend fun fetchExistingSketches(userId: String): FirebaseResponse<List<Sketch>>
 
-    suspend fun listenForSketchChanges(userId: String, boardId: String): Flow<FirebaseResponse<List<PathProperties>>>
+    suspend fun listenForPathChanges(userId: String, boardId: String): Flow<FirebaseResponse<List<PathProperties>>>
 
     suspend fun fetchSingleSketch(userId: String, boardId: String): FirebaseResponse<Sketch>
 

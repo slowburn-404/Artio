@@ -13,6 +13,11 @@ object Extensions {
 		return style.format(this)
 	}
 
+	fun String.toDate(): Date? {
+		val style = SimpleDateFormat(DATE_PATTERN, Locale.getDefault())
+		return style.parse(this)
+	}
+
 	fun <T> List<T>.transformList(): List<List<T>> {
 		var i = 0
 		val list = mutableListOf<List<T>>()
