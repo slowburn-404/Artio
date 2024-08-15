@@ -49,10 +49,10 @@ import dev.borisochieng.sketchpad.ui.screens.dialog.Sizes
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.CanvasUiEvents
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadActions
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadViewModel
-import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.ExportOption
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.rememberDrawController
+import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun DrawingBoard(
@@ -114,6 +114,8 @@ fun DrawingBoard(
 		}
 	}
 
+	LaunchedEffect(Unit) { actions(SketchPadActions.CheckIfUserIsLoggedIn) }
+
 	Scaffold(
 		topBar = {
 			PaletteTopBar(
@@ -136,6 +138,10 @@ fun DrawingBoard(
 				onBroadCastUrl = {
 					Log.d("Credentials", "User id: ${uiState.boardDetails!!.userId} \n Board id: ${uiState.boardDetails!!.boardId}")
 					if (uiState.userIsLoggedIn) {
+						if (!uiState.sketchIsBackedUp) {
+							scope.launch { snackbarHostState.showSnackbar("Sketch is not backed up yet") }
+							return@PaletteTopBar
+						}
 						viewModel.generateCollabUrl(userId = uiState.boardDetails!!.userId, boardId = uiState.boardDetails!!.boardId)
 						scope.launch {
 							uiState.collabUrl?.let { url ->
@@ -215,8 +221,7 @@ fun DrawingBoard(
 											ExportOption.PDF -> exportSketchAsPdf(bitmap.asAndroidBitmap())
 										}
 									}
-                                }
-								)
+                                })
 							}
 
 							Canvas(

@@ -4,10 +4,12 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+const val DATE_PATTERN = "dd/MM/yyyy"
+
 object Extensions {
 
 	fun Date.formatDate(): String {
-		val style = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+		val style = SimpleDateFormat(DATE_PATTERN, Locale.getDefault())
 		return style.format(this)
 	}
 

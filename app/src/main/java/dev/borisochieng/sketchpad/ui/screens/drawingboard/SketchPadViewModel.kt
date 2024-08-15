@@ -54,6 +54,8 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 		viewModelScope.launch {
 			sketchRepository.getSketch(sketchId).collect { fetchedSketch ->
 				sketch = fetchedSketch
+				val remoteSketches = fetchSketchesFromRemoteDB()
+				_uiState.update { it.copy(sketchIsBackedUp = sketch in remoteSketches) }
 			}
 		}
 	}
@@ -62,6 +64,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 		when (action) {
 			is SketchPadActions.SaveSketch -> saveSketch(action.sketch)
 			is SketchPadActions.UpdateSketch -> updateSketch(action.paths)
+			SketchPadActions.CheckIfUserIsLoggedIn -> isLoggedIn()
 			SketchPadActions.SketchClosed -> sketch = null
 		}
 	}
@@ -73,6 +76,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
             saveSketchToRemoteDb(sketch)
         }
     }
+
 	private fun updateSketch(paths: List<PathProperties>) {
 		viewModelScope.launch {
 			if (sketch == null) return@launch
@@ -130,6 +134,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
                         is FirebaseResponse.Success -> {
                             _uiState.update {
                                 it.copy(
+	                                sketchIsBackedUp = true,
                                     error = "",
                                     paths = dbResponse.data ?: emptyList()
                                 )
@@ -169,12 +174,18 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 
     fun generateCollabUrl(userId: String, boardId: String) =
         viewModelScope.launch {
-            val uri = collabRepository.generateCollabUrl(userId = userId, boardId = boardId)
-
-            _uiState.update {
-                it.copy(
-                    collabUrl = uri
-                )
-            }
+            val uri = collabRepository.generateCollabUrl(userId, boardId)
+            _uiState.update { it.copy(collabUrl = uri) }
         }
+
+	private suspend fun fetchSketchesFromRemoteDB(): List<Sketch> {
+		if (!authRepository.checkIfUserIsLoggedIn()) return emptyList()
+		val response = firebaseUser.let { collabRepository.fetchExistingSketches(it.uid) }
+
+		return when (response) {
+			is FirebaseResponse.Success -> response.data ?: emptyList()
+			else -> emptyList()
+		}
+	}
+
 }
