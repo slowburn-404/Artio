@@ -47,15 +47,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import dev.borisochieng.sketchpad.auth.presentation.state.UiEvent
 import dev.borisochieng.sketchpad.auth.presentation.viewmodels.AuthViewModel
 import dev.borisochieng.sketchpad.ui.navigation.Screens
-import dev.borisochieng.sketchpad.ui.theme.AppTheme
 import dev.borisochieng.sketchpad.ui.theme.AppTypography
 import dev.borisochieng.sketchpad.ui.theme.lightScheme
 import org.koin.androidx.compose.koinViewModel
@@ -265,13 +262,4 @@ fun UpdateProfileScreen(navigate: (Screens) -> Unit, viewModel: AuthViewModel = 
         }
     }
 
-}
-
-
-@Preview(showBackground = true)
-@Composable
-fun UpdateProfileScreenPreview() {
-    AppTheme {
-        UpdateProfileScreen({}, viewModel())
-    }
 }

@@ -2,6 +2,7 @@ package dev.borisochieng.sketchpad.di
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.database.FirebaseDatabase
 import dev.borisochieng.sketchpad.auth.data.AuthRepositoryImpl
 import dev.borisochieng.sketchpad.auth.domain.AuthRepository
 import dev.borisochieng.sketchpad.auth.presentation.viewmodels.AuthViewModel
@@ -15,8 +16,9 @@ import org.koin.dsl.module
 object AppModule {
     val appModule = module {
         factory<AuthRepository> { AuthRepositoryImpl() }
-        factory<CollabRepository> { CollabRepositoryImpl() }
         single<FirebaseUser?> { FirebaseAuth.getInstance().currentUser }
+        single<FirebaseDatabase> {FirebaseDatabase.getInstance()}
+        factory<CollabRepository> { CollabRepositoryImpl(get()) }
         viewModel { AuthViewModel() }
         viewModel { HomeViewModel() }
         viewModel { SketchPadViewModel() }

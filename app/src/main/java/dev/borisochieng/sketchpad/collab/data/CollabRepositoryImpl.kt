@@ -26,18 +26,21 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import org.koin.core.component.KoinComponent
 import kotlin.coroutines.resume
 
-class CollabRepositoryImpl : CollabRepository {
+class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepository {
+
+    private val databaseRef = database.reference
+
     override suspend fun createSketch(
         userId: String,
         sketch: DBSketch
     ): FirebaseResponse<BoardDetails> =
         withContext(Dispatchers.IO) {
             try {
-                val database = FirebaseDatabase.getInstance().reference
                 // generate board ids
-                val boardId = database.child("Users").child(userId).child("boards").push().key
+                val boardId = databaseRef.child("Users").child(userId).child("boards").push().key
 
                 if (boardId == null) {
                     Log.e("CreateSketch", "failed to generate board id")
@@ -46,7 +49,7 @@ class CollabRepositoryImpl : CollabRepository {
                 }
                 //create a map of generated path IDS to the corresponding DBProperties
                 val pathData = sketch.paths.associateBy { _ ->
-                    val pathId = database.push().key ?: ""
+                    val pathId = databaseRef.push().key ?: ""
                     pathId
                 }
 
@@ -60,7 +63,7 @@ class CollabRepositoryImpl : CollabRepository {
 
 
                 //save sketch to database
-                database.child("Users")
+                databaseRef.child("Users")
                     .child(userId)
                     .child("boards")
                     .child(boardId)
@@ -85,7 +88,6 @@ class CollabRepositoryImpl : CollabRepository {
 
     override suspend fun fetchExistingSketches(userId: String): FirebaseResponse<List<Sketch>> =
         withContext(Dispatchers.IO) {
-            val database = FirebaseDatabase.getInstance()
             val userRef = database.getReference("Users").child(userId).child("boards")
 
             return@withContext try {
@@ -100,47 +102,7 @@ class CollabRepositoryImpl : CollabRepository {
                             GenericTypeIndicator<Map<String, Any>>() {})
                         if (board != null) {
                             Log.i("Board", board.toString())
-
-                            //convert firebase response to data level object
-                            val dbSketch = DBSketch(
-                                id = board["id"] as? String ?: "",
-                                title = board["title"] as? String ?: "",
-                                dateCreated = board["dateCreated"] as? String ?: "",
-                                lastModified = board["lastModified"] as? String ?: "",
-                                paths = (board["paths"] as? Map<*, *>)
-                                    ?.mapNotNull { (pathId, pathObject) ->
-                                        //ensure pathmap is a map
-                                        if (pathId is String && pathObject is Map<*, *>) {
-                                            DBPathProperties(
-                                                alpha = (pathObject["alpha"] as? Number)?.toFloat()
-                                                    ?: 0f,
-                                                color = pathObject["color"] as? String ?: "",
-                                                eraseMode = pathObject["eraseMode"] as Boolean,
-                                                start = (pathObject["start"] as? Map<*, *>)?.let { startMap ->
-                                                    DBOffset(
-                                                        y = (startMap["y"] as? Number)?.toFloat()
-                                                            ?: 0f,
-                                                        x = (startMap["x"] as? Number)?.toFloat()
-                                                            ?: 0f
-                                                    )
-                                                } ?: DBOffset(0f, 0f),
-                                                end = (pathObject["end"] as? Map<*, *>)?.let { endMap ->
-                                                    DBOffset(
-                                                        x = (endMap["x"] as? Number)?.toFloat()
-                                                            ?: 0f,
-                                                        y = (endMap["y"] as? Number)?.toFloat()
-                                                            ?: 0f
-                                                    )
-                                                } ?: DBOffset(0f, 0f),
-                                                strokeWidth = (pathObject["strokeWidth"] as? Number)?.toFloat()
-                                                    ?: 0f
-
-                                            )
-                                        } else {
-                                            null
-                                        }
-                                    } ?: emptyList()
-                            )
+                            val dbSketch = deserializeDBSketch(board)
 
                             Log.i("SketchInfo", "$dbSketch")
                             sketchesList.add(dbSketch)
@@ -162,40 +124,22 @@ class CollabRepositoryImpl : CollabRepository {
         userId: String,
         boardId: String,
         paths: List<DBPathProperties>,
+        pathIds: List<String>
     ): FirebaseResponse<String> =
         withContext(Dispatchers.IO) {
-            try {
-                val database = FirebaseDatabase.getInstance().reference
-                val pathRef =
-                    database.child("Users")
-                        .child(userId)
-                        .child("boards")
-                        .child(boardId)
-                        .child("paths")
-                //fetch existing paths in the db
-                val existingPathsSnapshot = pathRef.get().await()
-                val existingPaths = existingPathsSnapshot.children.associateBy { it.key ?: "" }
+            val pathRef =
+                databaseRef.child("Users")
+                    .child(userId)
+                    .child("boards")
+                    .child(boardId)
+                    .child("paths")
 
-                //map for updates and new paths
-                val updates = mutableMapOf<String, Any?>()
+            return@withContext try {
+                    //match path objects to pathids
+                    val pathsMap = pathIds.zip(paths).associate { it.first to it.second }
 
+                pathRef.updateChildren(pathsMap.mapValues { it.value }).await()
 
-                for (path in paths) {
-                    //find an existing path id or create a new one if it doesn't exist
-                    val pathId =
-                        existingPaths.entries.find {
-                            it.value.getValue(DBPathProperties::class.java) == path
-                        }?.key
-                            ?: pathRef.push().key
-
-                    pathId?.let {
-                        //add path to updates
-                        updates[it] = path
-                    }
-                }
-
-                //update database
-                pathRef.updateChildren(updates).await()
 
                 FirebaseResponse.Success("")
 
@@ -213,19 +157,22 @@ class CollabRepositoryImpl : CollabRepository {
         boardId: String
     ): Flow<FirebaseResponse<List<PathProperties>>> =
         callbackFlow {
-            val database = FirebaseDatabase.getInstance().reference
             val boardRef =
-                database.child("Users").child(userId).child("boards").child(boardId).child("paths")
+                databaseRef.child("Users").child(userId).child("boards").child(boardId)
+                    .child("paths")
 
             val pathsFromDb = mutableListOf<DBPathProperties>()
 
             val listener = object : ChildEventListener {
                 //monitor drawing of new lines
                 override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-                    val newPath = snapshot.getValue(DBPathProperties::class.java)
+                    val newPath = snapshot.getValue(object : GenericTypeIndicator<Map<*, *>>() {})
+                    val deserializedNewPath = newPath?.let {
+                        deserializeDBPathProperties(pathId = snapshot.key ?: "", pathObject = it)
+                    }
 
-                    if (newPath != null) {
-                        pathsFromDb.add(newPath)
+                    if (deserializedNewPath != null) {
+                        pathsFromDb.add(deserializedNewPath)
                         val domainPaths = pathsFromDb.map { it.toPathProperties() }
 
                         //emit new values
@@ -235,12 +182,13 @@ class CollabRepositoryImpl : CollabRepository {
 
                 //monitor modification of existing lines
                 override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
-                    val updatedPath = snapshot.getValue(DBPathProperties::class.java)
+                    val updatedPath = snapshot.getValue(object : GenericTypeIndicator<Map<*, *>>() {})
+                    val deserializedUpdatedPath = updatedPath?.let{ deserializeDBPathProperties(pathId = snapshot.key ?: "", pathObject = it)}
                     if (updatedPath != null) {
-                        val index = pathsFromDb.indexOfFirst { it == updatedPath }
+                        val index = pathsFromDb.indexOfFirst { it == deserializedUpdatedPath}
 
-                        if (index != -1) {
-                            pathsFromDb[index] = updatedPath
+                        if (index != -1 && deserializedUpdatedPath != null) {
+                            pathsFromDb[index] = deserializedUpdatedPath
                             val domainPaths = pathsFromDb.map { it.toPathProperties() }
 
                             trySend(FirebaseResponse.Success(domainPaths))
@@ -250,9 +198,10 @@ class CollabRepositoryImpl : CollabRepository {
 
                 //monitor removal of lines
                 override fun onChildRemoved(snapshot: DataSnapshot) {
-                    val removedPath = snapshot.getValue(DBPathProperties::class.java)
+                    val removedPath = snapshot.getValue(object : GenericTypeIndicator<Map<*, *>>() {})
+                    val deserializedPath = removedPath?.let { deserializeDBPathProperties(pathId = snapshot.key ?: "", pathObject = it) }
                     if (removedPath != null) {
-                        pathsFromDb.removeAll { it == removedPath }
+                        pathsFromDb.removeAll { it == deserializedPath }
                         val domainPaths = pathsFromDb.map { it.toPathProperties() }
                         trySend(FirebaseResponse.Success(domainPaths))
                     }
@@ -294,17 +243,19 @@ class CollabRepositoryImpl : CollabRepository {
     ): FirebaseResponse<Sketch> =
         withContext(Dispatchers.IO) {
             try {
-                val database = FirebaseDatabase.getInstance().reference
-                val boardRef = database.child("Users").child(userId).child("boards").child(boardId)
+                val boardRef =
+                    databaseRef.child("Users").child(userId).child("boards").child(boardId)
 
                 //fetch board data
                 val dataSnapshot = boardRef.get().await()
 
                 //cast snapshot to DBSKetch
-                val dbSketch = dataSnapshot.getValue(DBSketch::class.java)
+                val dbSketch =
+                    dataSnapshot.getValue(object : GenericTypeIndicator<Map<String, Any>>() {})
 
+                val deserializedDBSketch = dbSketch?.let { deserializeDBSketch(it) }
                 if (dbSketch != null) {
-                    FirebaseResponse.Success(dbSketch.toSketch())
+                    FirebaseResponse.Success(deserializedDBSketch?.toSketch())
                 } else {
                     FirebaseResponse.Error("Board not found")
                 }
@@ -317,6 +268,48 @@ class CollabRepositoryImpl : CollabRepository {
 
             }
         }
+
+    private fun deserializeDBSketch(board: Map<String, Any?>): DBSketch {
+        val paths = (board["paths"] as? Map<*, *>)?.mapNotNull { (pathId, pathObject) ->
+            if (pathId is String && pathObject is Map<*, *>) {
+                deserializeDBPathProperties(pathId, pathObject)
+            } else {
+                null
+            }
+        } ?: emptyList()
+
+        return DBSketch(
+            id = board["id"] as? String ?: "",
+            title = board["title"] as? String ?: "",
+            dateCreated = board["dateCreated"] as? String ?: "",
+            lastModified = board["lastModified"] as? String ?: "",
+            paths = paths
+        )
+    }
+
+    private fun deserializeDBPathProperties(
+        pathId: String,
+        pathObject: Map<*, *>
+    ): DBPathProperties {
+        return DBPathProperties(
+            alpha = (pathObject["alpha"] as? Number)?.toFloat() ?: 0f,
+            color = pathObject["color"] as? String ?: "",
+            eraseMode = pathObject["eraseMode"] as? Boolean ?: false,
+            start = (pathObject["start"] as? Map<*, *>)?.let { startMap ->
+                DBOffset(
+                    y = (startMap["y"] as? Number)?.toFloat() ?: 0f,
+                    x = (startMap["x"] as? Number)?.toFloat() ?: 0f
+                )
+            } ?: DBOffset(0f, 0f),
+            end = (pathObject["end"] as? Map<*, *>)?.let { endMap ->
+                DBOffset(
+                    x = (endMap["x"] as? Number)?.toFloat() ?: 0f,
+                    y = (endMap["y"] as? Number)?.toFloat() ?: 0f
+                )
+            } ?: DBOffset(0f, 0f),
+            strokeWidth = (pathObject["strokeWidth"] as? Number)?.toFloat() ?: 0f
+        )
+    }
 
 
 }
