@@ -1,10 +1,10 @@
 package dev.borisochieng.sketchpad.collab.data.models
 
 data class DBPathProperties(
-    val alpha: Double = 0.0,
+    val alpha: Float = 0f,
     val color: String = "",
     val eraseMode: Boolean = false,
-    val start: DBOffset = DBOffset(0.0, 0.0) ,
-    val end: DBOffset = DBOffset(0.0,0.0),
-    val strokeWidth: Double = 0.0
+    val start: DBOffset = DBOffset(0f, 0f) ,
+    val end: DBOffset = DBOffset(0f,0f),
+    val strokeWidth: Float = 2f
 )

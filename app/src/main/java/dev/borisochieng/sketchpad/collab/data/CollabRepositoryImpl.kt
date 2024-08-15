@@ -110,23 +110,23 @@ class CollabRepositoryImpl : CollabRepository {
                                         //ensure pathmap is a map
                                         if (pathId is String && pathObject is Map<*, *>) {
                                             DBPathProperties(
-                                                alpha = pathObject["alpha"] as? Double ?: 0.0,
+                                                alpha = (pathObject["alpha"] as? Number)?.toFloat() ?: 0f,
                                                 color = pathObject["color"] as? String ?: "",
                                                 eraseMode = pathObject["eraseMode"] as Boolean,
                                                 start = (pathObject["start"] as? Map<*, *>)?.let { startMap ->
                                                     DBOffset(
-                                                        y = startMap["y"] as? Double ?: 0.0,
-                                                        x = startMap["x"] as? Double ?: 0.0
+                                                        y = (startMap["y"] as? Number)?.toFloat() ?: 0f,
+                                                        x = (startMap["x"] as? Number)?.toFloat() ?: 0f
                                                     )
-                                                } ?: DBOffset(0.0, 0.0),
+                                                } ?: DBOffset(0f, 0f),
                                                 end = (pathObject["end"] as? Map<*, *>)?.let { endMap ->
                                                     DBOffset(
-                                                        x = endMap["x"] as? Double ?: 0.0,
-                                                        y = endMap["y"] as? Double ?: 0.0
+                                                        x = (endMap["x"] as? Number)?.toFloat()?: 0f,
+                                                        y = (endMap["y"] as? Number)?.toFloat() ?: 0f
                                                     )
-                                                } ?: DBOffset(0.0, 0.0),
-                                                strokeWidth = pathObject["strokeWidth"] as? Double
-                                                    ?: 0.0
+                                                } ?: DBOffset(0f, 0f),
+                                                strokeWidth = (pathObject["strokeWidth"] as? Number)?.toFloat()
+                                                    ?: 0f
 
                                             )
                                         } else {
