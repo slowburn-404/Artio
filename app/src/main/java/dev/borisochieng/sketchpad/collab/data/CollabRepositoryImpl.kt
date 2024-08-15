@@ -8,9 +8,9 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import dev.borisochieng.sketchpad.auth.data.FirebaseResponse
 import dev.borisochieng.sketchpad.collab.data.models.BoardDetails
-import dev.borisochieng.sketchpad.collab.domain.CollabRepository
 import dev.borisochieng.sketchpad.collab.data.models.DBPathProperties
 import dev.borisochieng.sketchpad.collab.data.models.DBSketch
+import dev.borisochieng.sketchpad.collab.domain.CollabRepository
 import dev.borisochieng.sketchpad.collab.domain.toPathProperties
 import dev.borisochieng.sketchpad.collab.domain.toSketch
 import dev.borisochieng.sketchpad.database.Sketch
@@ -89,25 +89,24 @@ class CollabRepositoryImpl : CollabRepository {
                 val sketchesList = mutableListOf<DBSketch>()
 
                 //check if snapshot has children
-                if(snapshot.exists()){
+                if(snapshot.exists()) {
                     //iterate over each child and cast to DBSKetch class
-                snapshot.children.forEach { boardSnapshot ->
-                    val board = boardSnapshot.value as? Map<String, DBSketch>
-                    if (board != null) {
-                        val dbSketch = DBSketch(
-                            id = board["id"] as? String ?: "",
-                            title = board["title"] as? String ?: "",
-                            dateCreated = board["dateCreated"] as? String ?: "",
-                            lastModified = board["lastModified"] as? String ?: "",
-                            paths = board["paths"] as? List<DBPathProperties> ?: emptyList()
-                        )
+                    snapshot.children.forEach { boardSnapshot ->
+                        val board = boardSnapshot.value as? Map<String, DBSketch>
+                        if (board != null) {
+                            val dbSketch = DBSketch(
+                                id = board["id"] as? String ?: "",
+                                title = board["title"] as? String ?: "",
+                                dateCreated = board["dateCreated"] as? String ?: "",
+                                lastModified = board["lastModified"] as? String ?: "",
+                                paths = board["paths"] as? List<DBPathProperties> ?: emptyList()
+                            )
 
-                        Log.d("DBSketch", dbSketch.toString())
-
-                        sketchesList.add(dbSketch)
+                            Log.i("SketchInfo", "$dbSketch")
+                            sketchesList.add(dbSketch)
+                        }
                     }
                 }
-            }
                 val domainSketches = sketchesList.map { it.toSketch() }
 
                 FirebaseResponse.Success(domainSketches)

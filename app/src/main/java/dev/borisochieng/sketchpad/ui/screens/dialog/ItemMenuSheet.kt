@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Backup
+import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.BottomSheetDefaults
@@ -26,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -33,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.borisochieng.sketchpad.R
 import dev.borisochieng.sketchpad.database.Sketch
+import dev.borisochieng.sketchpad.ui.screens.dialog.Menus.BackupSketch
 import dev.borisochieng.sketchpad.ui.screens.dialog.Menus.Delete
 import dev.borisochieng.sketchpad.ui.screens.dialog.Menus.Rename
 import dev.borisochieng.sketchpad.ui.screens.home.HomeActions
@@ -42,7 +46,10 @@ import dev.borisochieng.sketchpad.utils.Extensions.formatDate
 @Composable
 fun ItemMenuSheet(
 	sketch: Sketch,
+	backedUp: Boolean,
+	userIsLoggedIn: Boolean,
 	action: (HomeActions) -> Unit,
+	onPromptToLogin: () -> Unit,
 	onDismiss: () -> Unit
 ) {
 	val sheetState = rememberModalBottomSheetState(true)
@@ -61,10 +68,16 @@ fun ItemMenuSheet(
 		) {
 			Menus.entries.forEach { menu ->
 				ItemMenu(
-					menu = stringResource(menu.menuRes),
-					icon = menu.icon,
+					menu = menu,
+					backedUp = backedUp,
 					onClick = {
 						when (menu) {
+							BackupSketch -> {
+								if (userIsLoggedIn) {
+									action(HomeActions.BackupSketch(sketch))
+								} else onPromptToLogin()
+								onDismiss()
+							}
 							Rename -> openRenameDialog.value = true
 							Delete -> openDeleteDialog.value = true
 						}
@@ -105,22 +118,27 @@ fun ItemMenuSheet(
 
 @Composable
 private fun ItemMenu(
-	menu: String,
-	icon: ImageVector,
+	menu: Menus,
+	backedUp: Boolean,
 	modifier: Modifier = Modifier,
 	onClick: () -> Unit
 ) {
+	val changeUtils = backedUp && menu == BackupSketch
+	val title = stringResource(if (changeUtils) R.string.sketch_is_backed_up else menu.titleRes)
+	val icon = if (changeUtils) Icons.Rounded.CheckCircle else menu.icon
+	val iconTint = if (changeUtils) Color.Green else Color.Unspecified
+
 	Row(
 		modifier = modifier
 			.fillMaxWidth()
 			.padding(horizontal = 16.dp)
 			.clip(MaterialTheme.shapes.large)
-			.clickable { onClick() }
+			.clickable(!changeUtils) { onClick() }
 			.padding(20.dp),
 		verticalAlignment = Alignment.CenterVertically
 	) {
-		Icon(icon, menu)
-		Text(menu, Modifier.padding(start = 16.dp))
+		Icon(icon, title, tint = iconTint)
+		Text(title, Modifier.padding(start = 16.dp))
 	}
 }
 
@@ -157,9 +175,10 @@ private fun DragHandle(
 }
 
 private enum class Menus(
-	@StringRes val menuRes: Int,
+	@StringRes val titleRes: Int,
 	val icon: ImageVector
 ) {
 	Rename(R.string.rename, Icons.Rounded.Edit),
+	BackupSketch(R.string.backup_sketch, Icons.Rounded.Backup),
 	Delete(R.string.delete, Icons.Rounded.Delete)
 }

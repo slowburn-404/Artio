@@ -9,6 +9,8 @@ sealed class SketchPadActions {
 
 	data class UpdateSketch(val paths: List<PathProperties>) : SketchPadActions()
 
+	data object CheckIfUserIsLoggedIn : SketchPadActions()
+
 	data object SketchClosed : SketchPadActions()
 
 }

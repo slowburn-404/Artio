@@ -6,4 +6,6 @@
     <string name="profile">Profile</string>
     <string name="rename">Rename</string>
     <string name="delete">Delete</string>
+    <string name="backup_sketch">Backup</string>
+    <string name="sketch_is_backed_up">Sketch is backed up</string>
 </resources>

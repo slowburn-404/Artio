@@ -7,7 +7,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import dev.borisochieng.sketchpad.auth.data.FirebaseResponse
 import dev.borisochieng.sketchpad.auth.domain.AuthRepository
 import dev.borisochieng.sketchpad.collab.data.models.BoardDetails
@@ -52,22 +51,25 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
         listenForSketchChanges()
     }
 
-    fun fetchSketch(sketchId: String) {
-        sketch = null
-        viewModelScope.launch {
-            sketchRepository.getSketch(sketchId).collect { fetchedSketch ->
-                sketch = fetchedSketch
-            }
-        }
-    }
+	fun fetchSketch(sketchId: String) {
+		sketch = null
+		viewModelScope.launch {
+			sketchRepository.getSketch(sketchId).collect { fetchedSketch ->
+				sketch = fetchedSketch
+				val remoteSketches = fetchSketchesFromRemoteDB()
+				_uiState.update { it.copy(sketchIsBackedUp = sketch in remoteSketches) }
+			}
+		}
+	}
 
-    fun actions(action: SketchPadActions) {
-        when (action) {
-            is SketchPadActions.SaveSketch -> saveSketch(action.sketch)
-            is SketchPadActions.UpdateSketch -> updateSketch(action.paths)
-            SketchPadActions.SketchClosed -> sketch = null
-        }
-    }
+	fun actions(action: SketchPadActions) {
+		when (action) {
+			is SketchPadActions.SaveSketch -> saveSketch(action.sketch)
+			is SketchPadActions.UpdateSketch -> updateSketch(action.paths)
+			SketchPadActions.CheckIfUserIsLoggedIn -> isLoggedIn()
+			SketchPadActions.SketchClosed -> sketch = null
+		}
+	}
 
     private fun saveSketch(sketch: Sketch) {
         viewModelScope.launch {
@@ -138,6 +140,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 
                             _uiState.update {
                                 it.copy(
+	                                sketchIsBackedUp = true,
                                     error = "",
                                     paths = mergedPaths
                                 )
@@ -212,12 +215,22 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 //        fetchSketch(_uiState.value.boardDetails.boardId)
 //    }
 
-    fun generateCollabUrl(boardId: String): Uri? {
+    fun generateCollabUrl(sketch: Sketch): Uri? {
         var collabUrl: Uri? = null
         if(firebaseUser != null) {
-            collabUrl = collabRepository.generateCollabUrl(userId = firebaseUser.uid, boardId = boardId)
+            collabUrl = collabRepository.generateCollabUrl(userId = firebaseUser.uid, boardId = sketch.id)
         }
         return collabUrl
     }
+
+	private suspend fun fetchSketchesFromRemoteDB(): List<Sketch> {
+		if (!authRepository.checkIfUserIsLoggedIn()) return emptyList()
+		val response = firebaseUser?.let { collabRepository.fetchExistingSketches(it.uid) }
+
+		return when (response) {
+			is FirebaseResponse.Success -> response.data ?: emptyList()
+			else -> emptyList()
+		}
+	}
 
 }

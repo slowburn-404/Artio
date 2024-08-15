@@ -7,6 +7,7 @@ import dev.borisochieng.sketchpad.collab.data.models.DBPathProperties
 import dev.borisochieng.sketchpad.collab.data.models.DBSketch
 import dev.borisochieng.sketchpad.database.Sketch
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.alt.PathProperties
+import dev.borisochieng.sketchpad.utils.DATE_PATTERN
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -39,6 +40,6 @@ private fun Color.toHexString(): String {
 }
 
 private fun dateConverter(date: Date): String {
-    val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    val dateFormat = SimpleDateFormat(DATE_PATTERN, Locale.getDefault())
     return dateFormat.format(date)
 }
