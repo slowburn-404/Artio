@@ -55,8 +55,15 @@ fun ResetPasswordScreen(
     val uiState by viewModel.uiState.collectAsState()
     val uiEvents by viewModel.uiEvent.collectAsState(initial = null)
     val snackBarHostState = remember { SnackbarHostState() }
+    var showProgressBar by remember {
+        mutableStateOf(false)
+    }
+    showProgressBar = uiState.isLoading
 
     var email by remember {
+        mutableStateOf("")
+    }
+    var emailError by remember {
         mutableStateOf("")
     }
 
@@ -114,7 +121,7 @@ fun ResetPasswordScreen(
             )
 
             Text(
-                text = "Enter the email associated with your account and we'll send instructions on how to reset your password",
+                text = "Enter the email associated with your account and we'll send you instructions on how to reset your password",
                 style = AppTypography.bodyLarge,
                 modifier = Modifier
                     .padding(horizontal = 8.dp)
@@ -125,6 +132,13 @@ fun ResetPasswordScreen(
                 value = email,
                 onValueChange = {
                     email = it
+                    emailError = if (it.isEmpty()) {
+                        "Email cannot be empty"
+                    } else if (!isValidEmail(it)) {
+                        "Invalid email address"
+                    } else {
+                        ""
+                    }
                 },
 
                 singleLine = true,
@@ -153,7 +167,7 @@ fun ResetPasswordScreen(
                 supportingText = {
                     if (email.isNotEmpty()) {
                         Text(
-                            text = "Email cannot be empty",
+                            text = emailError,
                             color = lightScheme.error,
                             style = AppTypography.labelMedium
                         )
@@ -171,12 +185,12 @@ fun ResetPasswordScreen(
                     contentColor = lightScheme.onPrimary
                 ),
                 onClick = {
-                    //TODO(send email logic)
+                    viewModel.resetPassword(email = email)
                 },
-                enabled = email.isNotEmpty()
+                enabled = email.isNotEmpty() && isValidEmail(email)
             ) {
 
-                if (uiState.isLoading) {
+                if (showProgressBar) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
                         color = lightScheme.onPrimary,

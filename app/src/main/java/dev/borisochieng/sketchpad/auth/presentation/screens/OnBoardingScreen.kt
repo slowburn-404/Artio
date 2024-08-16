@@ -69,7 +69,7 @@ fun OnBoardingScreen(navigate: (Screens) -> Unit) {
                         )
                     }
                 } else {
-                    navigate(Screens.LoginScreen)
+                    navigate(Screens.HomeScreen)
                 }
             }
         ) {
@@ -80,13 +80,5 @@ fun OnBoardingScreen(navigate: (Screens) -> Unit) {
             )
 
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun OnBoardingScreenPreview() {
-    AppTheme {
-        OnBoardingScreen({})
     }
 }
