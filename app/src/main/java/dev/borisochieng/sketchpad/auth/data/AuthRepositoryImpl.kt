@@ -158,11 +158,11 @@ class AuthRepositoryImpl : AuthRepository {
             }
         }
 
-//    override suspend fun sendPasswordResetEmail(email: String): FirebaseResponse<String> =
-//        withContext(Dispatchers.IO) {
-//            try {
+    override suspend fun sendPasswordResetEmail(email: String): FirebaseResponse<String> =
+        withContext(Dispatchers.IO) {
+            try {
 //                actionCodeSettings = actionCodeSettings {
-//                    url = "https://sketchpad.io/finishSignUp?code"
+//                    url = "https://auth.sketchpad.jc/?code"
 //                    handleCodeInApp = true
 //                    setAndroidPackageName(
 //                        "dev.borisochieng.sketchpad",
@@ -170,13 +170,18 @@ class AuthRepositoryImpl : AuthRepository {
 //                        "7"// minimum version
 //                    )
 //                }
-//                firebaseAuth.sendPasswordResetEmail(
-//                    email = email,
-//                    actionCodeSettings = actionCodeSettings
-//                )
-//
-//            } catch (e: Exception) {
-//
-//            }
-//        }
+                firebaseAuth.sendPasswordResetEmail(
+                    email
+                ).await()
+
+                FirebaseResponse.Success("Email sent!")
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Log.e("Send email", e.message.toString())
+
+                FirebaseResponse.Error("Failed to send email, please try again")
+
+            }
+        }
 }

@@ -7,8 +7,11 @@ import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Backup
 import androidx.compose.material.icons.rounded.CheckCircle
@@ -64,7 +67,7 @@ fun ItemMenuSheet(
 		Column(
 			modifier = Modifier
 				.fillMaxWidth()
-				.padding(bottom = 16.dp)
+				.windowInsetsPadding(WindowInsets.navigationBars)
 		) {
 			Menus.entries.forEach { menu ->
 				ItemMenu(
@@ -134,7 +137,7 @@ private fun ItemMenu(
 			.padding(horizontal = 16.dp)
 			.clip(MaterialTheme.shapes.large)
 			.clickable(!changeUtils) { onClick() }
-			.padding(20.dp),
+			.padding(16.dp),
 		verticalAlignment = Alignment.CenterVertically
 	) {
 		Icon(icon, title, tint = iconTint)
