@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import dev.borisochieng.sketchpad.auth.data.FirebaseResponse
 import dev.borisochieng.sketchpad.auth.domain.AuthRepository
@@ -19,7 +20,6 @@ import dev.borisochieng.sketchpad.ui.screens.drawingboard.alt.PathProperties
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -37,7 +37,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
     var uiState by mutableStateOf(_uiState.value)
 
     private val _uiEvents = MutableSharedFlow<CanvasUiEvents>()
-    val uiEvents: SharedFlow<CanvasUiEvents> get() = _uiEvents.asSharedFlow()
+    val uiEvents: SharedFlow<CanvasUiEvents> = _uiEvents
 
 //    var sketch by mutableStateOf<Sketch?>(null); private set
 	private var remoteSketches by mutableStateOf<List<Sketch>>(emptyList())
@@ -97,7 +97,9 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 				pathList = paths
 			)
 			sketchRepository.updateSketch(updatedSketch)
-			updatePathInDb(paths)
+
+			if(!uiState.userIsLoggedIn) return@launch
+			updatePathInDb(paths = paths)
 		}
 	}
     
@@ -111,6 +113,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 
             when (response) {
                 is FirebaseResponse.Success -> {
+	                Log.i("Board details on save", response.data.toString())
                     _uiState.update {
                         it.copy(
                             boardDetails = response.data ?: BoardDetails("", "", emptyList()),
@@ -170,6 +173,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
     fun updatePathInDb(paths: List<PathProperties>) =
         viewModelScope.launch {
             val boardDetails = _uiState.value.boardDetails
+	        Log.i("VM Board details", boardDetails.toString())
             if (paths.isNotEmpty()) {
                 val pathIds =
                     boardDetails.pathIds.take(paths.size) //ensure paths id matches path count

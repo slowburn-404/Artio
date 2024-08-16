@@ -97,17 +97,85 @@ class HomeViewModel : ViewModel(), KoinComponent {
 		}
 	}
 
-	private fun renameSketch(sketch: Sketch) {
-		viewModelScope.launch {
-			sketchRepository.updateSketch(sketch)
-		}
-	}
+    private fun renameSketch(sketch: Sketch) {
+        viewModelScope.launch {
+            sketchRepository.updateSketch(sketch)
+            if (!uiState.userIsLoggedIn) return@launch
+            renameSketchInRemoteDB(userId = firebaseUser.uid, boardId = sketch.id, title = sketch.name)
+        }
+    }
 
-	private fun deleteSketch(sketchToDelete: Sketch) {
-		viewModelScope.launch {
-			sketchRepository.deleteSketch(sketchToDelete)
-		}
-	}
+    private fun renameSketchInRemoteDB(
+        userId: String,
+        boardId: String,
+        title: String,
+    ) = viewModelScope.launch {
+        val renameTask = collabRepository.renameSketchInRemoteDB(
+            userId = userId,
+            boardId = boardId,
+            title = title
+        )
+
+        when (renameTask) {
+            is FirebaseResponse.Success -> {
+                _uiState.update {
+                    it.copy(
+                        feedback = renameTask.data
+                    )
+                }
+            }
+
+            is FirebaseResponse.Error -> {
+
+                _uiState.update {
+                    it.copy(
+                        feedback = renameTask.message
+                    )
+                }
+
+            }
+        }
+    }
+
+    private fun deleteSketch(sketchToDelete: Sketch) {
+        viewModelScope.launch {
+            sketchRepository.deleteSketch(sketchToDelete)
+
+            if (!_uiState.value.userIsLoggedIn) return@launch
+            val selectedSKetchIndex =
+                _uiState.value.remoteSketches.indexOfFirst { it == sketchToDelete }
+            if (selectedSKetchIndex != 1) {
+                deleteSketchFromRemoteDB(
+                    userId = firebaseUser.uid,
+                    boardId = _uiState.value.remoteSketches[selectedSKetchIndex].id
+                )
+            }
+            }
+        }
+    }
+
+    private fun deleteSketchFromRemoteDB(userId: String, boardId: String) =
+        viewModelScope.launch {
+            val deleteTask = collabRepository.deleteSketch(userId = userId, boardId = boardId)
+
+            when (deleteTask) {
+                is FirebaseResponse.Success -> {
+                    _uiState.update {
+                        it.copy(
+                            feedback = deleteTask.data
+                        )
+                    }
+                }
+
+                is FirebaseResponse.Error -> {
+                    _uiState.update {
+                        it.copy(
+                            feedback = deleteTask.message
+                        )
+                    }
+                }
+            }
+        }
 
 	private fun isLoggedIn(warmCheck: Boolean) = viewModelScope.launch {
 		val response = authRepository.checkIfUserIsLoggedIn()
