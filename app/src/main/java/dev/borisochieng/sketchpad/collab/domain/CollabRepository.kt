@@ -26,4 +26,8 @@ interface CollabRepository {
 
     fun generateCollabUrl(userId: String, boardId: String): Uri
 
+    suspend fun deleteSketch(userId: String, boardId : String): FirebaseResponse<String>
+
+    suspend fun renameSketchInRemoteDB(userId: String, boardId: String, title: String): FirebaseResponse<String>
+
 }
