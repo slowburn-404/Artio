@@ -237,6 +237,40 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
         return collabUri
     }
 
+    override suspend fun deleteSketch(userId: String, boardId: String): FirebaseResponse<String> =
+        withContext(Dispatchers.IO) {
+            val boardRef = databaseRef.child("Users").child(userId).child("boards").child(boardId)
+
+            return@withContext try {
+                boardRef.removeValue().await()
+                FirebaseResponse.Success("Sketch deleted")
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Log.e("Deleted Board", e.message.toString())
+                FirebaseResponse.Error("Failed to delete board, please try again.")
+            }
+        }
+
+    override suspend fun renameSketchInRemoteDB(userId: String, boardId: String, title: String): FirebaseResponse<String> =
+        withContext(Dispatchers.IO) {
+            val boardTitleRef = databaseRef
+                .child("Users")
+                .child(userId)
+                .child("boards")
+                .child(boardId)
+                .child("title")
+
+            return@withContext try {
+                boardTitleRef.setValue(title).await()
+                FirebaseResponse.Success("Sketch renamed successfully")
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Log.e("Rename sketch",e.message.toString())
+                FirebaseResponse.Error("Cannot rename sketch, please try again")
+            }
+        }
+
     override suspend fun fetchSingleSketch(
         userId: String,
         boardId: String
