@@ -313,33 +313,6 @@ fun LoginScreen(
 
             }
 
-//            OutlinedButton(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(horizontal = 16.dp),
-//                onClick = {
-//                }) {
-//
-//                Row(
-//                    modifier = Modifier.fillMaxWidth(),
-//                    verticalAlignment = Alignment.CenterVertically,
-//                    horizontalArrangement = Arrangement.SpaceEvenly
-//                ) {
-//
-//                    Icon(
-//                        painter = painterResource(id = R.drawable.ic_google),
-//                        contentDescription = "Google logo"
-//                    )
-//
-//                    Text(
-//                        text = "Sign Up With Google",
-//                        style = AppTypography.labelLarge,
-//                        color = lightScheme.primary,
-//                    )
-//                }
-//
-//            }
-
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -353,9 +326,9 @@ fun LoginScreen(
                         .padding(4.dp)
                         .clickable(onClick = {
                             viewModel.saveLaunchStatus()
-                            navigate(Screens.HomeScreen)
+                            navigate(Screens.ResetPasswordScreen)
                         }),
-                    text = "Continue as Guest",
+                    text = "Forgot password?",
                     style = AppTypography.labelLarge,
                     textDecoration = TextDecoration.Underline
                 )

@@ -34,7 +34,7 @@ fun AppRoute(
 	authViewModel: AuthViewModel = koinViewModel(),
 	homeViewModel: HomeViewModel = koinViewModel(),
 	sketchPadViewModel: SketchPadViewModel = koinViewModel(),
-	broadCastUrl: (Uri) -> Unit
+	broadCastUrl: (Uri) -> Unit,
 ) {
 	NavHost(
 //		modifier = Modifier.padding(paddingValues), this gives the app unnecessary padding

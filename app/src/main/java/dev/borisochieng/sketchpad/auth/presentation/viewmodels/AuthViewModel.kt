@@ -195,12 +195,12 @@ class AuthViewModel : ViewModel(), KoinComponent {
     fun refreshUserData() =
         viewModelScope.launch {
             val updatedUser = FirebaseAuth.getInstance().currentUser
-            updatedUser?.let {
+            updatedUser?.let { currentUser ->
                 val user = User(
-                    uid = it.uid,
-                    email = it.email!!,
-                    displayName = it.displayName,
-                    imageUrl = it.photoUrl,
+                    uid = currentUser.uid,
+                    email = currentUser.email!!,
+                    displayName = currentUser.displayName,
+                    imageUrl = currentUser.photoUrl,
                     isLoggedIn = true
 
                     )
@@ -211,62 +211,6 @@ class AuthViewModel : ViewModel(), KoinComponent {
                 }
             }
         }
-
-//    fun updateProfile(imageUrl: Uri, username: String) =
-//        viewModelScope.launch {
-//            val updateProfileTask =
-//                authRepository.updateUserProfile(displayName = username, imageUrl = imageUrl)
-//
-//            when (updateProfileTask) {
-//                is FirebaseResponse.Success -> {
-//                    _uiState.update {
-//                        it.copy(
-//                            user = updateProfileTask.data
-//                        )
-//                    }
-//                    _eventFlow.emit(UiEvent.SnackBarEvent("Profile Update Successfully"))
-//                }
-//
-//                is FirebaseResponse.Error -> {
-//                    _eventFlow.emit(UiEvent.SnackBarEvent(updateProfileTask.message))
-//                    _uiState.update {
-//                        it.copy(
-//                            error = updateProfileTask.message
-//                        )
-//                    }
-//                }
-//            }
-//        }
-//
-//    fun uploadImage(uri: Uri) =
-//        viewModelScope.launch {
-//            val uploadTask = authRepository.uploadImageToFireStore(uri = uri)
-//
-//            when (uploadTask) {
-//                is FirebaseResponse.Success -> {
-//                    val imageUrl = uploadTask.data
-//
-//                    if (imageUrl != null) {
-//                        _uiState.update {
-//                            it.copy(
-//                                user = it.user?.copy(
-//                                    imageUrl = imageUrl
-//                                )
-//                            )
-//                        }
-//                    }
-//                }
-//
-//                is FirebaseResponse.Error -> {
-//                    _uiState.update {
-//                        it.copy(
-//                            error = uploadTask.message
-//                        )
-//                    }
-//                    _eventFlow.emit(UiEvent.SnackBarEvent(uploadTask.message))
-//                }
-//            }
-//        }
 
     fun uploadImageAndUpdateProfile(uri: Uri, username: String) =
         viewModelScope.launch {
@@ -329,5 +273,36 @@ class AuthViewModel : ViewModel(), KoinComponent {
                 }
             }
 
+        }
+
+    fun resetPassword(email: String) =
+        viewModelScope.launch {
+            val sendEmailTask = authRepository.sendPasswordResetEmail(email)
+            _uiState.update {
+                it.copy(
+                    isLoading = true,
+                    error = ""
+                )
+            }
+
+            when(sendEmailTask) {
+                is FirebaseResponse.Success -> {
+                    _uiState.update {
+                        it.copy(isLoading = false)
+                    }
+                    _eventFlow.emit(UiEvent.SnackBarEvent(sendEmailTask.data.toString()))
+                }
+
+                is FirebaseResponse.Error -> {
+                    _uiState.update {
+                        it.copy(
+                            error = sendEmailTask.message,
+                            isLoading = false
+                        )
+                    }
+
+                    _eventFlow.emit(UiEvent.SnackBarEvent(sendEmailTask.message))
+                }
+            }
         }
 }

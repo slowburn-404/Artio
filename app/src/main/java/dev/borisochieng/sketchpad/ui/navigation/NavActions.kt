@@ -58,7 +58,7 @@ class NavActions(private val navController: NavHostController) {
 
     private fun navigateToLoginScreen() {
         navController.navigate(AppRoute.LoginScreen.route) {
-            popUpTo(AppRoute.LoginScreen.route) {
+            popUpTo(AppRoute.ProfileScreen.route) {
                 inclusive = true
             }
             launchSingleTop = true
