@@ -104,7 +104,7 @@ class HomeViewModel : ViewModel(), KoinComponent {
     private fun renameSketch(sketch: Sketch) {
         viewModelScope.launch {
             sketchRepository.updateSketch(sketch)
-            if(!uiState.userIsLoggedIn) return@launch
+            if (!uiState.userIsLoggedIn) return@launch
             firebaseUser?.let {
                 renameSketchInRemoteDB(userId = it.uid, boardId = sketch.id, title = sketch.name)
             }
@@ -116,9 +116,13 @@ class HomeViewModel : ViewModel(), KoinComponent {
         boardId: String,
         title: String,
     ) = viewModelScope.launch {
-        val renameTask = collabRepository.renameSketchInRemoteDB(userId = userId, boardId = boardId, title = title)
+        val renameTask = collabRepository.renameSketchInRemoteDB(
+            userId = userId,
+            boardId = boardId,
+            title = title
+        )
 
-        when(renameTask) {
+        when (renameTask) {
             is FirebaseResponse.Success -> {
                 _uiState.update {
                     it.copy(
@@ -126,6 +130,7 @@ class HomeViewModel : ViewModel(), KoinComponent {
                     )
                 }
             }
+
             is FirebaseResponse.Error -> {
 
                 _uiState.update {
@@ -142,10 +147,16 @@ class HomeViewModel : ViewModel(), KoinComponent {
         viewModelScope.launch {
             sketchRepository.deleteSketch(sketchToDelete)
 
-            if(!_uiState.value.userIsLoggedIn) return@launch
-            val selectedSKetchIndex = _uiState.value.remoteSketches.indexOfFirst { it == sketchToDelete }
+            if (!_uiState.value.userIsLoggedIn) return@launch
+            val selectedSKetchIndex =
+                _uiState.value.remoteSketches.indexOfFirst { it == sketchToDelete }
             firebaseUser?.let {
-                deleteSketchFromRemoteDB(userId = it.uid, boardId = _uiState.value.remoteSketches[selectedSKetchIndex].id)
+                if (selectedSKetchIndex != 1) {
+                    deleteSketchFromRemoteDB(
+                        userId = it.uid,
+                        boardId = _uiState.value.remoteSketches[selectedSKetchIndex].id
+                    )
+                }
             }
         }
     }
@@ -154,7 +165,7 @@ class HomeViewModel : ViewModel(), KoinComponent {
         viewModelScope.launch {
             val deleteTask = collabRepository.deleteSketch(userId = userId, boardId = boardId)
 
-            when(deleteTask) {
+            when (deleteTask) {
                 is FirebaseResponse.Success -> {
                     _uiState.update {
                         it.copy(
@@ -162,6 +173,7 @@ class HomeViewModel : ViewModel(), KoinComponent {
                         )
                     }
                 }
+
                 is FirebaseResponse.Error -> {
                     _uiState.update {
                         it.copy(

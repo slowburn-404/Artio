@@ -136,7 +136,7 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
 
             return@withContext try {
                     //match path objects to pathids
-                    val pathsMap = pathIds.zip(paths).associate { it.first to it.second }
+                    val pathsMap = pathIds.zip(paths).associate { (id, path) -> id to path}
 
                 pathRef.updateChildren(pathsMap.mapValues { it.value }).await()
 

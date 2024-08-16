@@ -67,7 +67,7 @@ class AuthRepositoryImpl : AuthRepository {
                     User(
                         uid = firebaseUser?.uid!!,
                         email = firebaseUser.email!!,
-                        displayName = firebaseUser.displayName,
+                        displayName = firebaseUser.displayName ?: "",
                         imageUrl = firebaseUser.photoUrl,
                         isLoggedIn = checkIfUserIsLoggedIn()
 
