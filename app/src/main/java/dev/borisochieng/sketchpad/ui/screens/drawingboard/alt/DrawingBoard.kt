@@ -70,7 +70,9 @@ fun DrawingBoard(
     exportSketchAsPdf: (Bitmap) -> Unit,
     navigate: (Screens) -> Unit,
     onBroadCastUrl: (Uri) -> Unit,
-    viewModel: SketchPadViewModel = koinViewModel()
+    viewModel: SketchPadViewModel = koinViewModel(),
+    boardId: String,
+    userId: String
 ) {
     val (userIsLoggedIn, boardDetails, sketchIsBackedUp, _, sketch, collabUrl) = uiState
     var currentTextInput by remember { mutableStateOf(TextInput()) }
@@ -117,6 +119,11 @@ fun DrawingBoard(
         delay(300)
         viewModel.updatePathInDb(paths)
 
+    }
+
+    //fetch single sketch
+    LaunchedEffect(Unit) {
+        viewModel.fetchSingleSketch(boardId = boardId, userId = userId)
     }
 
     LaunchedEffect(uiEvents) {
@@ -202,8 +209,8 @@ fun DrawingBoard(
 
         BoxWithConstraints(
             modifier = Modifier
-				.fillMaxSize()
-				.padding(paddingValues),
+                .fillMaxSize()
+                .padding(paddingValues),
             contentAlignment = Alignment.BottomCenter
         ) {
             val state = rememberTransformableState { zoomChange, panChange, _ ->
@@ -243,39 +250,39 @@ fun DrawingBoard(
                             var showTextBox by remember { mutableStateOf(false) }
                             Canvas(
                                 modifier = Modifier
-									.fillMaxSize()
-									.background(Color.White)
-									.graphicsLayer {
-										scaleX = scale
-										scaleY = scale
-										translationX = offset.x
-										translationY = offset.y
-									}
-									.transformable(state)
-									.pointerInput(true) {
-										if (drawMode == DrawMode.Touch) return@pointerInput
-										detectDragGestures { change, dragAmount ->
-											change.consume()
-											val eraseMode = drawMode == DrawMode.Erase
-											val path = PathProperties(
-												color = when (drawMode) {
-													DrawMode.Erase -> Color.White
-													DrawMode.Draw -> color
-													else -> Color.Transparent
-												},
-												eraseMode = eraseMode,
-												start = change.position - dragAmount,
-												end = change.position,
-												strokeWidth = pencilSize
-											)
+                                    .fillMaxSize()
+                                    .background(Color.White)
+                                    .graphicsLayer {
+                                        scaleX = scale
+                                        scaleY = scale
+                                        translationX = offset.x
+                                        translationY = offset.y
+                                    }
+                                    .transformable(state)
+                                    .pointerInput(true) {
+                                        if (drawMode == DrawMode.Touch) return@pointerInput
+                                        detectDragGestures { change, dragAmount ->
+                                            change.consume()
+                                            val eraseMode = drawMode == DrawMode.Erase
+                                            val path = PathProperties(
+                                                color = when (drawMode) {
+                                                    DrawMode.Erase -> Color.White
+                                                    DrawMode.Draw -> color
+                                                    else -> Color.Transparent
+                                                },
+                                                eraseMode = eraseMode,
+                                                start = change.position - dragAmount,
+                                                end = change.position,
+                                                strokeWidth = pencilSize
+                                            )
 
-											absolutePaths += path
-											paths = absolutePaths.toList()
+                                            absolutePaths += path
+                                            paths = absolutePaths.toList()
 
                                             //update paths in db as they are drawn
                                             viewModel.updatePathInDb(paths)
-										}
-									}
+                                        }
+                                    }
                             ) {
                                 paths.forEach { path ->
                                     drawLine(

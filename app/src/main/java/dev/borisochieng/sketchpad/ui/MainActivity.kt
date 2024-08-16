@@ -108,7 +108,7 @@ class MainActivity : ComponentActivity() {
         val boardId = data.getQueryParameter("board_id")
 
         //TODO(navigate to drawing board)
-        navActions.navigate(Screens.SketchPad(boardId ?: VOID_ID))
+        navActions.navigate(Screens.SketchPad(boardId ?: VOID_ID, userId ?: "00000"))
 
         val message = "User id: $userId \n BoardId: $boardId"
         Log.d("DeepLink", message)

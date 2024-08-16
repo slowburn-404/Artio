@@ -58,7 +58,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 		viewModelScope.launch {
 			sketchRepository.getSketch(sketchId).collect { fetchedSketch ->
 				_uiState.update { it.copy(sketch = fetchedSketch) }
-				if (uiState.userIsLoggedIn) fetchSingleSketch(sketchId)
+				//if (uiState.userIsLoggedIn) fetchSingleSketch(sketchId)
 				try {
 					_uiState.update { state -> state.copy(
 						sketchIsBackedUp = fetchedSketch.id in remoteSketches.map { it.id }
@@ -192,10 +192,10 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
             }
         }
 
-	private fun fetchSingleSketch(boardId: String) =
+	fun fetchSingleSketch(boardId: String, userId: String) =
 		viewModelScope.launch {
 			val sketchResponse = collabRepository.fetchSingleSketch(
-				userId = firebaseUser.uid,
+				userId = userId,
 				boardId = boardId
 			)
 

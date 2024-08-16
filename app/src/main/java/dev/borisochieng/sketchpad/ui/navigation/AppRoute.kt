@@ -21,6 +21,7 @@ import dev.borisochieng.sketchpad.ui.screens.home.HomeScreen
 import dev.borisochieng.sketchpad.ui.screens.home.HomeViewModel
 import dev.borisochieng.sketchpad.ui.screens.settings.SettingsScreen
 import dev.borisochieng.sketchpad.utils.AnimationDirection
+import dev.borisochieng.sketchpad.utils.VOID_ID
 import dev.borisochieng.sketchpad.utils.animatedComposable
 import org.koin.androidx.compose.koinViewModel
 
@@ -54,6 +55,7 @@ fun AppRoute(
 			animationDirection = AnimationDirection.UpDown
 		) { backStackEntry ->
 			val sketchId = backStackEntry.arguments?.getString("sketchId") ?: "" // sketchId is the same as boardId
+			val userId = backStackEntry.arguments?.getString("boardId") ?: VOID_ID
 			LaunchedEffect(sketchId) {
 				sketchPadViewModel.fetchSketch(sketchId)
 				sketchPadViewModel.generateCollabUrl(sketchId)
@@ -65,7 +67,9 @@ fun AppRoute(
 				actions = sketchPadViewModel::actions,
 				exportSketchAsPdf = saveImageAsPdf,
 				navigate = navActions::navigate,
-				onBroadCastUrl = broadCastUrl
+				onBroadCastUrl = broadCastUrl,
+				boardId = sketchId,
+				userId = userId
 			)
 		}
 		composable(AppRoute.SettingsScreen.route) {
