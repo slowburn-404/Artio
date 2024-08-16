@@ -34,6 +34,7 @@ class HomeViewModel : ViewModel(), KoinComponent {
 
 	init {
 		isLoggedIn(warmCheck = false)
+		fallbackPlan()
 
 		viewModelScope.launch {
 			_uiState.collect { uiState = it }
@@ -73,7 +74,10 @@ class HomeViewModel : ViewModel(), KoinComponent {
 			when (response) {
 				is FirebaseResponse.Success -> {
 					_uiState.update {
-						it.copy(feedback = "'${sketch.name}' successfully backed up")
+						it.copy(
+							remoteSketches = fetchSketchesFromRemoteDB(),
+							feedback = "'${sketch.name}' successfully backed up"
+						)
 					}
 				}
 
@@ -150,7 +154,6 @@ class HomeViewModel : ViewModel(), KoinComponent {
                     boardId = _uiState.value.remoteSketches[selectedSKetchIndex].id
                 )
             }
-            }
         }
     }
 
@@ -194,6 +197,24 @@ class HomeViewModel : ViewModel(), KoinComponent {
 				response.data ?: emptyList()
 			}
 			else -> emptyList()
+		}
+	}
+
+	// if the user is logged in but, at the start of the application,
+	// there is poor or no internet connection, the attempt to fetch all sketches from remote db
+	// continues indefinitely, till there is stable internet connection. This causes Loading UI
+	// to be displayed indefinitely as well. This is a fallback plan for when there is no response
+	// from remote source after 10 seconds.
+	private fun fallbackPlan() {
+		viewModelScope.launch {
+			delay(10000)
+			if (!uiState.isLoading || localSketches == uiState.localSketches) return@launch
+			_uiState.update {
+				it.copy(
+					localSketches = localSketches,
+					isLoading = false
+				)
+			}
 		}
 	}
 

@@ -6,7 +6,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import dev.borisochieng.sketchpad.auth.data.FirebaseResponse
 import dev.borisochieng.sketchpad.auth.domain.AuthRepository
@@ -59,6 +58,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 		viewModelScope.launch {
 			sketchRepository.getSketch(sketchId).collect { fetchedSketch ->
 				_uiState.update { it.copy(sketch = fetchedSketch) }
+				if (uiState.userIsLoggedIn) fetchSingleSketch(sketchId)
 				try {
 					_uiState.update { state -> state.copy(
 						sketchIsBackedUp = fetchedSketch.id in remoteSketches.map { it.id }
@@ -192,8 +192,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
             }
         }
 
-	//TODO(Integrate function to the Canvas)
-	fun fetchSingleSketch(boardId: String) =
+	private fun fetchSingleSketch(boardId: String) =
 		viewModelScope.launch {
 			val sketchResponse = collabRepository.fetchSingleSketch(
 				userId = firebaseUser.uid,
