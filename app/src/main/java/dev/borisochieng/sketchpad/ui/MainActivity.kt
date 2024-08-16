@@ -104,6 +104,7 @@ class MainActivity : ComponentActivity() {
 
             //TODO(navigate to drawing board)
 
+
             Log.d("DeepLink", "User id: $userId \n BoardId: $boardId")
 
             Toast.makeText(this, "User id: $userId \n BoardId: $boardId", Toast.LENGTH_SHORT).show()

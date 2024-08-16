@@ -1,5 +1,6 @@
 package dev.borisochieng.sketchpad.auth.presentation.screens
 
+import android.util.Log
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,6 +25,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -52,6 +54,10 @@ fun ProfileScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    LaunchedEffect(Unit) {
+        viewModel.refreshUserData()
+    }
+
     Scaffold(
         modifier = Modifier.padding(bottom = bottomPadding),
         topBar = {
@@ -72,8 +78,8 @@ fun ProfileScreen(
                 .padding(16.dp)
         ) {
             Box(
-                modifier = Modifier.
-                    padding(16.dp)
+                modifier = Modifier
+                    .padding(16.dp)
                     .clip(CircleShape)
                     .size(150.dp)
                     .border(

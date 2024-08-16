@@ -1,13 +1,16 @@
 package dev.borisochieng.sketchpad.auth.presentation.viewmodels
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
 import dev.borisochieng.sketchpad.auth.data.FirebaseResponse
 import dev.borisochieng.sketchpad.auth.domain.AuthRepository
+import dev.borisochieng.sketchpad.auth.domain.model.User
 import dev.borisochieng.sketchpad.auth.presentation.state.UiEvent
 import dev.borisochieng.sketchpad.auth.presentation.state.UiState
 import dev.borisochieng.sketchpad.ui.navigation.AppRoute
@@ -189,6 +192,26 @@ class AuthViewModel : ViewModel(), KoinComponent {
             }
         }
 
+    fun refreshUserData() =
+        viewModelScope.launch {
+            val updatedUser = FirebaseAuth.getInstance().currentUser
+            updatedUser?.let {
+                val user = User(
+                    uid = it.uid,
+                    email = it.email!!,
+                    displayName = it.displayName,
+                    imageUrl = it.photoUrl,
+                    isLoggedIn = true
+
+                    )
+                _uiState.update {
+                    it.copy(
+                        user = user
+                    )
+                }
+            }
+        }
+
 //    fun updateProfile(imageUrl: Uri, username: String) =
 //        viewModelScope.launch {
 //            val updateProfileTask =
@@ -271,6 +294,7 @@ class AuthViewModel : ViewModel(), KoinComponent {
 
                         when (updateProfileTask) {
                             is FirebaseResponse.Success -> {
+                                Log.i("User profile", "Updated user: ${updateProfileTask.data}")
                                 _uiState.update {
                                     it.copy(
                                         user = updateProfileTask.data,

@@ -280,10 +280,8 @@ fun DrawingBoard(
 											absolutePaths += path
 											paths = absolutePaths.toList()
 
-											scope.launch {
-												delay(100)
-												viewModel.updatePathInDb(paths)
-											}
+                                            //update paths in db as they are drawn
+                                            viewModel.updatePathInDb(paths)
 										}
 									}
                             ) {
@@ -296,8 +294,6 @@ fun DrawingBoard(
                                         cap = StrokeCap.Round
                                     )
                                 }
-
-                                viewModel.updatePathInDb(paths)
                             }
                             Box(modifier = Modifier.size(240.dp)) {
                                 LaunchedEffect(drawMode) {
