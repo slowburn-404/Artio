@@ -1,28 +1,35 @@
 package dev.borisochieng.sketchpad.ui.screens.drawingboard.alt
 
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.PictureAsPdf
+import androidx.compose.material.icons.outlined.TextFields
 import androidx.compose.material.icons.rounded.Brush
 import androidx.compose.material.icons.rounded.LineWeight
-import androidx.compose.material.icons.rounded.PersonAdd
 import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material.icons.rounded.TouchApp
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,7 +37,6 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.borisochieng.sketchpad.R
 import dev.borisochieng.sketchpad.ui.screens.dialog.ColorPickerDialog
 import dev.borisochieng.sketchpad.ui.screens.dialog.SizePickerDialog
@@ -43,7 +49,7 @@ fun PaletteMenu(
     pencilSize: Float,
     onColorChanged: (Color) -> Unit,
     onSizeChanged: (Float) -> Unit,
-    onDrawModeChanged: (DrawMode) -> Unit
+    onDrawModeChanged: (DrawMode) -> Unit,
 ) {
     var currentDrawMode = drawMode
     val openColorPickerDialog = remember { mutableStateOf(false) }
@@ -93,6 +99,19 @@ fun PaletteMenu(
                 tint = if (currentDrawMode == DrawMode.Erase) Color.Black else Color.Gray
             )
         }
+        IconButton(
+            onClick = {
+                currentDrawMode =
+                    if (currentDrawMode == DrawMode.Text) DrawMode.Draw else DrawMode.Text
+                onDrawModeChanged(currentDrawMode)
+            }
+        ) {
+            Icon(
+                Icons.Outlined.TextFields,
+                contentDescription = "Text mode",
+                tint = if (currentDrawMode == DrawMode.Text) Color.Black else Color.Gray
+            )
+        }
     }
 
     if (openSizePickerDialog.value) {
@@ -123,9 +142,11 @@ fun PaletteTopBar(
     unUndoClicked: () -> Unit,
     unRedoClicked: () -> Unit,
     onExportClicked: () -> Unit,
-    onBroadCastUrl: (Uri) -> Unit,
-    collabUrl: Uri?
+    onBroadCastUrl: () -> Unit,
+    onExportClickedAsPdf: () -> Unit
 ) {
+    var expanded by remember { mutableStateOf(false) }
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -163,23 +184,36 @@ fun PaletteTopBar(
                 contentDescription = "Redo"
             )
         }
-        IconButton(
-            onClick = onExportClicked,
-            enabled = canUndo
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.ic_download),
-                contentDescription = "Export sketch"
-            )
-        }
-
-        IconButton(
-            onClick = {
-               collabUrl?.let {
-                   onBroadCastUrl(it)
-               }
+        Column {
+            IconButton(onClick = { expanded = true }) {
+                Icon(
+                    painterResource(R.drawable.ic_download),
+                    contentDescription = "Localized description"
+                )
             }
-        ) {
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                DropdownMenuItem(
+                    text = { Text("Save as PNG") },
+                    onClick = {
+                        onExportClicked()
+                        expanded = false
+                    },
+                    leadingIcon = { Icon(Icons.Outlined.Image, contentDescription = null) }
+                )
+                DropdownMenuItem(
+                    text = { Text("Save as PDF") },
+                    onClick = {
+                        onExportClickedAsPdf()
+                        expanded = false
+                    },
+                    leadingIcon = { Icon(Icons.Outlined.PictureAsPdf, contentDescription = null) }
+                )
+            }
+        }
+        IconButton(onClick = onBroadCastUrl) {
             Icon(
                 painter = painterResource(id = R.drawable.collaboration),
                 contentDescription = "Invite Collaborator",
@@ -240,5 +274,5 @@ private fun Pencil(
 }
 
 enum class DrawMode {
-    Draw, Erase, Touch
+    Draw, Erase, Touch, Text
 }

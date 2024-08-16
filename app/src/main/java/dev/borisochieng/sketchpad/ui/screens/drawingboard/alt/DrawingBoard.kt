@@ -10,9 +10,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -40,6 +42,10 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import dev.borisochieng.sketchpad.database.Sketch
 import dev.borisochieng.sketchpad.ui.navigation.Screens
@@ -47,171 +53,196 @@ import dev.borisochieng.sketchpad.ui.screens.dialog.NameSketchDialog
 import dev.borisochieng.sketchpad.ui.screens.dialog.SavePromptDialog
 import dev.borisochieng.sketchpad.ui.screens.dialog.Sizes
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.CanvasUiEvents
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.CanvasUiState
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadActions
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadViewModel
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.ExportOption
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.rememberDrawController
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun DrawingBoard(
-	sketch: Sketch?,
-	exportSketch: (Bitmap) -> Unit,
-	actions: (SketchPadActions) -> Unit,
-	navigate: (Screens) -> Unit,
-	onBroadCastUrl: (Uri) -> Unit,
-	viewModel: SketchPadViewModel = koinViewModel()
+    uiState: CanvasUiState, // passing the state in the way fixes state management issue
+    exportSketch: (Bitmap) -> Unit,
+    actions: (SketchPadActions) -> Unit,
+    exportSketchAsPdf: (Bitmap) -> Unit,
+    navigate: (Screens) -> Unit,
+    onBroadCastUrl: (Uri) -> Unit,
+    viewModel: SketchPadViewModel = koinViewModel()
 ) {
-	val drawController = rememberDrawController()
-	val absolutePaths = remember { mutableStateListOf<PathProperties>() }
-	var paths by remember { mutableStateOf<List<PathProperties>>(emptyList()) }
-	var drawMode by remember { mutableStateOf(DrawMode.Draw) }
-	var pencilSize by remember { mutableFloatStateOf(Sizes.Small.strokeWidth) }
-	var color by remember { mutableStateOf(Color.Black) }
-	var scale by remember { mutableFloatStateOf(1f) }
-	var offset by remember { mutableStateOf(Offset.Zero) }
-	val openNameSketchDialog = rememberSaveable { mutableStateOf(false) }
-	val openSavePromptDialog = rememberSaveable { mutableStateOf(false) }
-	val snackbarHostState = remember { SnackbarHostState() }
-	val scope = rememberCoroutineScope()
-	val context = LocalContext.current
-	val save: (String?) -> Unit = { name ->
-		val action = if (name == null) {
-			SketchPadActions.UpdateSketch(paths)
-		} else {
-			openNameSketchDialog.value = false
-			val newSketch = Sketch(name = name, pathList = paths)
-			SketchPadActions.SaveSketch(newSketch)
-		}
-		actions(action)
-		Toast.makeText(context, "Sketch saved", Toast.LENGTH_SHORT).show()
-		navigate(Screens.Back)
-	}
+    val (userIsLoggedIn, boardDetails, sketchIsBackedUp, _, sketch, collabUrl) = uiState
+    var currentTextInput by remember { mutableStateOf(TextInput()) }
+    var exportOption by remember { mutableStateOf(ExportOption.PNG) }
+    val drawController = rememberDrawController()
+    val absolutePaths = remember { mutableStateListOf<PathProperties>() }
+    var paths by remember { mutableStateOf<List<PathProperties>>(emptyList()) }
+    var drawMode by remember { mutableStateOf(DrawMode.Draw) }
+    var pencilSize by remember { mutableFloatStateOf(Sizes.Small.strokeWidth) }
+    var color by remember { mutableStateOf(Color.Black) }
+    var scale by remember { mutableFloatStateOf(1f) }
+    var offset by remember { mutableStateOf(Offset.Zero) }
+    val openNameSketchDialog = rememberSaveable { mutableStateOf(false) }
+    val openSavePromptDialog = rememberSaveable { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val save: (String?) -> Unit = { name ->
+        val action = if (name == null) {
+            SketchPadActions.UpdateSketch(paths)
+        } else {
+            openNameSketchDialog.value = false
+            val newSketch = Sketch(name = name, pathList = paths)
+            SketchPadActions.SaveSketch(newSketch)
+        }
+        actions(action)
+        Toast.makeText(context, "Sketch saved", Toast.LENGTH_SHORT).show()
+        navigate(Screens.Back)
+    }
 
-	val uiState by viewModel.uiState.collectAsState()
-	val uiEvents by viewModel.uiEvents.collectAsState(initial = null)
+    val uiEvents by viewModel.uiEvents.collectAsState(initial = null)
 
-	//listen for path changes
-	LaunchedEffect(uiState.paths) {
-		if (!uiState.userIsLoggedIn) return@LaunchedEffect
-		absolutePaths.clear()
-		paths = uiState.paths
-		absolutePaths.addAll(paths)
-	}
+    //listen for path changes
+    LaunchedEffect(uiState.paths) {
+        if (!userIsLoggedIn) return@LaunchedEffect
+        absolutePaths.clear()
+        paths = uiState.paths
+        absolutePaths.addAll(paths)
+    }
 
-	LaunchedEffect(uiEvents) {
-		uiEvents?.let { event ->
-			when (event) {
-				is CanvasUiEvents.SnackBarEvent -> {
-					// Showing Snackbar with the message
-					snackbarHostState.showSnackbar(event.message)
-				}
-				// Handle other events if any
-			}
-		}
-	}
+    //update paths in db
+    LaunchedEffect(paths) {
+        if (!userIsLoggedIn) return@LaunchedEffect
+        delay(300)
+        viewModel.updatePathInDb(paths)
 
-	Scaffold(
-		topBar = {
-			PaletteTopBar(
-				canSave = paths != sketch?.pathList,
-				canUndo = paths.isNotEmpty(),
-				canRedo = paths.size < absolutePaths.size,
-				onSaveClicked = {
-					if (sketch == null) {
-						openNameSketchDialog.value = true
-					} else {
-						save(null)
-					}
-				},
-				unUndoClicked = { paths -= paths.last() },
-				unRedoClicked = {
-					val nextPath = absolutePaths[paths.size]
-					paths += nextPath
-				},
-				onExportClicked = { drawController.saveBitmap() },
-				onBroadCastUrl = {
-					Log.d("Credentials", "User id: ${uiState.boardDetails!!.userId} \n Board id: ${uiState.boardDetails!!.boardId}")
-					if (uiState.userIsLoggedIn) {
-						viewModel.generateCollabUrl(userId = uiState.boardDetails!!.userId, boardId = uiState.boardDetails!!.boardId)
-						scope.launch {
-							uiState.collabUrl?.let { url ->
-								onBroadCastUrl(url)
-							}
-						}
-					} else {
-						scope.launch {
-							val action = snackbarHostState.showSnackbar(
-								message = "Sign up to avail collaborative feature",
-								actionLabel = "SIGN UP", duration = SnackbarDuration.Short
-							)
-							if (action != SnackbarResult.ActionPerformed) return@launch
-							navigate(Screens.OnBoardingScreen)
-						}
-					}
-				},
-				collabUrl = uiState.collabUrl
-			)
-		},
-		bottomBar = {
-			PaletteMenu(
-				drawMode = drawMode,
-				selectedColor = color,
-				pencilSize = pencilSize,
-				onColorChanged = { color = it },
-				onSizeChanged = { pencilSize = it },
-				onDrawModeChanged = { drawMode = it }
-			)
-		},
-		snackbarHost = { SnackbarHost(snackbarHostState) },
-		containerColor = Color.White
-	) { paddingValues ->
-		LaunchedEffect(sketch) {
-			if (sketch == null) return@LaunchedEffect
-			absolutePaths.clear(); paths = emptyList()
-			absolutePaths.addAll(sketch.pathList)
-			paths = sketch.pathList
-		}
+    }
 
-		BoxWithConstraints(
-			modifier = Modifier
+    LaunchedEffect(uiEvents) {
+        uiEvents?.let { event ->
+            when (event) {
+                is CanvasUiEvents.SnackBarEvent -> {
+                    // Showing Snackbar with the message
+                    snackbarHostState.showSnackbar(event.message)
+                }
+                // Handle other events if any
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) { actions(SketchPadActions.CheckIfUserIsLoggedIn) }
+
+    Scaffold(
+        topBar = {
+            PaletteTopBar(
+                canSave = paths != sketch?.pathList,
+                canUndo = paths.isNotEmpty(),
+                canRedo = paths.size < absolutePaths.size,
+                onSaveClicked = {
+                    if (sketch == null) {
+                        openNameSketchDialog.value = true
+                    } else {
+                        save(null)
+                    }
+                },
+                unUndoClicked = { paths -= paths.last() },
+                unRedoClicked = {
+                    val nextPath = absolutePaths[paths.size]
+                    paths += nextPath
+                },
+                onExportClicked = { drawController.saveBitmap() },
+                onBroadCastUrl = {
+                    Log.d(
+                        "Credentials",
+                        "User id: ${boardDetails.boardId} \n Board id: ${boardDetails.boardId}"
+                    )
+                    if (userIsLoggedIn) {
+                        if (!sketchIsBackedUp || collabUrl == null) {
+                            scope.launch { snackbarHostState.showSnackbar("Sketch is not backed up yet") }
+                            return@PaletteTopBar
+                        }
+                        onBroadCastUrl(collabUrl)
+                    } else {
+                        scope.launch {
+                            val action = snackbarHostState.showSnackbar(
+                                message = "Sign up to avail collaborative feature",
+                                actionLabel = "SIGN UP", duration = SnackbarDuration.Short
+                            )
+                            if (action != SnackbarResult.ActionPerformed) return@launch
+                            navigate(Screens.OnBoardingScreen)
+                        }
+                    }
+                },
+                onExportClickedAsPdf = {
+                    exportOption = ExportOption.PDF
+                    drawController.saveBitmap()
+                },
+            )
+        },
+        bottomBar = {
+            PaletteMenu(
+                drawMode = drawMode,
+                selectedColor = color,
+                pencilSize = pencilSize,
+                onColorChanged = { color = it },
+                onSizeChanged = { pencilSize = it },
+                onDrawModeChanged = { drawMode = it },
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = Color.White
+    ) { paddingValues ->
+        LaunchedEffect(sketch) {
+            if (sketch == null) return@LaunchedEffect
+            absolutePaths.clear(); paths = emptyList()
+            absolutePaths.addAll(sketch.pathList)
+            paths = sketch.pathList
+        }
+
+        BoxWithConstraints(
+            modifier = Modifier
 				.fillMaxSize()
 				.padding(paddingValues),
-			contentAlignment = Alignment.BottomCenter
-		) {
-			val state = rememberTransformableState { zoomChange, panChange, _ ->
-				if (drawMode != DrawMode.Touch) return@rememberTransformableState
-				scale = (scale * zoomChange).coerceIn(1f, 5f)
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            val state = rememberTransformableState { zoomChange, panChange, _ ->
+                if (drawMode != DrawMode.Touch) return@rememberTransformableState
+                scale = (scale * zoomChange).coerceIn(1f, 5f)
 
-				val extraWidth = (scale - 1) * constraints.maxWidth
-				val extraHeight = (scale - 1) * constraints.maxHeight
+                val extraWidth = (scale - 1) * constraints.maxWidth
+                val extraHeight = (scale - 1) * constraints.maxHeight
 
-				val maxX = extraWidth / 2
-				val maxY = extraHeight / 2
+                val maxX = extraWidth / 2
+                val maxY = extraHeight / 2
 
-				offset = Offset(
-					x = (offset.x + scale * panChange.x).coerceIn(-maxX, maxX),
-					y = (offset.y + scale * panChange.y).coerceIn(-maxY, maxY)
-				)
-			}
+                offset = Offset(
+                    x = (offset.x + scale * panChange.x).coerceIn(-maxX, maxX),
+                    y = (offset.y + scale * panChange.y).coerceIn(-maxY, maxY)
+                )
+            }
 
-			AndroidView(
-				factory = {
-					ComposeView(context).apply {
-						setContent {
-							LaunchedEffect(drawController) {
-								drawController.trackBitmaps(
-									it = this@apply, coroutineScope = this,
-									onCaptured = { imageBitmap, error ->
-										imageBitmap?.let {
-											exportSketch(it.asAndroidBitmap())
-										}
-									}
-								)
-							}
+            AndroidView(
+                factory = {
+                    ComposeView(context).apply {
+                        setContent {
 
-							Canvas(
-								modifier = Modifier
+                            LaunchedEffect(drawController) {
+                                drawController.trackBitmaps(
+                                    this@apply,
+                                    this,
+                                    onCaptured = { imageBitmap, error ->
+                                        imageBitmap?.let { bitmap ->
+                                            when (exportOption) {
+                                                ExportOption.PNG -> exportSketch(bitmap.asAndroidBitmap())
+                                                ExportOption.PDF -> exportSketchAsPdf(bitmap.asAndroidBitmap())
+                                            }
+                                        }
+                                    })
+                            }
+                            var showTextBox by remember { mutableStateOf(false) }
+                            Canvas(
+                                modifier = Modifier
 									.fillMaxSize()
 									.background(Color.White)
 									.graphicsLayer {
@@ -238,63 +269,85 @@ fun DrawingBoard(
 												strokeWidth = pencilSize
 											)
 
-											paths += path
-											absolutePaths.clear()
-											absolutePaths.addAll(paths)
+											absolutePaths += path
+											paths = absolutePaths.toList()
 
+                                            //update paths in db as they are drawn
+                                            viewModel.updatePathInDb(paths)
 										}
-										viewModel.updatePathInDb(paths)
 									}
-							) {
-								paths.forEach { path ->
-									drawLine(
-										color = path.color,
-										start = path.start,
-										end = path.end,
-										strokeWidth = path.strokeWidth,
-										cap = StrokeCap.Round
-									)
-								}
+                            ) {
+                                paths.forEach { path ->
+                                    drawLine(
+                                        color = path.color,
+                                        start = path.start,
+                                        end = path.end,
+                                        strokeWidth = path.strokeWidth,
+                                        cap = StrokeCap.Round
+                                    )
+                                }
+                            }
+                            Box(modifier = Modifier.size(240.dp)) {
+                                LaunchedEffect(drawMode) {
+                                    if (drawMode == DrawMode.Text) {
+                                        showTextBox = true
+                                    }
+                                }
 
-								viewModel.updatePathInDb(paths)
-							}
-						}
-					}
-				},
-				modifier = Modifier.fillMaxSize()
-			)
-		}
+                                if (showTextBox) {
+                                    MovableTextBox(
+                                        onRemove = { showTextBox = false },
+                                        drawMode = drawMode
+                                    )
+                                }
+                            }
+                        }
+                    }
+                },
+                modifier = Modifier.fillMaxSize()
+            )
+        }
 
-		if (openNameSketchDialog.value) {
-			NameSketchDialog(
-				onNamed = { name -> save(name) },
-				onDismiss = { openNameSketchDialog.value = false }
-			)
-		}
+        if (openNameSketchDialog.value) {
+            NameSketchDialog(
+                onNamed = { name -> save(name) },
+                onDismiss = { openNameSketchDialog.value = false }
+            )
+        }
 
-		if (openSavePromptDialog.value) {
-			val sketchIsNew = sketch == null
-			SavePromptDialog(
-				sketchIsNew = sketchIsNew,
-				onSave = {
-					if (sketchIsNew) {
-						openNameSketchDialog.value = true
-					} else {
-						save(null)
-					}
-				},
-				onDiscard = { navigate(Screens.Back) },
-				onDismiss = { openSavePromptDialog.value = false }
-			)
-		}
+        if (openSavePromptDialog.value) {
+            val sketchIsNew = sketch == null
+            SavePromptDialog(
+                sketchIsNew = sketchIsNew,
+                onSave = {
+                    if (sketchIsNew) {
+                        openNameSketchDialog.value = true
+                    } else {
+                        save(null)
+                    }
+                },
+                onDiscard = { navigate(Screens.Back) },
+                onDismiss = { openSavePromptDialog.value = false }
+            )
+        }
 
-		DisposableEffect(Unit) {
-			onDispose { actions(SketchPadActions.SketchClosed) }
-		}
+        DisposableEffect(Unit) {
+            onDispose { actions(SketchPadActions.SketchClosed) }
+        }
 
-		// onBackPress, if canvas has new lines drawn, prompt user to save sketch or changes
-		if (paths.isNotEmpty() && paths != sketch?.pathList) {
-			BackHandler { openSavePromptDialog.value = true }
-		}
-	}
+        // onBackPress, if canvas has new lines drawn, prompt user to save sketch or changes
+        if (paths.isNotEmpty() && paths != sketch?.pathList) {
+            BackHandler { openSavePromptDialog.value = true }
+        }
+    }
 }
+
+data class TextInput(
+    val text: String = "",
+    val position: Offset = Offset.Zero,
+    val fontSize: Int = 16,
+    val fontColor: Color = Color.Black,
+    val fontStyle: FontStyle = FontStyle.Normal,
+    val fontWeight: FontWeight = FontWeight.Normal,
+    val fontFamily: FontFamily = FontFamily.Default
+)

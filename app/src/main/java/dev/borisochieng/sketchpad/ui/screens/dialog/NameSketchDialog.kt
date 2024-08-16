@@ -38,7 +38,7 @@ fun NameSketchDialog(
 		confirmButton = {
 			Button(
 				onClick = { onNamed(name) },
-				enabled = name.isNotEmpty()
+				enabled = name.isNotEmpty() && name != currentName
 			) {
 				Text("Save")
 			}

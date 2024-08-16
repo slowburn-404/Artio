@@ -30,10 +30,11 @@ fun AppRoute(
 	navActions: NavActions,
 	navController: NavHostController,
 	saveImage: (Bitmap) -> Unit,
+	saveImageAsPdf: (Bitmap) -> Unit,
 	authViewModel: AuthViewModel = koinViewModel(),
 	homeViewModel: HomeViewModel = koinViewModel(),
 	sketchPadViewModel: SketchPadViewModel = koinViewModel(),
-	broadCastUrl: (Uri) -> Unit
+	broadCastUrl: (Uri) -> Unit,
 ) {
 	NavHost(
 //		modifier = Modifier.padding(paddingValues), this gives the app unnecessary padding
@@ -52,17 +53,17 @@ fun AppRoute(
 			route = AppRoute.SketchPad.route,
 			animationDirection = AnimationDirection.UpDown
 		) { backStackEntry ->
-			val sketchId = backStackEntry.arguments?.getString("sketchId") ?: ""
-			val boardId = backStackEntry.arguments?.getString("boardId") ?: ""
-			val userId = backStackEntry.arguments?.getString("userId") ?: ""
-			LaunchedEffect(true) {
+			val sketchId = backStackEntry.arguments?.getString("sketchId") ?: "" // sketchId is the same as boardId
+			LaunchedEffect(sketchId) {
 				sketchPadViewModel.fetchSketch(sketchId)
+				sketchPadViewModel.generateCollabUrl(sketchId)
 			}
 
 			DrawingBoard(
-				sketch = sketchPadViewModel.sketch,
+				uiState = sketchPadViewModel.uiState,
 				exportSketch = saveImage,
 				actions = sketchPadViewModel::actions,
+				exportSketchAsPdf = saveImageAsPdf,
 				navigate = navActions::navigate,
 				onBroadCastUrl = broadCastUrl
 			)

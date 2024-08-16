@@ -8,7 +8,7 @@ class NavActions(private val navController: NavHostController) {
     fun navigate(screen: Screens) {
         when (screen) {
             Screens.HomeScreen -> navigateToHomeScreen()
-            is Screens.SketchPad -> navigateToSketchPad(screen.sketchId, screen.boardId, screen.userId)
+            is Screens.SketchPad -> navigateToSketchPad(screen.sketchId)
             Screens.SettingsScreen -> navigateToSettingsScreen()
             Screens.ProfileScreen -> navigateToProfileScreen()
             Screens.Back -> navController.navigateUp()
@@ -29,14 +29,10 @@ class NavActions(private val navController: NavHostController) {
         }
     }
 
-    private fun navigateToSketchPad(
-        sketchId: String,
-        boardId: String,
-        userId: String
-    ) {
+    private fun navigateToSketchPad(sketchId: String) {
         navController.navigate(
-            AppRoute.SketchPad.routeWithIds(sketchId, boardId, userId)
-        )
+            AppRoute.SketchPad.routeWithId(sketchId)
+        ) { launchSingleTop = true }
     }
 
     private fun navigateToSettingsScreen() {
@@ -62,7 +58,7 @@ class NavActions(private val navController: NavHostController) {
 
     private fun navigateToLoginScreen() {
         navController.navigate(AppRoute.LoginScreen.route) {
-            popUpTo(AppRoute.LoginScreen.route) {
+            popUpTo(AppRoute.ProfileScreen.route) {
                 inclusive = true
             }
             launchSingleTop = true
@@ -82,12 +78,8 @@ class NavActions(private val navController: NavHostController) {
 @SuppressLint("DefaultLocale")
 sealed class AppRoute(val route: String) {
     data object HomeScreen : AppRoute("home_screen")
-    data object SketchPad : AppRoute("sketchpad/{sketchId}/{boardId}/{userId}") {
-        fun routeWithIds(
-            sketchId: String,
-            boardId: String,
-            userId: String
-        ) = String.format("sketchpad/%s/%2s/%3s", sketchId, boardId, userId)
+    data object SketchPad : AppRoute("sketchpad/{sketchId}") {
+        fun routeWithId(sketchId: String) = String.format("sketchpad/%s", sketchId)
     }
 
     data object SettingsScreen : AppRoute("settings_screen")
@@ -101,11 +93,7 @@ sealed class AppRoute(val route: String) {
 
 sealed class Screens {
     data object HomeScreen : Screens()
-    data class SketchPad(
-        val sketchId: String,
-        val boardId: String = "",
-        val userId: String = ""
-    ) : Screens()
+    data class SketchPad(val sketchId: String) : Screens()
     data object SettingsScreen : Screens()
     data object ProfileScreen : Screens()
     data object Back : Screens()

@@ -54,7 +54,6 @@ import dev.borisochieng.sketchpad.auth.presentation.viewmodels.AuthViewModel
 import dev.borisochieng.sketchpad.ui.navigation.Screens
 import dev.borisochieng.sketchpad.ui.theme.AppTypography
 import dev.borisochieng.sketchpad.ui.theme.lightScheme
-import kotlinx.coroutines.flow.collectLatest
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -470,7 +469,7 @@ fun String.checkIfInputFieldsAreEmpty(input: String): String {
 }
 
 fun isValidEmail(email: String): Boolean {
-    return Patterns.EMAIL_ADDRESS.matcher(email).matches()
+    return Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()
 }
 
 private fun checkIfPasswordsMatch(password: String, confirmPassword: String): Boolean {

@@ -1,13 +1,16 @@
 package dev.borisochieng.sketchpad.auth.presentation.viewmodels
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
 import dev.borisochieng.sketchpad.auth.data.FirebaseResponse
 import dev.borisochieng.sketchpad.auth.domain.AuthRepository
+import dev.borisochieng.sketchpad.auth.domain.model.User
 import dev.borisochieng.sketchpad.auth.presentation.state.UiEvent
 import dev.borisochieng.sketchpad.auth.presentation.state.UiState
 import dev.borisochieng.sketchpad.ui.navigation.AppRoute
@@ -74,7 +77,7 @@ class AuthViewModel : ViewModel(), KoinComponent {
                     error = ""
                 )
             }
-            val response = authRepository.signUp(email, password)
+            val response = authRepository.signUp(email.trim(), password)
 
             _uiState.update {
                 it.copy(
@@ -120,7 +123,7 @@ class AuthViewModel : ViewModel(), KoinComponent {
                     error = ""
                 )
             }
-            val response = authRepository.login(email, password)
+            val response = authRepository.login(email.trim(), password)
 
             _uiState.update {
                 it.copy(
@@ -189,61 +192,25 @@ class AuthViewModel : ViewModel(), KoinComponent {
             }
         }
 
-//    fun updateProfile(imageUrl: Uri, username: String) =
-//        viewModelScope.launch {
-//            val updateProfileTask =
-//                authRepository.updateUserProfile(displayName = username, imageUrl = imageUrl)
-//
-//            when (updateProfileTask) {
-//                is FirebaseResponse.Success -> {
-//                    _uiState.update {
-//                        it.copy(
-//                            user = updateProfileTask.data
-//                        )
-//                    }
-//                    _eventFlow.emit(UiEvent.SnackBarEvent("Profile Update Successfully"))
-//                }
-//
-//                is FirebaseResponse.Error -> {
-//                    _eventFlow.emit(UiEvent.SnackBarEvent(updateProfileTask.message))
-//                    _uiState.update {
-//                        it.copy(
-//                            error = updateProfileTask.message
-//                        )
-//                    }
-//                }
-//            }
-//        }
-//
-//    fun uploadImage(uri: Uri) =
-//        viewModelScope.launch {
-//            val uploadTask = authRepository.uploadImageToFireStore(uri = uri)
-//
-//            when (uploadTask) {
-//                is FirebaseResponse.Success -> {
-//                    val imageUrl = uploadTask.data
-//
-//                    if (imageUrl != null) {
-//                        _uiState.update {
-//                            it.copy(
-//                                user = it.user?.copy(
-//                                    imageUrl = imageUrl
-//                                )
-//                            )
-//                        }
-//                    }
-//                }
-//
-//                is FirebaseResponse.Error -> {
-//                    _uiState.update {
-//                        it.copy(
-//                            error = uploadTask.message
-//                        )
-//                    }
-//                    _eventFlow.emit(UiEvent.SnackBarEvent(uploadTask.message))
-//                }
-//            }
-//        }
+    fun refreshUserData() =
+        viewModelScope.launch {
+            val updatedUser = FirebaseAuth.getInstance().currentUser
+            updatedUser?.let { currentUser ->
+                val user = User(
+                    uid = currentUser.uid,
+                    email = currentUser.email!!,
+                    displayName = currentUser.displayName,
+                    imageUrl = currentUser.photoUrl,
+                    isLoggedIn = true
+
+                    )
+                _uiState.update {
+                    it.copy(
+                        user = user
+                    )
+                }
+            }
+        }
 
     fun uploadImageAndUpdateProfile(uri: Uri, username: String) =
         viewModelScope.launch {
@@ -271,6 +238,7 @@ class AuthViewModel : ViewModel(), KoinComponent {
 
                         when (updateProfileTask) {
                             is FirebaseResponse.Success -> {
+                                Log.i("User profile", "Updated user: ${updateProfileTask.data}")
                                 _uiState.update {
                                     it.copy(
                                         user = updateProfileTask.data,
@@ -305,5 +273,36 @@ class AuthViewModel : ViewModel(), KoinComponent {
                 }
             }
 
+        }
+
+    fun resetPassword(email: String) =
+        viewModelScope.launch {
+            val sendEmailTask = authRepository.sendPasswordResetEmail(email)
+            _uiState.update {
+                it.copy(
+                    isLoading = true,
+                    error = ""
+                )
+            }
+
+            when(sendEmailTask) {
+                is FirebaseResponse.Success -> {
+                    _uiState.update {
+                        it.copy(isLoading = false)
+                    }
+                    _eventFlow.emit(UiEvent.SnackBarEvent(sendEmailTask.data.toString()))
+                }
+
+                is FirebaseResponse.Error -> {
+                    _uiState.update {
+                        it.copy(
+                            error = sendEmailTask.message,
+                            isLoading = false
+                        )
+                    }
+
+                    _eventFlow.emit(UiEvent.SnackBarEvent(sendEmailTask.message))
+                }
+            }
         }
 }
