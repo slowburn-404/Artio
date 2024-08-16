@@ -18,7 +18,12 @@ object Extensions {
 
     fun String.toDate(): Date? {
         val style = SimpleDateFormat(DATE_PATTERN, Locale.getDefault())
-        return style.parse(this)
+        val style2 = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        return try {
+            style.parse(this)
+        } catch (e: Exception) {
+            style2.parse(this)
+        }
     }
 
     fun String.toColor(): Color {

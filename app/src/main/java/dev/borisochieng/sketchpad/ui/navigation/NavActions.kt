@@ -32,7 +32,7 @@ class NavActions(private val navController: NavHostController) {
     private fun navigateToSketchPad(sketchId: String) {
         navController.navigate(
             AppRoute.SketchPad.routeWithId(sketchId)
-        )
+        ) { launchSingleTop = true }
     }
 
     private fun navigateToSettingsScreen() {

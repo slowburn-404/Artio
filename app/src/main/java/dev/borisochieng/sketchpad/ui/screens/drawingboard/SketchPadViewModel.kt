@@ -16,7 +16,6 @@ import dev.borisochieng.sketchpad.collab.domain.CollabRepository
 import dev.borisochieng.sketchpad.database.Sketch
 import dev.borisochieng.sketchpad.database.repository.SketchRepository
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.alt.PathProperties
-import dev.borisochieng.sketchpad.utils.VOID_ID
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -60,14 +59,13 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 		viewModelScope.launch {
 			sketchRepository.getSketch(sketchId).collect { fetchedSketch ->
 				_uiState.update { it.copy(sketch = fetchedSketch) }
-//				val remoteSketches = fetchSketchesFromRemoteDB()
-				if (sketchId == VOID_ID) {
+				try {
+					_uiState.update { state -> state.copy(
+						sketchIsBackedUp = fetchedSketch.id in remoteSketches.map { it.id }
+					) }
+				} catch (e: Exception) {
 					_uiState.update { it.copy(sketchIsBackedUp = false) }
-					return@collect
 				}
-				_uiState.update { state -> state.copy(
-					sketchIsBackedUp = fetchedSketch.id in remoteSketches.map { it.id }
-				) }
 			}
 		}
 	}
@@ -99,6 +97,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 				pathList = paths
 			)
 			sketchRepository.updateSketch(updatedSketch)
+			updatePathInDb(paths)
 		}
 	}
     
@@ -240,11 +239,9 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 			return remoteSketches
 		}
 		val response = collabRepository.fetchExistingSketches(firebaseUser.uid)
-		Log.i("SketchInfo", "Remote drawings: $response")
 
 		remoteSketches = when (response) {
 			is FirebaseResponse.Success -> {
-				Log.i("SketchInfo", "Remote drawings: ${response.data}")
 				response.data ?: emptyList()
 			}
 			else -> emptyList()
