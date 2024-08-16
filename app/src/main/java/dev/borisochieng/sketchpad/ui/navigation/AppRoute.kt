@@ -54,7 +54,7 @@ fun AppRoute(
 			animationDirection = AnimationDirection.UpDown
 		) { backStackEntry ->
 			val sketchId = backStackEntry.arguments?.getString("sketchId") ?: "" // sketchId is the same as boardId
-			LaunchedEffect(true) {
+			LaunchedEffect(sketchId) {
 				sketchPadViewModel.fetchSketch(sketchId)
 				sketchPadViewModel.generateCollabUrl(sketchId)
 			}
