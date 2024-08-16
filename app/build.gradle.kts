@@ -62,6 +62,10 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
 
+    //coil
+    implementation(libs.coil)
+    implementation(libs.coil.compose)
+
     // compose
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
@@ -71,6 +75,15 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material.icons)
     implementation(libs.androidx.material3)
+
+    //dataStore
+    implementation (libs.androidx.datastore.preferences)
+
+    //firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.storage)
+    implementation(libs.firebase.database)
 
     // gson
     implementation(libs.gson)
@@ -89,16 +102,7 @@ dependencies {
     // splashscreen
     implementation(libs.splash)
 
-    //firebase
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.auth)
-    implementation(libs.firebase.storage)
-    implementation(libs.firebase.database)
-
-    //coil
-    implementation(libs.coil)
-    implementation(libs.coil.compose)
-
+    // test
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -107,10 +111,4 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    //SketchPad Lib
-    implementation  (libs.drawbox)
-    implementation  (libs.rang.vikalp)
-
-    //dataStore
-    implementation (libs.androidx.datastore.preferences)
 }
