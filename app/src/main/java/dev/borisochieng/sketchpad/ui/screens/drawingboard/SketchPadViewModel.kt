@@ -98,8 +98,8 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 			)
 			sketchRepository.updateSketch(updatedSketch)
 
-			if(!uiState.userIsLoggedIn) return@launch
-			updatePathInDb(paths = paths)
+//			if(!uiState.userIsLoggedIn) return@launch
+//			updatePathInDb(paths)
 		}
 	}
     
@@ -170,19 +170,14 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 	        }
         }
 
-    fun updatePathInDb(paths: List<PathProperties>) =
+    fun updatePathInDb(paths: List<PathProperties>, userId: String, boardId: String) =
         viewModelScope.launch {
-            val boardDetails = _uiState.value.boardDetails
-	        Log.i("VM Board details", boardDetails.toString())
             if (paths.isNotEmpty()) {
-                val pathIds =
-                    boardDetails.pathIds.take(paths.size) //ensure paths id matches path count
                 val response =
                     collabRepository.updatePathInDB(
-                        userId = boardDetails.userId,
-                        boardId = boardDetails.boardId,
-                        paths = paths.map { it.toDBPathProperties() },
-                        pathIds = pathIds
+                        userId = userId,
+                        boardId = boardId,
+                        paths = paths.map { it.toDBPathProperties() }
                     )
 
                 if (response is FirebaseResponse.Error) {

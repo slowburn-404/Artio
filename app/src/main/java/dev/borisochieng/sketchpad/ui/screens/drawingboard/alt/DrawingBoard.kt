@@ -117,7 +117,7 @@ fun DrawingBoard(
     LaunchedEffect(paths) {
         if (!userIsLoggedIn) return@LaunchedEffect
         delay(300)
-        viewModel.updatePathInDb(paths)
+        viewModel.updatePathInDb(paths = paths, userId = userId, boardId = boardId)
 
     }
 
@@ -280,7 +280,7 @@ fun DrawingBoard(
                                             paths = absolutePaths.toList()
 
                                             //update paths in db as they are drawn
-                                            viewModel.updatePathInDb(paths)
+                                            viewModel.updatePathInDb(paths = paths, userId = userId, boardId = boardId)
                                         }
                                     }
                             ) {

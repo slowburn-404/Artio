@@ -124,7 +124,6 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
         userId: String,
         boardId: String,
         paths: List<DBPathProperties>,
-        pathIds: List<String>
     ): FirebaseResponse<String> =
         withContext(Dispatchers.IO) {
             val pathRef =
@@ -135,9 +134,12 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
                     .child("paths")
 
             return@withContext try {
-                    //match path objects to pathids
-                    val pathsMap = pathIds.zip(paths).associate { (id, path) -> id to path}
+                    val pathsMap = paths.mapIndexed { index, path ->
+                        "path_$index" to path
+                    }.toMap()
 
+
+                //update path in db
                 pathRef.updateChildren(pathsMap.mapValues { it.value }).await()
 
 
