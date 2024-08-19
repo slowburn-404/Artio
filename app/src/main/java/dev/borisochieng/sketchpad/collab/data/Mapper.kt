@@ -10,6 +10,7 @@ import dev.borisochieng.sketchpad.utils.Extensions.toHexString
 
 fun PathProperties.toDBPathProperties(): DBPathProperties {
     return DBPathProperties(
+        id = id,
         alpha = alpha,
         color = color.toHexString(),
         eraseMode = eraseMode,

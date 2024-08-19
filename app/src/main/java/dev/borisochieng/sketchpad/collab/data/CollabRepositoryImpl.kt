@@ -45,12 +45,11 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
                 if (boardId == null) {
                     Log.e("CreateSketch", "failed to generate board id")
                     //return early if board id has not been generated
-                    return@withContext FirebaseResponse.Error("Falied to generate board id")
+                    return@withContext FirebaseResponse.Error("Failed to generate board id")
                 }
                 //create a map of generated path IDS to the corresponding DBProperties
-                val pathData = sketch.paths.associateBy { _ ->
-                    val pathId = databaseRef.push().key ?: ""
-                    pathId
+                val pathData = sketch.paths.associateBy { path ->
+                    path.id
                 }
 
                 val boardData = mapOf(
@@ -134,14 +133,15 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
                     .child("paths")
 
             return@withContext try {
-                    val pathsMap = paths.mapIndexed { index, path ->
-                        "path_$index" to path
-                    }.toMap()
+                val updates = mutableMapOf<String, Any>()
 
+                for (path in paths) {
+                    val pathKey = path.id
+                    updates[pathKey] = path
+                }
 
                 //update path in db
-                pathRef.updateChildren(pathsMap.mapValues { it.value }).await()
-
+                pathRef.updateChildren(updates).await()
 
                 FirebaseResponse.Success("")
 
@@ -184,10 +184,16 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
 
                 //monitor modification of existing lines
                 override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
-                    val updatedPath = snapshot.getValue(object : GenericTypeIndicator<Map<*, *>>() {})
-                    val deserializedUpdatedPath = updatedPath?.let{ deserializeDBPathProperties(pathId = snapshot.key ?: "", pathObject = it)}
+                    val updatedPath =
+                        snapshot.getValue(object : GenericTypeIndicator<Map<*, *>>() {})
+                    val deserializedUpdatedPath = updatedPath?.let {
+                        deserializeDBPathProperties(
+                            pathId = snapshot.key ?: "",
+                            pathObject = it
+                        )
+                    }
                     if (updatedPath != null) {
-                        val index = pathsFromDb.indexOfFirst { it == deserializedUpdatedPath}
+                        val index = pathsFromDb.indexOfFirst { it == deserializedUpdatedPath }
 
                         if (index != -1 && deserializedUpdatedPath != null) {
                             pathsFromDb[index] = deserializedUpdatedPath
@@ -200,8 +206,14 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
 
                 //monitor removal of lines
                 override fun onChildRemoved(snapshot: DataSnapshot) {
-                    val removedPath = snapshot.getValue(object : GenericTypeIndicator<Map<*, *>>() {})
-                    val deserializedPath = removedPath?.let { deserializeDBPathProperties(pathId = snapshot.key ?: "", pathObject = it) }
+                    val removedPath =
+                        snapshot.getValue(object : GenericTypeIndicator<Map<*, *>>() {})
+                    val deserializedPath = removedPath?.let {
+                        deserializeDBPathProperties(
+                            pathId = snapshot.key ?: "",
+                            pathObject = it
+                        )
+                    }
                     if (removedPath != null) {
                         pathsFromDb.removeAll { it == deserializedPath }
                         val domainPaths = pathsFromDb.map { it.toPathProperties() }
@@ -253,7 +265,11 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
             }
         }
 
-    override suspend fun renameSketchInRemoteDB(userId: String, boardId: String, title: String): FirebaseResponse<String> =
+    override suspend fun renameSketchInRemoteDB(
+        userId: String,
+        boardId: String,
+        title: String
+    ): FirebaseResponse<String> =
         withContext(Dispatchers.IO) {
             val boardTitleRef = databaseRef
                 .child("Users")
@@ -268,7 +284,7 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
 
             } catch (e: Exception) {
                 e.printStackTrace()
-                Log.e("Rename sketch",e.message.toString())
+                Log.e("Rename sketch", e.message.toString())
                 FirebaseResponse.Error("Cannot rename sketch, please try again")
             }
         }

@@ -1,6 +1,9 @@
 package dev.borisochieng.sketchpad.collab.data.models
 
+import java.util.UUID.randomUUID
+
 data class DBPathProperties(
+    val id: String = randomUUID().toString(),
     val alpha: Float = 0f,
     val color: String = "",
     val eraseMode: Boolean = false,
