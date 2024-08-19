@@ -5,7 +5,7 @@ import androidx.compose.ui.graphics.Color
 import java.util.UUID.randomUUID
 
 data class PathProperties(
-	val id: String = randomUUID().toString(),
+	val id: String = "",
 	val alpha: Float = 1f,
 	val color: Color = Color.Black,
 	val eraseMode: Boolean = false,

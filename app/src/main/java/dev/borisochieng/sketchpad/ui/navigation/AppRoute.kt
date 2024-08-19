@@ -8,6 +8,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.google.firebase.auth.FirebaseAuth
 import dev.borisochieng.sketchpad.auth.presentation.screens.LoginScreen
 import dev.borisochieng.sketchpad.auth.presentation.screens.OnBoardingScreen
 import dev.borisochieng.sketchpad.auth.presentation.screens.ProfileScreen
@@ -55,7 +56,7 @@ fun AppRoute(
 			animationDirection = AnimationDirection.UpDown
 		) { backStackEntry ->
 			val sketchId = backStackEntry.arguments?.getString("sketchId") ?: "" // sketchId is the same as boardId
-			val userId = backStackEntry.arguments?.getString("boardId") ?: VOID_ID
+			val userId = backStackEntry.arguments?.getString("userId") ?: FirebaseAuth.getInstance().currentUser?.uid ?: VOID_ID
 			LaunchedEffect(sketchId) {
 				sketchPadViewModel.fetchSketch(sketchId)
 				sketchPadViewModel.generateCollabUrl(sketchId)

@@ -140,10 +140,12 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
                     updates[pathKey] = path
                 }
 
+
+
                 //update path in db
                 pathRef.updateChildren(updates).await()
 
-                FirebaseResponse.Success("")
+                FirebaseResponse.Success("Sketch updated")
 
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -307,6 +309,7 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
 
                 val deserializedDBSketch = dbSketch?.let { deserializeDBSketch(it) }
                 if (dbSketch != null) {
+                    Log.i("Single Sketch", deserializedDBSketch.toString())
                     FirebaseResponse.Success(deserializedDBSketch?.toSketch())
                 } else {
                     FirebaseResponse.Error("Board not found")

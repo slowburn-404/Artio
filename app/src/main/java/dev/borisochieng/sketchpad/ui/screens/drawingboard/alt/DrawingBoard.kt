@@ -61,6 +61,7 @@ import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.rememberDrawContr
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
+import java.util.UUID.randomUUID
 
 @Composable
 fun DrawingBoard(
@@ -118,6 +119,7 @@ fun DrawingBoard(
         if (!userIsLoggedIn) return@LaunchedEffect
         delay(300)
         viewModel.updatePathInDb(paths = paths, userId = userId, boardId = boardId)
+        viewModel.listenForSketchChanges(userId = userId, boardId = boardId)
 
     }
 
@@ -265,6 +267,7 @@ fun DrawingBoard(
                                             change.consume()
                                             val eraseMode = drawMode == DrawMode.Erase
                                             val path = PathProperties(
+                                                id = randomUUID().toString(), //generate id for each new path
                                                 color = when (drawMode) {
                                                     DrawMode.Erase -> Color.White
                                                     DrawMode.Draw -> color
