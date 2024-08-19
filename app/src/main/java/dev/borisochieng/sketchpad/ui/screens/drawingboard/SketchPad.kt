@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import android.widget.Toast
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.rememberTransformableState
-import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,8 +31,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asAndroidBitmap
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import dev.borisochieng.sketchpad.database.Sketch
@@ -41,10 +38,6 @@ import dev.borisochieng.sketchpad.ui.navigation.Screens
 import dev.borisochieng.sketchpad.ui.screens.dialog.NameSketchDialog
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.DrawMode
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.convertToOldColor
-import io.ak1.drawbox.DrawBox
-import io.ak1.drawbox.rememberDrawController
-import io.ak1.rangvikalp.RangVikalp
-import io.ak1.rangvikalp.defaultSelectedColor
 
 @Composable
 fun SketchPadScreen(
@@ -57,12 +50,12 @@ fun SketchPadScreen(
     val redoVisibility = remember { mutableStateOf(false) }
     val colorBarVisibility = remember { mutableStateOf(false) }
     val sizeBarVisibility = remember { mutableStateOf(false) }
-    val currentColor = remember { mutableStateOf(defaultSelectedColor) }
+    val currentColor = remember { mutableStateOf(Color.Black) }
     val bg = MaterialTheme.colorScheme.background
     val currentBgColor = remember { mutableStateOf(bg) }
     val currentSize = remember { mutableIntStateOf(10) }
     val colorIsBg = remember { mutableStateOf(false) }
-    val drawController = rememberDrawController()
+//    val drawController = rememberDrawController()
     val context = LocalContext.current
     var drawMode by remember { mutableStateOf(DrawMode.Draw) }
     val openNameSketchDialog = rememberSaveable { mutableStateOf(false) }
@@ -100,50 +93,50 @@ fun SketchPadScreen(
                 )
             }
 
-            DrawBox(
-                drawController = drawController,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer {
-                        scaleX = scale
-                        scaleY = scale
-                        translationX = offset.x
-                        translationY = offset.y
-                    }
-                    .transformable(state),
-                backgroundColor = currentBgColor.value,
-                bitmapCallback = { imageBitmap, _ ->
-                    if (imageBitmap == null) {
-                        Toast.makeText(context, "No image to save", Toast.LENGTH_SHORT).show()
-                        return@DrawBox
-                    }
-                    art = imageBitmap.asAndroidBitmap()
-                    if (sketch == null) {
-                        openNameSketchDialog.value = true
-                    } else {
-                        save(art!!)
-                        val payload = drawController.exportPath()
-//                        actions(
-//                            SketchPadActions.UpdateSketch(
-//                                art = art!!,
-//                                backgroundColor = payload.bgColor,
-//                                paths = payload.path
-//                            )
-//                        )
-                    }
-                }
-            ) { undoCount, redoCount ->
-                sizeBarVisibility.value = false
-                colorBarVisibility.value = false
-                undoVisibility.value = undoCount != 0
-                redoVisibility.value = redoCount != 0
-            }
+//            DrawBox(
+//                drawController = drawController,
+//                modifier = Modifier
+//                    .fillMaxSize()
+//                    .graphicsLayer {
+//                        scaleX = scale
+//                        scaleY = scale
+//                        translationX = offset.x
+//                        translationY = offset.y
+//                    }
+//                    .transformable(state),
+//                backgroundColor = currentBgColor.value,
+//                bitmapCallback = { imageBitmap, _ ->
+//                    if (imageBitmap == null) {
+//                        Toast.makeText(context, "No image to save", Toast.LENGTH_SHORT).show()
+//                        return@DrawBox
+//                    }
+//                    art = imageBitmap.asAndroidBitmap()
+//                    if (sketch == null) {
+//                        openNameSketchDialog.value = true
+//                    } else {
+//                        save(art!!)
+//                        val payload = drawController.exportPath()
+////                        actions(
+////                            SketchPadActions.UpdateSketch(
+////                                art = art!!,
+////                                backgroundColor = payload.bgColor,
+////                                paths = payload.path
+////                            )
+////                        )
+//                    }
+//                }
+//            ) { undoCount, redoCount ->
+//                sizeBarVisibility.value = false
+//                colorBarVisibility.value = false
+//                undoVisibility.value = undoCount != 0
+//                redoVisibility.value = redoCount != 0
+//            }
 
             IconButton(
                 onClick = {
                     drawMode = if (drawMode == DrawMode.Touch) DrawMode.Draw else DrawMode.Touch
                     val color = if (drawMode == DrawMode.Touch) Color.Transparent else currentColor.value
-                    drawController.changeColor(color)
+//                    drawController.changeColor(color)
                 },
                 modifier = Modifier
                     .padding(20.dp)
@@ -159,9 +152,9 @@ fun SketchPadScreen(
         }
 
         ControlsBar(
-            drawController = drawController,
+//            drawController = drawController,
             onDownloadClick = {
-                drawController.saveBitmap()
+//                drawController.saveBitmap()
             },
             onColorClick = {
                 colorBarVisibility.value = when (colorBarVisibility.value) {
@@ -192,18 +185,18 @@ fun SketchPadScreen(
             sizeValue = currentSize
         )
         Card(colors = cardColors(Color.White))  {
-            RangVikalp(
-                isVisible = colorBarVisibility.value,
-                showShades = true
-            ) {
-                if (colorIsBg.value) {
-                    currentBgColor.value = it
-                    drawController.changeBgColor(it)
-                } else {
-                    currentColor.value = it
-                    drawController.changeColor(it)
-                }
-            }
+//            RangVikalp(
+//                isVisible = colorBarVisibility.value,
+//                showShades = true
+//            ) {
+//                if (colorIsBg.value) {
+//                    currentBgColor.value = it
+//                    drawController.changeBgColor(it)
+//                } else {
+//                    currentColor.value = it
+//                    drawController.changeColor(it)
+//                }
+//            }
         }
         CustomSeekbar(
             isVisible = sizeBarVisibility.value,
@@ -212,7 +205,7 @@ fun SketchPadScreen(
             thumbColor = currentColor.value.convertToOldColor()
         ) {
             currentSize.intValue = it
-            drawController.changeStrokeWidth(it.toFloat())
+//            drawController.changeStrokeWidth(it.toFloat())
         }
 
         if (openNameSketchDialog.value) {
@@ -222,7 +215,7 @@ fun SketchPadScreen(
                         Toast.makeText(context, "No image to save", Toast.LENGTH_SHORT).show()
                         return@NameSketchDialog
                     }
-                    val payload = drawController.exportPath()
+//                    val payload = drawController.exportPath()
 //                    val newSketch = Sketch(
 //                        name = name,
 //                        art = art!!,

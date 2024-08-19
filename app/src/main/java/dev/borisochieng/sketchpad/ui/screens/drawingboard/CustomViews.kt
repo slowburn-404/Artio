@@ -39,13 +39,11 @@ import androidx.core.graphics.BlendModeCompat
 import dev.borisochieng.sketchpad.R
 import dev.borisochieng.sketchpad.ui.theme.AppTheme
 import dev.borisochieng.sketchpad.ui.theme.StatusBarConfig
-import dev.borisochieng.sketchpad.ui.theme.isSystemInDarkThemeCustom
 import dev.borisochieng.sketchpad.ui.theme.lightScheme
-import io.ak1.drawbox.DrawController
 
 @Composable
 fun ControlsBar(
-    drawController: DrawController,
+//    drawController: DrawController,
     onDownloadClick: () -> Unit,
     onColorClick: () -> Unit,
     onBgColorClick: () -> Unit,
@@ -69,21 +67,21 @@ fun ControlsBar(
             desc = "undo",
             colorTint = if (undoVisibility.value) lightScheme.primary else lightScheme.inversePrimary
         ) {
-            if (undoVisibility.value) drawController.unDo()
+//            if (undoVisibility.value) drawController.unDo()
         }
         MenuItems(
             resId = R.drawable.ic_redo,
             desc = "redo",
             colorTint = if (redoVisibility.value) lightScheme.primary else lightScheme.inversePrimary
         ) {
-            if (redoVisibility.value) drawController.reDo()
+//            if (redoVisibility.value) drawController.reDo()
         }
         MenuItems(
             resId = R.drawable.ic_refresh,
             desc = "reset",
             colorTint = if (redoVisibility.value || undoVisibility.value) lightScheme.primary else lightScheme.inversePrimary
         ) {
-            drawController.reset()
+//            drawController.reset()
         }
         MenuItems(
             resId = R.drawable.icons8_color_wheel_24,
