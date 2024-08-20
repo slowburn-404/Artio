@@ -141,7 +141,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
         fetchSketchesFromRemoteDB()
     }
 
-    fun listenForSketchChanges(userId: String, boardId: String) =
+    private fun listenForSketchChanges(userId: String, boardId: String) =
         viewModelScope.launch {
             if (!uiState.userIsLoggedIn || !uiState.sketchIsBackedUp) return@launch
 
@@ -154,6 +154,8 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
                     is FirebaseResponse.Success -> {
                         val newPaths = dbResponse.data ?: emptyList()
                         val mergedPaths = _uiState.value.paths + newPaths
+
+                        Log.i("New paths", )
 
                         _uiState.update {
                             it.copy(
@@ -182,6 +184,8 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
                         boardId = boardId,
                         paths = paths.map { it.toDBPathProperties() }
                     )
+
+                listenForSketchChanges(userId = userId, boardId = boardId)
 
                 if (response is FirebaseResponse.Error) {
                     _uiState.update { it.copy(error = response.message) }
