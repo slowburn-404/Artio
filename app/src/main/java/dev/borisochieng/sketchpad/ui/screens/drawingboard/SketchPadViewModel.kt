@@ -140,7 +140,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 	    fetchSketchesFromRemoteDB()
     }
 
-    fun listenForSketchChanges(userId: String, boardId: String) =
+    private fun listenForSketchChanges(userId: String, boardId: String) =
         viewModelScope.launch {
 			if (!uiState.sketchIsBackedUp) return@launch
 	        val response = collabRepository.listenForPathChanges(
@@ -161,7 +161,6 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 					        )
 				        }
 			        }
-
 			        is FirebaseResponse.Error -> {
 				        _uiState.update { it.copy(error = dbResponse.message) }
 				        _uiEvents.emit(CanvasUiEvents.SnackBarEvent(dbResponse.message))
@@ -180,6 +179,8 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
                         boardId = boardId,
                         paths = paths.map { it.toDBPathProperties() }
                     )
+
+                listenForSketchChanges(userId = userId, boardId = boardId)
 
                 if (response is FirebaseResponse.Error) {
                     _uiState.update { it.copy(error = response.message) }

@@ -150,9 +150,8 @@ fun DrawingBoard(
         if (!userIsLoggedIn) {
             return@LaunchedEffect
         } else if (uiState.sketchIsBackedUp && isFromCollabUrl) {
-            delay(300)
+            //delay(300)
             viewModel.updatePathInDb(paths = paths, userId = userId, boardId = boardId)
-            viewModel.listenForSketchChanges(userId = userId, boardId = boardId)
         }
     }
 
@@ -205,10 +204,6 @@ fun DrawingBoard(
                 },
                 onExportClicked = { drawController.saveBitmap() },
                 onBroadCastUrl = {
-                    Log.d(
-                        "Credentials",
-                        "User id: ${boardDetails.boardId} \n Board id: ${boardDetails.boardId}"
-                    )
                     if (userIsLoggedIn) {
                         if (!sketchIsBackedUp || collabUrl == null) {
                             scope.launch { snackbarHostState.showSnackbar("Sketch is not backed up yet") }

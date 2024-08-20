@@ -168,7 +168,7 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
                 override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
                     val newPath = snapshot.getValue(object : GenericTypeIndicator<Map<*, *>>() {})
                     val deserializedNewPath = newPath?.let {
-                        deserializeDBPathProperties(pathId = snapshot.key ?: "", pathObject = it)
+                        deserializeDBPathProperties(pathObject = it)
                     }
 
                     if (deserializedNewPath != null) {
@@ -186,7 +186,6 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
                         snapshot.getValue(object : GenericTypeIndicator<Map<*, *>>() {})
                     val deserializedUpdatedPath = updatedPath?.let {
                         deserializeDBPathProperties(
-                            pathId = snapshot.key ?: "",
                             pathObject = it
                         )
                     }
@@ -208,7 +207,6 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
                         snapshot.getValue(object : GenericTypeIndicator<Map<*, *>>() {})
                     val deserializedPath = removedPath?.let {
                         deserializeDBPathProperties(
-                            pathId = snapshot.key ?: "",
                             pathObject = it
                         )
                     }
@@ -323,7 +321,7 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
     private fun deserializeDBSketch(board: Map<String, Any?>): DBSketch {
         val paths = (board["paths"] as? Map<*, *>)?.mapNotNull { (pathId, pathObject) ->
             if (pathId is String && pathObject is Map<*, *>) {
-                deserializeDBPathProperties(pathId, pathObject)
+                deserializeDBPathProperties(pathObject)
             } else {
                 null
             }
@@ -339,10 +337,10 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
     }
 
     private fun deserializeDBPathProperties(
-        pathId: String,
         pathObject: Map<*, *>
     ): DBPathProperties {
         return DBPathProperties(
+            id = (pathObject["id"]) as? String ?: "",
             alpha = (pathObject["alpha"] as? Number)?.toFloat() ?: 0f,
             color = pathObject["color"] as? String ?: "",
             eraseMode = pathObject["textMode"] as? Boolean ?: false,
