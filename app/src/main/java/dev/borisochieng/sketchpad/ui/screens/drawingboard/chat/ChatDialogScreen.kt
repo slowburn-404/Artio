@@ -49,12 +49,12 @@ fun ChatDialog(
             // Add your UI elements here
             Column(
                 modifier = Modifier
-                    .padding(16.dp)
-                //      .fillMaxWidth()
+                    .padding(8.dp)
+                     .fillMaxWidth()
             ) {
 
                 LazyColumn(
-                    modifier = Modifier.defaultMinSize(380.dp, 420.dp)
+                    modifier = Modifier.size(420.dp, 420.dp)
                 ) {
                     items(messages.size) { index ->
                         val checkNextSame = checkNextSame(index, messages)

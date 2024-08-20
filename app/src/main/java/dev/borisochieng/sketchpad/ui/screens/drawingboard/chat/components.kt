@@ -77,7 +77,7 @@ fun ChatEditText(
                 focusedContainerColor = Color(0xFFF2F2F2),
                 unfocusedContainerColor = Color(0xFFF2F2F2),
             ),
-            maxLines = 10,
+            maxLines = 2,
             value = text,
             onValueChange = {
                 onValueChange(it)
