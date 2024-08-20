@@ -3,7 +3,7 @@ package dev.borisochieng.sketchpad.database
 import androidx.room.TypeConverter
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import dev.borisochieng.sketchpad.ui.screens.drawingboard.alt.PathProperties
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.PathProperties
 import java.util.Date
 
 class TypeConverter {

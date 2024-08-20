@@ -212,10 +212,16 @@ class HomeViewModel : ViewModel(), KoinComponent {
 	private fun fallbackPlan() {
 		viewModelScope.launch {
 			delay(10000)
-			if (!uiState.isLoading || localSketches == uiState.localSketches) return@launch
+			if (!uiState.isLoading) return@launch
+			val sketches = when {
+				localSketches != uiState.localSketches -> localSketches
+				localSketches == uiState.localSketches && localSketches.isEmpty() -> localSketches
+				localSketches == uiState.localSketches && localSketches.isNotEmpty() -> localSketches
+				else -> emptyList()
+			}
 			_uiState.update {
 				it.copy(
-					localSketches = localSketches,
+					localSketches = sketches,
 					isLoading = false
 				)
 			}

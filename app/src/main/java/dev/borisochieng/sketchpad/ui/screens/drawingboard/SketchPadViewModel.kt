@@ -16,7 +16,10 @@ import dev.borisochieng.sketchpad.collab.data.toDBSketch
 import dev.borisochieng.sketchpad.collab.domain.CollabRepository
 import dev.borisochieng.sketchpad.database.Sketch
 import dev.borisochieng.sketchpad.database.repository.SketchRepository
-import dev.borisochieng.sketchpad.ui.screens.drawingboard.alt.PathProperties
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.CanvasUiEvents
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.CanvasUiState
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.PathProperties
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.SketchPadActions
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow

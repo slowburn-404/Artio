@@ -6,7 +6,7 @@ import dev.borisochieng.sketchpad.collab.data.models.BoardDetails
 import dev.borisochieng.sketchpad.collab.data.models.DBPathProperties
 import dev.borisochieng.sketchpad.collab.data.models.DBSketch
 import dev.borisochieng.sketchpad.database.Sketch
-import dev.borisochieng.sketchpad.ui.screens.drawingboard.alt.PathProperties
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.PathProperties
 import kotlinx.coroutines.flow.Flow
 
 interface CollabRepository {

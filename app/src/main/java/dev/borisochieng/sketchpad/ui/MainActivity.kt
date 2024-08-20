@@ -18,11 +18,11 @@ import dev.borisochieng.sketchpad.ui.components.NavBar
 import dev.borisochieng.sketchpad.ui.navigation.AppRoute
 import dev.borisochieng.sketchpad.ui.navigation.NavActions
 import dev.borisochieng.sketchpad.ui.navigation.Screens
-import dev.borisochieng.sketchpad.ui.screens.drawingboard.Root
-import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.activityChooser
-import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.checkAndAskPermission
-import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.saveImage
-import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.savePdf
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.archives.Root
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.utils.activityChooser
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.utils.checkAndAskPermission
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.utils.saveImage
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.utils.savePdf
 import dev.borisochieng.sketchpad.ui.theme.AppTheme
 import dev.borisochieng.sketchpad.utils.VOID_ID
 import kotlinx.coroutines.CoroutineScope
