@@ -118,14 +118,9 @@ fun DrawingBoard(
     LaunchedEffect(paths) {
         if (!userIsLoggedIn) return@LaunchedEffect
         delay(300)
-        viewModel.updatePathInDb(paths = paths, userId = userId, boardId = boardId)
         viewModel.listenForSketchChanges(userId = userId, boardId = boardId)
-
-    }
-
-    //fetch single sketch
-    LaunchedEffect(Unit) {
-        viewModel.fetchSingleSketch(boardId = boardId, userId = userId)
+        if (paths == uiState.paths) return@LaunchedEffect
+        viewModel.updatePathInDb(paths = paths, userId = userId, boardId = boardId)
     }
 
     LaunchedEffect(uiEvents) {
@@ -284,6 +279,7 @@ fun DrawingBoard(
 
                                             //update paths in db as they are drawn
                                             viewModel.updatePathInDb(paths = paths, userId = userId, boardId = boardId)
+                                            Log.i("SketchInfo", "$paths")
                                         }
                                     }
                             ) {

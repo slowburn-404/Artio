@@ -99,15 +99,12 @@ class MainActivity : ComponentActivity() {
         val action = intent.action
         val data: Uri? = intent.data
 
-        if(action != Intent.ACTION_VIEW || data == null) {
-            Toast.makeText(this, "Please try clicking the link again", Toast.LENGTH_SHORT).show()
-            return
-        }
+        if(action != Intent.ACTION_VIEW || data == null) return
 
         val userId = data.getQueryParameter("user_id")
         val boardId = data.getQueryParameter("board_id")
 
-        navActions.navigate(Screens.SketchPad(sketchId = boardId ?: VOID_ID, userId = userId ?: "00000"))
+        navActions.navigate(Screens.SketchPad(sketchId = boardId ?: VOID_ID, userId = userId ?: VOID_ID))
 
         val message = "User id: $userId \n BoardId: $boardId"
         Log.d("DeepLink", message)

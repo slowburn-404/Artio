@@ -30,12 +30,14 @@ import androidx.compose.ui.unit.sp
 import dev.borisochieng.sketchpad.database.Sketch
 import dev.borisochieng.sketchpad.utils.Extensions.formatDate
 
+typealias SketchId = String
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SketchPoster(
 	sketch: Sketch,
 	modifier: Modifier = Modifier,
-	onClick: (String) -> Unit,
+	onClick: (SketchId) -> Unit,
 	onMenuClicked: (Sketch) -> Unit
 ) {
 	Column(

@@ -56,10 +56,16 @@ fun AppRoute(
 			animationDirection = AnimationDirection.UpDown
 		) { backStackEntry ->
 			val sketchId = backStackEntry.arguments?.getString("sketchId") ?: "" // sketchId is the same as boardId
-			val userId = backStackEntry.arguments?.getString("userId") ?: FirebaseAuth.getInstance().currentUser?.uid ?: VOID_ID
+			val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: VOID_ID
+			val userId = backStackEntry.arguments?.getString("userId") ?: currentUserId
 			LaunchedEffect(sketchId) {
-				sketchPadViewModel.fetchSketch(sketchId)
-				sketchPadViewModel.generateCollabUrl(sketchId)
+				sketchPadViewModel.apply {
+					fetchSketch(sketchId) // from local db
+					if (!uiState.userIsLoggedIn) return@LaunchedEffect
+					generateCollabUrl(sketchId)
+					if (userId == currentUserId) return@LaunchedEffect
+					fetchSingleSketch(sketchId, userId) // from remote db
+				}
 			}
 
 			DrawingBoard(

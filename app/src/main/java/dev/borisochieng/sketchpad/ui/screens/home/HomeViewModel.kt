@@ -90,6 +90,7 @@ class HomeViewModel : ViewModel(), KoinComponent {
 
 	private fun refreshDatabase() {
 		synced = true
+		_uiState.update { it.copy(fetchedFromRemoteDb = false) }
 		viewModelScope.launch {
 //			val remoteSketches = listOf(Sketch(name = "Jankz", pathList = emptyList())) // for testing
 			val remoteSketches = fetchSketchesFromRemoteDB()
@@ -97,7 +98,10 @@ class HomeViewModel : ViewModel(), KoinComponent {
 				sketch.name in remoteSketches.map { it.name }
 			}
 			sketchRepository.refreshDatabase(remoteSketches + unsyncedSketches)
-			_uiState.update { it.copy(remoteSketches = remoteSketches) }
+			_uiState.update { it.copy(
+				remoteSketches = remoteSketches,
+				fetchedFromRemoteDb = true
+			) }
 		}
 	}
 
