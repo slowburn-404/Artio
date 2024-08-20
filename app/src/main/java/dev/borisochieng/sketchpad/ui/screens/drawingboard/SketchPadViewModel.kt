@@ -42,7 +42,6 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
     private val _uiEvents = MutableSharedFlow<CanvasUiEvents>()
     val uiEvents: SharedFlow<CanvasUiEvents> = _uiEvents
 
-//    var sketch by mutableStateOf<Sketch?>(null); private set
 	private var remoteSketches by mutableStateOf<List<Sketch>>(emptyList())
 
     init {

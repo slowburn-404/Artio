@@ -7,10 +7,11 @@ import dev.borisochieng.sketchpad.database.Sketch
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.PathProperties
 import dev.borisochieng.sketchpad.utils.Extensions.formatDate
 import dev.borisochieng.sketchpad.utils.Extensions.toHexString
+import java.util.UUID.randomUUID
 
 fun PathProperties.toDBPathProperties(): DBPathProperties {
     return DBPathProperties(
-        id = id,
+        id = id.takeIf { it.isNotEmpty() } ?: randomUUID().toString(),
         alpha = alpha,
         color = color.toHexString(),
         eraseMode = eraseMode,
