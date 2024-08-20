@@ -67,7 +67,7 @@ fun HomeScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navigate(Screens.SketchPad(VOID_ID, FirebaseAuth.getInstance().uid ?: "0000")) },
+                onClick = { navigate(Screens.SketchPad(VOID_ID,FirebaseAuth.getInstance().uid ?: "0000", false)) },
                 modifier = Modifier.padding(bottom = bottomPadding),
                 containerColor = colorScheme.primary,
                 contentColor = colorScheme.onPrimary
@@ -98,7 +98,7 @@ fun HomeScreen(
                             SketchPoster(
                                 sketch = sketch,
                                 modifier = Modifier.animateItemPlacement(),
-                                onClick = { navigate(Screens.SketchPad(it, sketch.id)) },
+                                onClick = { navigate(Screens.SketchPad(it, sketch.id, false)) },
                                 onMenuClicked = { selectedSketch.value = it }
                             )
                         }

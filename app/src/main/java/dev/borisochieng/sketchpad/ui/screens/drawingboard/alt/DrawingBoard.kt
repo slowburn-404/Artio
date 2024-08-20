@@ -73,7 +73,8 @@ fun DrawingBoard(
     onBroadCastUrl: (Uri) -> Unit,
     viewModel: SketchPadViewModel = koinViewModel(),
     boardId: String,
-    userId: String
+    userId: String,
+    isFromCollabUrl: Boolean
 ) {
     val (userIsLoggedIn, boardDetails, sketchIsBackedUp, _, sketch, collabUrl) = uiState
     var currentTextInput by remember { mutableStateOf(TextInput()) }
@@ -106,6 +107,13 @@ fun DrawingBoard(
 
     val uiEvents by viewModel.uiEvents.collectAsState(initial = null)
 
+    //initialize based on source
+    LaunchedEffect(boardId) {
+        if (isFromCollabUrl) {
+            viewModel.fetchSingleSketch(boardId = boardId, userId = userId)
+        }
+    }
+
     //listen for path changes
     LaunchedEffect(uiState.paths) {
         if (!userIsLoggedIn) return@LaunchedEffect
@@ -121,11 +129,6 @@ fun DrawingBoard(
         viewModel.updatePathInDb(paths = paths, userId = userId, boardId = boardId)
         viewModel.listenForSketchChanges(userId = userId, boardId = boardId)
 
-    }
-
-    //fetch single sketch
-    LaunchedEffect(Unit) {
-        viewModel.fetchSingleSketch(boardId = boardId, userId = userId)
     }
 
     LaunchedEffect(uiEvents) {
@@ -283,7 +286,11 @@ fun DrawingBoard(
                                             paths = absolutePaths.toList()
 
                                             //update paths in db as they are drawn
-                                            viewModel.updatePathInDb(paths = paths, userId = userId, boardId = boardId)
+                                            viewModel.updatePathInDb(
+                                                paths = paths,
+                                                userId = userId,
+                                                boardId = boardId
+                                            )
                                         }
                                     }
                             ) {

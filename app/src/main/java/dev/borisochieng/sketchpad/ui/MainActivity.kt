@@ -41,6 +41,7 @@ class MainActivity : ComponentActivity() {
             Root(window = window) {
                 val navController = rememberNavController()
                 navActions = NavActions(navController)
+                //handleDeepLink(intent)
 
                 AppTheme {
                     Scaffold(
@@ -56,7 +57,7 @@ class MainActivity : ComponentActivity() {
                                     CoroutineScope(Dispatchers.IO).launch {
                                         val uri = saveImage(it)
                                         withContext(Dispatchers.Main) {
-                                        startActivity(activityChooser(uri))
+                                            startActivity(activityChooser(uri))
                                         }
                                     }
                                 }
@@ -79,6 +80,8 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
+        handleDeepLink(intent = intent) // handle deep link on cold start
     }
 
     private fun shareCollaborateUrl(url: Uri) {
@@ -92,25 +95,38 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        setIntent(intent) //update current intent with new one
         handleDeepLink(intent)
     }
+
+//    override fun onResume() {
+//        super.onResume()
+//        handleDeepLink(intent)
+//    }
 
     private fun handleDeepLink(intent: Intent) {
         val action = intent.action
         val data: Uri? = intent.data
 
-        if(action != Intent.ACTION_VIEW || data == null) {
-            Toast.makeText(this, "Please try clicking the link again", Toast.LENGTH_SHORT).show()
-            return
+        action?.let {
+            if (it == Intent.ACTION_VIEW && data != null && ::navActions.isInitialized) {
+
+                val userId = data.getQueryParameter("user_id")
+                val boardId = data.getQueryParameter("board_id")
+
+                navActions.navigate(
+                    Screens.SketchPad(
+                        sketchId = boardId!!,
+                        isFromCollabUrl = true,
+                        userId = userId!!
+                    )
+                )
+
+                val message = "User id: $userId \n BoardId: $boardId"
+                Log.d("DeepLink", message)
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+
+            }
         }
-
-        val userId = data.getQueryParameter("user_id")
-        val boardId = data.getQueryParameter("board_id")
-
-        navActions.navigate(Screens.SketchPad(sketchId = boardId ?: VOID_ID, userId = userId ?: "00000"))
-
-        val message = "User id: $userId \n BoardId: $boardId"
-        Log.d("DeepLink", message)
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 }

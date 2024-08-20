@@ -8,7 +8,7 @@ class NavActions(private val navController: NavHostController) {
     fun navigate(screen: Screens) {
         when (screen) {
             Screens.HomeScreen -> navigateToHomeScreen()
-            is Screens.SketchPad -> navigateToSketchPad(screen.sketchId, screen.userId)
+            is Screens.SketchPad -> navigateToSketchPad(screen.sketchId, screen.userId, isFromCollabUrl = false)
             Screens.SettingsScreen -> navigateToSettingsScreen()
             Screens.ProfileScreen -> navigateToProfileScreen()
             Screens.Back -> navController.navigateUp()
@@ -29,9 +29,9 @@ class NavActions(private val navController: NavHostController) {
         }
     }
 
-    private fun navigateToSketchPad(sketchId: String, userId: String) {
+    private fun navigateToSketchPad(sketchId: String, userId: String, isFromCollabUrl: Boolean) {
         navController.navigate(
-            AppRoute.SketchPad.routeWithId(sketchId, userId)
+            AppRoute.SketchPad.routeWithId(sketchId, userId, isFromCollabUrl)
         ) { launchSingleTop = true }
     }
 
@@ -78,8 +78,8 @@ class NavActions(private val navController: NavHostController) {
 @SuppressLint("DefaultLocale")
 sealed class AppRoute(val route: String) {
     data object HomeScreen : AppRoute("home_screen")
-    data object SketchPad : AppRoute("sketchpad/{sketchId}/{userId}") {
-        fun routeWithId(sketchId: String, userId: String) = String.format("sketchpad/%s/%s", sketchId, userId)
+    data object SketchPad : AppRoute("sketchpad/{sketchId}/{userId}/{isFromCollabUrl}") {
+        fun routeWithId(sketchId: String, userId: String, isFromCollabUrl: Boolean) = String.format("sketchpad/%s/%s/%b", sketchId, userId, isFromCollabUrl)
     }
 
     data object SettingsScreen : AppRoute("settings_screen")
@@ -93,7 +93,7 @@ sealed class AppRoute(val route: String) {
 
 sealed class Screens {
     data object HomeScreen : Screens()
-    data class SketchPad(val sketchId: String, val userId: String) : Screens()
+    data class SketchPad(val sketchId: String, val userId: String, val isFromCollabUrl: Boolean = false) : Screens()
     data object SettingsScreen : Screens()
     data object ProfileScreen : Screens()
     data object Back : Screens()

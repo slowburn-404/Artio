@@ -175,8 +175,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 
     fun updatePathInDb(paths: List<PathProperties>, userId: String, boardId: String) =
         viewModelScope.launch {
-            Log.d("Paths", paths.toString())
-            if (paths.isNotEmpty() && uiState.userIsLoggedIn) {
+            if (paths.isNotEmpty()) {
                 val response =
                     collabRepository.updatePathInDB(
                         userId = userId,
