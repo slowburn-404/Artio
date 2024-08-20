@@ -117,7 +117,7 @@ fun DrawingBoard(
     val addTextToPaths: (String) -> Unit = { textId ->
         val textPath = PathProperties(id = textId, textMode = true)
         paths += textPath
-	    absolutePaths.clear()
+        absolutePaths.clear()
         absolutePaths.addAll(paths)
     }
     val removeTextFromPaths: (String) -> Unit = { textId ->
@@ -300,35 +300,6 @@ fun DrawingBoard(
                                         translationY = offset.y
                                     }
                                     .transformable(state)
-                                    .pointerInput(true) {
-                                        if (drawMode == DrawMode.Touch) return@pointerInput
-                                        detectDragGestures { change, dragAmount ->
-                                            change.consume()
-                                            val eraseMode = drawMode == DrawMode.Erase
-                                            val path = PathProperties(
-                                                id = randomUUID().toString(), //generate id for each new path
-                                                color = when (drawMode) {
-                                                    DrawMode.Erase -> Color.White
-                                                    DrawMode.Draw -> color
-                                                    else -> Color.Transparent
-                                                },
-                                                eraseMode = eraseMode,
-                                                start = change.position - dragAmount,
-                                                end = change.position,
-                                                strokeWidth = pencilSize
-                                            )
-
-                                            absolutePaths += path
-                                            paths = absolutePaths.toList()
-
-                                            //update paths in db as they are drawn
-                                            viewModel.updatePathInDb(
-                                                paths = paths,
-                                                userId = userId,
-                                                boardId = boardId
-                                            )
-                                        }
-                                    }
                             ) {
                                 Canvas(
                                     modifier = Modifier
@@ -352,7 +323,7 @@ fun DrawingBoard(
                                                 )
 
                                                 paths += path
-	                                            absolutePaths.clear()
+                                                absolutePaths.clear()
                                                 absolutePaths.addAll(paths)
 
                                                 //update paths in db as they are drawn
@@ -368,7 +339,7 @@ fun DrawingBoard(
                                     paths
                                         .filterNot { it.textMode }
                                         .forEach { path ->
-											drawLine(
+                                            drawLine(
                                                 color = path.color,
                                                 start = path.start,
                                                 end = path.end,
@@ -445,11 +416,11 @@ fun DrawingBoard(
         }
 
         // onBackPress, if canvas has new lines drawn, prompt user to save sketch or changes
-        if ((paths.isNotEmpty() && paths != sketch?.pathList) || texts.isNotEmpty()) {
-            BackHandler { openSavePromptDialog.value = true }
+        if ((paths.isNotEmpty() && paths != sketch?.pathList) || texts.isNotEmpty() && !isFromCollabUrl) {
+                BackHandler { openSavePromptDialog.value = true }
+            }
         }
     }
-}
 
 //data class TextInput(
 //    val text: String = "",
