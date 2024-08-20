@@ -155,8 +155,6 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
                         val newPaths = dbResponse.data ?: emptyList()
                         val mergedPaths = _uiState.value.paths + newPaths
 
-                        Log.i("New paths", )
-
                         _uiState.update {
                             it.copy(
                                 sketchIsBackedUp = true,

@@ -235,7 +235,6 @@ fun DrawingBoard(
                 factory = {
                     ComposeView(context).apply {
                         setContent {
-
                             LaunchedEffect(drawController) {
                                 drawController.trackBitmaps(
                                     this@apply,
@@ -350,7 +349,7 @@ fun DrawingBoard(
         }
 
         // onBackPress, if canvas has new lines drawn, prompt user to save sketch or changes
-        if (paths.isNotEmpty() && paths != sketch?.pathList) {
+        if (paths.isNotEmpty() && paths != sketch?.pathList && !isFromCollabUrl) {
             BackHandler { openSavePromptDialog.value = true }
         }
     }

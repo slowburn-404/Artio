@@ -135,6 +135,7 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
             return@withContext try {
                 val updates = mutableMapOf<String, Any>()
 
+                //match path ids to DBPathProperties objects
                 for (path in paths) {
                     val pathKey = path.id
                     updates[pathKey] = path
@@ -178,6 +179,8 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
                     if (deserializedNewPath != null) {
                         pathsFromDb.add(deserializedNewPath)
                         val domainPaths = pathsFromDb.map { it.toPathProperties() }
+
+                        Log.i("New paths", domainPaths.toString())
 
                         //emit new values
                         trySend(FirebaseResponse.Success(domainPaths))
