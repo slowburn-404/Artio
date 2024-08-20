@@ -37,6 +37,10 @@ class HomeViewModel : ViewModel(), KoinComponent {
 		fallbackPlan()
 
 		viewModelScope.launch {
+			collabRepository.delete000()
+		}
+
+		viewModelScope.launch {
 			_uiState.collect { uiState = it }
 		}
 		viewModelScope.launch {
@@ -151,7 +155,7 @@ class HomeViewModel : ViewModel(), KoinComponent {
             if (selectedSKetchIndex != 1) {
                 deleteSketchFromRemoteDB(
                     userId = firebaseUser.uid,
-                    boardId = _uiState.value.remoteSketches[selectedSKetchIndex].id
+                    boardId = sketchToDelete.id
                 )
             }
         }
