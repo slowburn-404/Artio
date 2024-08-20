@@ -107,12 +107,12 @@ fun DrawingBoard(
 
     val uiEvents by viewModel.uiEvents.collectAsState(initial = null)
 
-    //initialize based on source
-    LaunchedEffect(boardId) {
-        if (isFromCollabUrl) {
-            viewModel.fetchSingleSketch(boardId = boardId, userId = userId)
-        }
-    }
+//    //initialize based on source
+//    LaunchedEffect(Unit) {
+//        if (isFromCollabUrl) {
+//            viewModel.fetchSingleSketch(boardId = boardId, userId = userId)
+//        }
+//    }
 
     //listen for path changes
     LaunchedEffect(uiState.paths) {
@@ -124,11 +124,13 @@ fun DrawingBoard(
 
     //update paths in db
     LaunchedEffect(paths) {
-        if (!userIsLoggedIn) return@LaunchedEffect
-        delay(300)
-        viewModel.updatePathInDb(paths = paths, userId = userId, boardId = boardId)
-        viewModel.listenForSketchChanges(userId = userId, boardId = boardId)
-
+        if (!userIsLoggedIn) {
+            return@LaunchedEffect
+        } else if (uiState.sketchIsBackedUp && isFromCollabUrl) {
+            delay(300)
+            viewModel.updatePathInDb(paths = paths, userId = userId, boardId = boardId)
+            viewModel.listenForSketchChanges(userId = userId, boardId = boardId)
+        }
     }
 
     LaunchedEffect(uiEvents) {

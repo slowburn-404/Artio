@@ -8,7 +8,7 @@ class NavActions(private val navController: NavHostController) {
     fun navigate(screen: Screens) {
         when (screen) {
             Screens.HomeScreen -> navigateToHomeScreen()
-            is Screens.SketchPad -> navigateToSketchPad(screen.sketchId, screen.userId, isFromCollabUrl = false)
+            is Screens.SketchPad -> navigateToSketchPad(screen.sketchId, screen.userId, isFromCollabUrl = screen.isFromCollabUrl)
             Screens.SettingsScreen -> navigateToSettingsScreen()
             Screens.ProfileScreen -> navigateToProfileScreen()
             Screens.Back -> navController.navigateUp()
@@ -79,7 +79,7 @@ class NavActions(private val navController: NavHostController) {
 sealed class AppRoute(val route: String) {
     data object HomeScreen : AppRoute("home_screen")
     data object SketchPad : AppRoute("sketchpad/{sketchId}/{userId}/{isFromCollabUrl}") {
-        fun routeWithId(sketchId: String, userId: String, isFromCollabUrl: Boolean) = String.format("sketchpad/%s/%s/%b", sketchId, userId, isFromCollabUrl)
+        fun routeWithId(sketchId: String, userId: String, isFromCollabUrl: Boolean) = "sketchpad/$sketchId/$userId/${isFromCollabUrl}"
     }
 
     data object SettingsScreen : AppRoute("settings_screen")

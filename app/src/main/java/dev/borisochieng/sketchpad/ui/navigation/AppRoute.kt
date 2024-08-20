@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.google.firebase.auth.FirebaseAuth
 import dev.borisochieng.sketchpad.auth.presentation.screens.LoginScreen
 import dev.borisochieng.sketchpad.auth.presentation.screens.OnBoardingScreen
@@ -53,18 +55,25 @@ fun AppRoute(
         }
         animatedComposable(
             route = AppRoute.SketchPad.route,
-            animationDirection = AnimationDirection.UpDown
+            animationDirection = AnimationDirection.UpDown,
+            arguments = listOf(
+                navArgument("sketchId") { type = NavType.StringType},
+                navArgument("userId") { type = NavType.StringType},
+                navArgument("isFromCollabUrl") { type = NavType.StringType},
+            )
         ) { backStackEntry ->
             val sketchId = backStackEntry.arguments?.getString("sketchId")
                 ?: "" // sketchId is the same as boardId
             val userId = backStackEntry.arguments?.getString("userId")
                 ?: FirebaseAuth.getInstance().currentUser?.uid ?: VOID_ID
-            val isFromCollabUrl = backStackEntry.arguments?.getBoolean("isFromCollabUrl")!!
+            val isFromCollabUrl = backStackEntry.arguments?.getString("isFromCollabUrl").toBoolean()
 
             LaunchedEffect(sketchId) {
                 if (!isFromCollabUrl) {
                     sketchPadViewModel.fetchSketch(sketchId)
                     sketchPadViewModel.generateCollabUrl(sketchId)
+                } else {
+                    sketchPadViewModel.fetchSingleSketch(boardId = sketchId, userId = userId)
                 }
             }
 

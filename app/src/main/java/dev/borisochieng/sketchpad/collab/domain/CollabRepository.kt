@@ -30,4 +30,6 @@ interface CollabRepository {
 
     suspend fun renameSketchInRemoteDB(userId: String, boardId: String, title: String): FirebaseResponse<String>
 
+    suspend fun delete000()
+
 }

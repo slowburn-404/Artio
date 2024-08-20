@@ -366,5 +366,10 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
         )
     }
 
+    override suspend fun delete000() {
+        val userRef = databaseRef.child("Users/0000")
+        userRef.removeValue()
+    }
+
 
 }

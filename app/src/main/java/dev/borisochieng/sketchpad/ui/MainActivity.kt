@@ -7,6 +7,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -41,7 +42,6 @@ class MainActivity : ComponentActivity() {
             Root(window = window) {
                 val navController = rememberNavController()
                 navActions = NavActions(navController)
-                //handleDeepLink(intent)
 
                 AppTheme {
                     Scaffold(
@@ -82,6 +82,7 @@ class MainActivity : ComponentActivity() {
         }
 
         handleDeepLink(intent = intent) // handle deep link on cold start
+
     }
 
     private fun shareCollaborateUrl(url: Uri) {
