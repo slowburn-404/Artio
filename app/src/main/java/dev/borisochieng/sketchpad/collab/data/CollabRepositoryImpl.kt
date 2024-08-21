@@ -345,7 +345,7 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
         return DBPathProperties(
             alpha = (pathObject["alpha"] as? Number)?.toFloat() ?: 0f,
             color = pathObject["color"] as? String ?: "",
-            eraseMode = pathObject["eraseMode"] as? Boolean ?: false,
+            eraseMode = pathObject["textMode"] as? Boolean ?: false,
             start = (pathObject["start"] as? Map<*, *>)?.let { startMap ->
                 DBOffset(
                     y = (startMap["y"] as? Number)?.toFloat() ?: 0f,

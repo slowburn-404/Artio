@@ -14,7 +14,7 @@ fun PathProperties.toDBPathProperties(): DBPathProperties {
         id = id.takeIf { it.isNotEmpty() } ?: randomUUID().toString(),
         alpha = alpha,
         color = color.toHexString(),
-        eraseMode = eraseMode,
+        eraseMode = textMode,
         start = DBOffset(x = start.x, y = start.y),
         end = DBOffset(x = end.x, y= end.y ),
         strokeWidth = strokeWidth

@@ -24,7 +24,7 @@ fun DBPathProperties.toPathProperties(): PathProperties {
         id = id,
         alpha = alpha,
         color = color.toColor(),
-        eraseMode = eraseMode,
+        textMode = eraseMode,
         start = Offset(start.x, start.y),
         end = Offset(end.x, end.y),
         strokeWidth = strokeWidth

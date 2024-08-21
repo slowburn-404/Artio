@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -42,10 +41,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import dev.borisochieng.sketchpad.database.Sketch
 import dev.borisochieng.sketchpad.ui.navigation.Screens
@@ -59,6 +54,7 @@ import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.CanvasUiEvents
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.CanvasUiState
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.PathProperties
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.SketchPadActions
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.TextProperties
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.utils.DrawMode
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.utils.ExportOption
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.utils.rememberDrawController
@@ -80,21 +76,30 @@ fun DrawingBoard(
     userId: String
 ) {
     val (userIsLoggedIn, boardDetails, sketchIsBackedUp, _, sketch, collabUrl) = uiState
-    var currentTextInput by remember { mutableStateOf(TextInput()) }
-    var exportOption by remember { mutableStateOf(ExportOption.PNG) }
+//    var currentTextInput by remember { mutableStateOf(TextInput()) }
     val drawController = rememberDrawController()
+    var drawMode by remember { mutableStateOf(DrawMode.Draw) }
+    var exportOption by remember { mutableStateOf(ExportOption.PNG) }
+
     val absolutePaths = remember { mutableStateListOf<PathProperties>() }
     var paths by remember { mutableStateOf<List<PathProperties>>(emptyList()) }
-    var drawMode by remember { mutableStateOf(DrawMode.Draw) }
+
+    val absoluteTexts = remember { mutableStateListOf<TextProperties>() }
+    var texts by remember { mutableStateOf<List<TextProperties>>(emptyList()) }
+    val showNewTextBox = remember { mutableStateOf(false) }
+
     var pencilSize by remember { mutableFloatStateOf(Sizes.Small.strokeWidth) }
     var color by remember { mutableStateOf(Color.Black) }
     var scale by remember { mutableFloatStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
+
     val openNameSketchDialog = rememberSaveable { mutableStateOf(false) }
     val openSavePromptDialog = rememberSaveable { mutableStateOf(false) }
+
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+
     val save: (String?) -> Unit = { name ->
         val action = if (name == null) {
             SketchPadActions.UpdateSketch(paths)
@@ -106,6 +111,20 @@ fun DrawingBoard(
         actions(action)
         Toast.makeText(context, "Sketch saved", Toast.LENGTH_SHORT).show()
         navigate(Screens.Back)
+    }
+
+    val addTextToPaths: (String) -> Unit = { textId ->
+        val textPath = PathProperties(id = textId, textMode = true)
+        paths += textPath
+	    absolutePaths.clear()
+        absolutePaths.addAll(paths)
+    }
+    val removeTextFromPaths: (String) -> Unit = { textId ->
+        val existingTextPath = paths.first { it.id == textId }
+        paths -= existingTextPath
+        absolutePaths -= existingTextPath
+        // add it to undo/redo history
+        absolutePaths.add(paths.size, existingTextPath)
     }
 
     val uiEvents by viewModel.uiEvents.collectAsState(initial = null)
@@ -125,6 +144,13 @@ fun DrawingBoard(
         viewModel.listenForSketchChanges(userId = userId, boardId = boardId)
         if (paths == uiState.paths) return@LaunchedEffect
         viewModel.updatePathInDb(paths = paths, userId = userId, boardId = boardId)
+    }
+
+    LaunchedEffect(texts) {
+        if (texts.size > absoluteTexts.size) {
+            absoluteTexts.clear()
+            absoluteTexts.addAll(texts)
+        }
     }
 
     LaunchedEffect(uiEvents) {
@@ -154,9 +180,17 @@ fun DrawingBoard(
                         save(null)
                     }
                 },
-                unUndoClicked = { paths -= paths.last() },
+                unUndoClicked = {
+                    if (paths.last().textMode && texts.isNotEmpty()) {
+                        texts -= texts.last()
+                    }
+                    paths -= paths.last()
+                },
                 unRedoClicked = {
                     val nextPath = absolutePaths[paths.size]
+                    if (nextPath.textMode && texts.size != absoluteTexts.size) {
+                        texts += absoluteTexts[texts.size]
+                    }
                     paths += nextPath
                 },
                 onExportClicked = { drawController.saveBitmap() },
@@ -195,7 +229,10 @@ fun DrawingBoard(
                 pencilSize = pencilSize,
                 onColorChanged = { color = it },
                 onSizeChanged = { pencilSize = it },
-                onDrawModeChanged = { drawMode = it },
+                onDrawModeChanged = {
+                    drawMode = it
+                    if (it == DrawMode.Text) showNewTextBox.value = true
+                },
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -234,25 +271,23 @@ fun DrawingBoard(
                 factory = {
                     ComposeView(context).apply {
                         setContent {
-
                             LaunchedEffect(drawController) {
                                 drawController.trackBitmaps(
-                                    this@apply,
-                                    this,
-                                    onCaptured = { imageBitmap, error ->
+                                    this@apply, this,
+                                    onCaptured = { imageBitmap, _ ->
                                         imageBitmap?.let { bitmap ->
                                             when (exportOption) {
                                                 ExportOption.PNG -> exportSketch(bitmap.asAndroidBitmap())
                                                 ExportOption.PDF -> exportSketchAsPdf(bitmap.asAndroidBitmap())
                                             }
                                         }
-                                    })
+                                    }
+                                )
                             }
-                            var showTextBox by remember { mutableStateOf(false) }
-                            Canvas(
+
+                            Box(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(Color.White)
                                     .graphicsLayer {
                                         scaleX = scale
                                         scaleY = scale
@@ -260,54 +295,84 @@ fun DrawingBoard(
                                         translationY = offset.y
                                     }
                                     .transformable(state)
-                                    .pointerInput(true) {
-                                        if (drawMode == DrawMode.Touch) return@pointerInput
-                                        detectDragGestures { change, dragAmount ->
-                                            change.consume()
-                                            val eraseMode = drawMode == DrawMode.Erase
-                                            val path = PathProperties(
-                                                id = randomUUID().toString(), //generate id for each new path
-                                                color = when (drawMode) {
-                                                    DrawMode.Erase -> Color.White
-                                                    DrawMode.Draw -> color
-                                                    else -> Color.Transparent
-                                                },
-                                                eraseMode = eraseMode,
-                                                start = change.position - dragAmount,
-                                                end = change.position,
-                                                strokeWidth = pencilSize
-                                            )
-
-                                            absolutePaths += path
-                                            paths = absolutePaths.toList()
-
-                                            //update paths in db as they are drawn
-                                            viewModel.updatePathInDb(paths = paths, userId = userId, boardId = boardId)
-                                            Log.i("SketchInfo", "$paths")
-                                        }
-                                    }
                             ) {
-                                paths.forEach { path ->
-                                    drawLine(
-                                        color = path.color,
-                                        start = path.start,
-                                        end = path.end,
-                                        strokeWidth = path.strokeWidth,
-                                        cap = StrokeCap.Round
+                                Canvas(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(Color.White)
+                                        .pointerInput(true) {
+                                            if (drawMode == DrawMode.Touch) return@pointerInput
+                                            detectDragGestures { change, dragAmount ->
+                                                change.consume()
+                                                val path = PathProperties(
+                                                    id = randomUUID().toString(), //generate id for each new path
+                                                    color = when (drawMode) {
+                                                        DrawMode.Erase -> Color.White
+                                                        DrawMode.Draw -> color
+                                                        else -> Color.Transparent
+                                                    },
+                                                    textMode = false,
+                                                    start = change.position - dragAmount,
+                                                    end = change.position,
+                                                    strokeWidth = pencilSize
+                                                )
+
+                                                paths += path
+	                                            absolutePaths.clear()
+                                                absolutePaths.addAll(paths)
+
+                                                //update paths in db as they are drawn
+                                                viewModel.updatePathInDb(
+                                                    paths = paths,
+                                                    userId = userId,
+                                                    boardId = boardId
+                                                )
+                                                Log.i("SketchInfo", "$paths")
+                                            }
+                                        }
+                                ) {
+                                    paths
+                                        .filterNot { it.textMode }
+                                        .forEach { path ->
+											drawLine(
+                                                color = path.color,
+                                                start = path.start,
+                                                end = path.end,
+                                                strokeWidth = path.strokeWidth,
+                                                cap = StrokeCap.Round
+                                            )
+                                        }
+                                }
+
+                                texts.forEach { property ->
+                                    MovableTextBox(
+                                        properties = property,
+                                        active = false,
+                                        onRemove = { texts -= it; removeTextFromPaths(it.id) },
+                                        onUpdate = { text ->
+                                            removeTextFromPaths(text.id)
+                                            val existingText = texts.first { it.id == text.id }
+                                            texts -= existingText
+                                            texts += text
+                                            addTextToPaths(text.id)
+                                        }
                                     )
                                 }
-                            }
-                            Box(modifier = Modifier.size(240.dp)) {
-                                LaunchedEffect(drawMode) {
-                                    if (drawMode == DrawMode.Text) {
-                                        showTextBox = true
-                                    }
-                                }
-
-                                if (showTextBox) {
+                                if (showNewTextBox.value) {
                                     MovableTextBox(
-                                        onRemove = { showTextBox = false },
-                                        drawMode = drawMode
+                                        active = true,
+                                        onRemove = {
+                                            showNewTextBox.value = false
+                                            drawMode = DrawMode.Draw
+                                        },
+                                        onFinish = {
+                                            texts += it
+                                            absoluteTexts.clear()
+                                            absoluteTexts.addAll(texts)
+                                            addTextToPaths(it.id)
+                                            showNewTextBox.value = false
+                                            drawMode = DrawMode.Draw
+                                        }
                                     )
                                 }
                             }
@@ -346,18 +411,18 @@ fun DrawingBoard(
         }
 
         // onBackPress, if canvas has new lines drawn, prompt user to save sketch or changes
-        if (paths.isNotEmpty() && paths != sketch?.pathList) {
+        if ((paths.isNotEmpty() && paths != sketch?.pathList) || texts.isNotEmpty()) {
             BackHandler { openSavePromptDialog.value = true }
         }
     }
 }
 
-data class TextInput(
-    val text: String = "",
-    val position: Offset = Offset.Zero,
-    val fontSize: Int = 16,
-    val fontColor: Color = Color.Black,
-    val fontStyle: FontStyle = FontStyle.Normal,
-    val fontWeight: FontWeight = FontWeight.Normal,
-    val fontFamily: FontFamily = FontFamily.Default
-)
+//data class TextInput(
+//    val text: String = "",
+//    val position: Offset = Offset.Zero,
+//    val fontSize: Int = 16,
+//    val fontColor: Color = Color.Black,
+//    val fontStyle: FontStyle = FontStyle.Normal,
+//    val fontWeight: FontWeight = FontWeight.Normal,
+//    val fontFamily: FontFamily = FontFamily.Default
+//)
