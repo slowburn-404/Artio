@@ -130,12 +130,12 @@ fun DrawingBoard(
 
     val uiEvents by viewModel.uiEvents.collectAsState(initial = null)
 
-    //initialize based on source
-    LaunchedEffect(boardId) {
-        if (isFromCollabUrl) {
-            viewModel.fetchSingleSketch(boardId = boardId, userId = userId)
-        }
-    }
+//    //initialize based on source
+//    LaunchedEffect(Unit) {
+//        if (isFromCollabUrl) {
+//            viewModel.fetchSingleSketch(boardId = boardId, userId = userId)
+//        }
+//    }
 
     //listen for path changes
     LaunchedEffect(uiState.paths) {
@@ -147,14 +147,15 @@ fun DrawingBoard(
 
     //update paths in db
     LaunchedEffect(paths) {
-        if (!userIsLoggedIn) return@LaunchedEffect
-        delay(300)
-        viewModel.listenForSketchChanges(userId = userId, boardId = boardId)
-        if (paths == uiState.paths) return@LaunchedEffect
-        viewModel.updatePathInDb(paths = paths, userId = userId, boardId = boardId)
+        if (!userIsLoggedIn) {
+            return@LaunchedEffect
+        } else if (uiState.sketchIsBackedUp && isFromCollabUrl) {
+            delay(300)
+            viewModel.updatePathInDb(paths = paths, userId = userId, boardId = boardId)
+            viewModel.listenForSketchChanges(userId = userId, boardId = boardId)
+        }
     }
 
-<<<<<<< HEAD:app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/DrawingBoard.kt
     LaunchedEffect(texts) {
         if (texts.size > absoluteTexts.size) {
             absoluteTexts.clear()
@@ -162,8 +163,6 @@ fun DrawingBoard(
         }
     }
 
-=======
->>>>>>> ce382ff (bugfix: onboarding screen showing on every launch):app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/alt/DrawingBoard.kt
     LaunchedEffect(uiEvents) {
         uiEvents?.let { event ->
             when (event) {
@@ -306,8 +305,6 @@ fun DrawingBoard(
                                         translationY = offset.y
                                     }
                                     .transformable(state)
-<<<<<<< HEAD:app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/DrawingBoard.kt
-=======
                                     .pointerInput(true) {
                                         if (drawMode == DrawMode.Touch) return@pointerInput
                                         detectDragGestures { change, dragAmount ->
@@ -337,7 +334,6 @@ fun DrawingBoard(
                                             )
                                         }
                                     }
->>>>>>> ce382ff (bugfix: onboarding screen showing on every launch):app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/alt/DrawingBoard.kt
                             ) {
                                 Canvas(
                                     modifier = Modifier

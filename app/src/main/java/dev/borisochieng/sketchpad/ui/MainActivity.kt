@@ -24,7 +24,6 @@ import dev.borisochieng.sketchpad.ui.screens.drawingboard.utils.checkAndAskPermi
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.utils.saveImage
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.utils.savePdf
 import dev.borisochieng.sketchpad.ui.theme.AppTheme
-import dev.borisochieng.sketchpad.utils.VOID_ID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -36,12 +35,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.Theme_SketchPad)
         super.onCreate(savedInstanceState)
-        //enableEdgeToEdge()
         setContent {
             Root(window = window) {
                 val navController = rememberNavController()
                 navActions = NavActions(navController)
-                //handleDeepLink(intent)
 
                 AppTheme {
                     Scaffold(
@@ -82,6 +79,7 @@ class MainActivity : ComponentActivity() {
         }
 
         handleDeepLink(intent = intent) // handle deep link on cold start
+
     }
 
     private fun shareCollaborateUrl(url: Uri) {
@@ -99,32 +97,19 @@ class MainActivity : ComponentActivity() {
         handleDeepLink(intent)
     }
 
-//    override fun onResume() {
-//        super.onResume()
-//        handleDeepLink(intent)
-//    }
-
     private fun handleDeepLink(intent: Intent) {
         val action = intent.action
         val data: Uri? = intent.data
-
-<<<<<<< HEAD
-        if(action != Intent.ACTION_VIEW || data == null) return
-
-        val userId = data.getQueryParameter("user_id")
-        val boardId = data.getQueryParameter("board_id")
-
-        navActions.navigate(Screens.SketchPad(sketchId = boardId ?: VOID_ID, userId = userId ?: VOID_ID))
-
-        val message = "User id: $userId \n BoardId: $boardId"
-        Log.d("DeepLink", message)
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-=======
+        var boardId: String? = null
+        var userId: String? = null
         action?.let {
-            if (it == Intent.ACTION_VIEW && data != null && ::navActions.isInitialized) {
+            if (it == Intent.ACTION_VIEW && data != null) {
 
-                val userId = data.getQueryParameter("user_id")
-                val boardId = data.getQueryParameter("board_id")
+                userId = data.getQueryParameter("user_id")
+                boardId = data.getQueryParameter("board_id")
+            }
+
+            if(boardId !=null && userId != null && ::navActions.isInitialized) {
 
                 navActions.navigate(
                     Screens.SketchPad(
@@ -133,13 +118,13 @@ class MainActivity : ComponentActivity() {
                         userId = userId!!
                     )
                 )
+            }
 
                 val message = "User id: $userId \n BoardId: $boardId"
                 Log.d("DeepLink", message)
                 Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
 
-            }
+
         }
->>>>>>> ce382ff (bugfix: onboarding screen showing on every launch)
     }
 }

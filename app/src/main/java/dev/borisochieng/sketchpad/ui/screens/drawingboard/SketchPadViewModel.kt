@@ -194,16 +194,19 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 				userId = userId,
 				boardId = boardId
 			)
+            when (sketchResponse) {
+                is FirebaseResponse.Success -> {
+                    Log.i("Single sketch from DB", sketchResponse.data.toString())
 
-			when (sketchResponse) {
-				is FirebaseResponse.Success -> {
-					_uiState.update {
-						it.copy(
-							sketch = sketchResponse.data,
-							error = ""
-						)
-					}
-				}
+                    if (sketchResponse.data != null) {
+                        _uiState.update {
+                            it.copy(
+                                sketch = sketchResponse.data,
+                                error = ""
+                            )
+                        }
+                    }
+                }
 
 				is FirebaseResponse.Error -> {
 					_uiState.update {
