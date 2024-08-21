@@ -97,6 +97,11 @@ class MainActivity : ComponentActivity() {
         handleDeepLink(intent)
     }
 
+//    override fun onResume() {
+//        super.onResume()
+//        handleDeepLink(intent)
+//    }
+
     private fun handleDeepLink(intent: Intent) {
         val action = intent.action
         val data: Uri? = intent.data
@@ -123,8 +128,6 @@ class MainActivity : ComponentActivity() {
                 val message = "User id: $userId \n BoardId: $boardId"
                 Log.d("DeepLink", message)
                 Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-
-
         }
     }
 }

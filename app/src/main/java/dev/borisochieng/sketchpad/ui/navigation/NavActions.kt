@@ -13,7 +13,6 @@ class NavActions(private val navController: NavHostController) {
                 userId = screen.userId,
                 isFromCollabUrl = screen.isFromCollabUrl
             )
-
             Screens.SettingsScreen -> navigateToSettingsScreen()
             Screens.ProfileScreen -> navigateToProfileScreen()
             Screens.Back -> navController.navigateUp()
@@ -33,7 +32,6 @@ class NavActions(private val navController: NavHostController) {
             launchSingleTop = true
         }
     }
-
     private fun navigateToSketchPad(
         sketchId: String,
         userId: String,
@@ -108,7 +106,6 @@ sealed class Screens {
         val userId: String,
         val isFromCollabUrl: Boolean = false
     ) : Screens()
-
     data object SettingsScreen : Screens()
     data object ProfileScreen : Screens()
     data object Back : Screens()

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Chat
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.PictureAsPdf
 import androidx.compose.material.icons.outlined.TextFields
@@ -144,7 +145,8 @@ fun PaletteTopBar(
     unRedoClicked: () -> Unit,
     onExportClicked: () -> Unit,
     onBroadCastUrl: () -> Unit,
-    onExportClickedAsPdf: () -> Unit
+    onExportClickedAsPdf: () -> Unit,
+    chatEnabled: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -182,6 +184,14 @@ fun PaletteTopBar(
         ) {
             Icon(
                 painter = painterResource(R.drawable.ic_redo),
+                contentDescription = "Redo"
+            )
+        }
+        IconButton(
+            onClick = chatEnabled,
+        ) {
+            Icon(
+                Icons.Outlined.Chat,
                 contentDescription = "Redo"
             )
         }

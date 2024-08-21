@@ -14,16 +14,22 @@ import dev.borisochieng.sketchpad.collab.data.models.BoardDetails
 import dev.borisochieng.sketchpad.collab.data.toDBPathProperties
 import dev.borisochieng.sketchpad.collab.data.toDBSketch
 import dev.borisochieng.sketchpad.collab.domain.CollabRepository
+import dev.borisochieng.sketchpad.database.MessageModel
 import dev.borisochieng.sketchpad.database.Sketch
 import dev.borisochieng.sketchpad.database.repository.SketchRepository
+import dev.borisochieng.sketchpad.database.repository.TAG
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.CanvasUiEvents
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.CanvasUiState
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.PathProperties
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.SketchPadActions
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.TextProperties
+import dev.borisochieng.sketchpad.utils.VOID_ID
+import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -43,6 +49,19 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
     private val _uiEvents = MutableSharedFlow<CanvasUiEvents>()
     val uiEvents: SharedFlow<CanvasUiEvents> = _uiEvents
 
+
+    private val _messages = MutableStateFlow<List<MessageModel?>>(emptyList())
+    val messages: StateFlow<List<MessageModel?>> = _messages.asStateFlow()
+
+    private val _typingUsers = MutableStateFlow<List<String>>(emptyList())
+    val typingUsers: StateFlow<List<String>> = _typingUsers.asStateFlow()
+
+    var messageState = mutableStateOf(MessageUiState())
+        private set
+    private val message
+        get() = messageState.value.message
+
+    //    var sketch by mutableStateOf<Sketch?>(null); private set
     private var remoteSketches by mutableStateOf<List<Sketch>>(emptyList())
 
     init {
@@ -54,6 +73,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
         viewModelScope.launch {
             _uiState.collect { uiState = it }
         }
+        _typingUsers.value = emptyList()
     }
 
     fun fetchSketch(sketchId: String) {
@@ -106,9 +126,6 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 				textList = texts
             )
             sketchRepository.updateSketch(updatedSketch)
-
-//			if(!uiState.userIsLoggedIn) return@launch
-//			updatePathInDb(paths)
         }
     }
 
@@ -147,24 +164,23 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
         fetchSketchesFromRemoteDB()
     }
 
-    private fun listenForSketchChanges(userId: String, boardId: String) =
+    fun listenForSketchChanges(userId: String, boardId: String) =
         viewModelScope.launch {
-            if (!uiState.sketchIsBackedUp) return@launch
-            val response = collabRepository.listenForPathChanges(
+            if (userId == VOID_ID && boardId == VOID_ID) return@launch
+
+            collabRepository.listenForPathChanges(
                 userId = userId,
                 boardId = boardId
-            )
-            response.collectLatest { dbResponse ->
+            ).collectLatest { dbResponse ->
                 when (dbResponse) {
                     is FirebaseResponse.Success -> {
                         val newPaths = dbResponse.data ?: emptyList()
-                        val mergedPaths = _uiState.value.paths + newPaths
 
                         _uiState.update {
                             it.copy(
                                 sketchIsBackedUp = true,
                                 error = "",
-                                paths = mergedPaths
+                                paths = _uiState.value.paths + newPaths //add new paths to the current state
                             )
                         }
                     }
@@ -262,6 +278,68 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
             else -> emptyList()
         }
         return remoteSketches
+    }
+
+
+    fun initialize(boardId: String) {
+        viewModelScope.launch {
+            sketchRepository.getChats(boardId).collect {
+                _messages.value = emptyList()
+                _messages.value = it
+                Log.d(TAG, "list of messages during initalization ${messages.value}")
+            }
+        }
+    }
+
+    fun load(boardId: String){
+        viewModelScope.launch {
+        sketchRepository.loadChats(boardId).collect { messagesList ->
+            _messages.value = emptyList()
+            _messages.value = messagesList
+            Log.d(TAG, "list of messages after creation ${messages.value}")
+        }}
+    }
+
+    fun onMessageSent(boardId: String) {
+        updateTypingStatus(false, boardId)
+        viewModelScope.launch {
+            if (message.isNotEmpty()) {
+                sketchRepository.createChats(message, boardId = boardId).collect {
+                    if (it) {
+                        Log.d(TAG, "message sent successfully")
+                    } else {
+                        Log.d(TAG, "message failed")
+                    }
+
+                }
+            }
+        }
+
+    }
+    fun onMessageChange(newValue: String, boardId: String) {
+        messageState.value = messageState.value.copy(message = newValue)
+        if (newValue.isNotEmpty()) {
+            updateTypingStatus(true, boardId = boardId)
+        } else {
+            updateTypingStatus(false, boardId)
+        }
+    }
+
+    fun listenForTypingStatuses(boardId: String) {
+        viewModelScope.launch {
+            sketchRepository.listenForTypingStatuses(boardId).collect { users ->
+                _typingUsers.value = users
+            }
+        }
+    }
+
+    private fun updateTypingStatus(isTyping: Boolean, boardId: String) {
+        viewModelScope.launch {
+            sketchRepository.updateTypingStatus(isTyping = isTyping, boardId = boardId)
+            if (!isTyping) {
+                _typingUsers.value = emptyList()
+            }
+        }
     }
 
 }

@@ -1,18 +1,22 @@
 ## SketchPad
 A Jetpack Compose App that lets users draw on a canvas.
-
-## Demo
-- [Appetize](https://appetize.io/app/b_rrkqtlmwbh43asyppb7hi32boy)
-- Go to [releases](https://github.com/slowburn-404/SketchPad/releases/tag/v1.0.0) for the APK.
 ## Features
 - Authentication
 - Draw on a Canvas
-- Change Canvas background color
 - Change brush color
 - Change brush size
+- Include text on canvas
 - Erase drawing
 - Canvas Management (Update, Save and Delete)
 - Local data persistence of a canvas
+- Cloud sync (so you never have to lose your drawings)
+
+## Demo
+***Explore the virtualized demonstration of the release apk version [here](https://appetize.io/app/b_iztxobblihyfqohggeteabz4bi)***
+
+  ***Or you can install the apk from below 👇🏽***
+
+  [![SketchPad App](https://img.shields.io/badge/SketchPad-APK-orange.svg?style=for-the-badge&logo=android)](https://github.com/slowburn-404/SketchPad/releases/tag/v2.0.0)
 
 ## Technology Stack
 - **[Kotlin](https://kotlinlang.org/)**: The official programming language for developing Android applications.
@@ -22,18 +26,14 @@ A Jetpack Compose App that lets users draw on a canvas.
 - **[Firebase](https://firebase.google.com/)**: Backend service for authentication and photo storage.
 - **[ViewModel](https://developer.android.com/topic/libraries/architecture/viewmodel)**: A lifecycle-aware Android Architecture Component for holding state.
 - **[Room Persistence Library](https://developer.android.com/training/data-storage/room)**: Android Jetpack Library for local data caching.
+- **[Datastore](https://developer.android.com/topic/libraries/architecture/datastore)**: Jetpack DataStore is a data storage solution that allows you store key-value pairs asynchronously.
+- **[Gson](https://github.com/google/gson)**: Jetpack DataStore is a data storage solution that allows you store key-value pairs asynchronously.
 
 ## Screenshots
-![Splash](./screenshots/splash.png)
-![Sign up](./screenshots/signup.png)
-![Login](./screenshots/login.png)
-![Onboarding](./screenshots/onboarding.png)
-![Home](./screenshots/homescreen.png)
-![Canvas](./screenshots/drawingcanvas.png)
-![Color picker](./screenshots/colorpicker.png)
-![Brush](./screenshots/bursh.png)
-![Profile](./screenshots/profile.png)
-![Update Profile](./screenshots/updateprofile.png)
+|::::::::::::::::::::::::::::::::::::::::|::::::::::::::::::::::::::::::::::::::::|::::::::::::::::::::::::::::::::::::::::|::::::::::::::::::::::::::::::::::::::::|::::::::::::::::::::::::::::::::::::::::|::::::::::::::::::::::::::::::::::::::::|::::::::::::::::::::::::::::::::::::::::|::::::::::::::::::::::::::::::::::::::::|::::::::::::::::::::::::::::::::::::::::|::::::::::::::::::::::::::::::::::::::::|
+|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
+|![Splash](./screenshots/splash.png)|![Sign up](./screenshots/signup.png)|![Login](./screenshots/login.png)|![Onboarding](./screenshots/onboarding.png)|![Home](./screenshots/homescreen.png)|![Canvas](./screenshots/drawingcanvas.png)|![Color picker](./screenshots/colorpicker.png)|![Brush](./screenshots/bursh.png)|![Profile](./screenshots/profile.png)|![Update Profile](./screenshots/updateprofile.png)|
+
 ## Setup Instructions
 
 1. **Clone the repository to your local machine.**
@@ -52,3 +52,4 @@ cd SketchPad/
 
 ## License
 This project is licensed under the Apache-2.0 License. See the [LICENSE](./LICENSE) file for more details.
+https://appetize.io/app/b_rrkqtlmwbh43asyppb7hi32boy
