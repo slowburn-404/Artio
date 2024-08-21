@@ -7,7 +7,6 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -19,13 +18,12 @@ import dev.borisochieng.sketchpad.ui.components.NavBar
 import dev.borisochieng.sketchpad.ui.navigation.AppRoute
 import dev.borisochieng.sketchpad.ui.navigation.NavActions
 import dev.borisochieng.sketchpad.ui.navigation.Screens
-import dev.borisochieng.sketchpad.ui.screens.drawingboard.Root
-import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.activityChooser
-import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.checkAndAskPermission
-import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.saveImage
-import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.savePdf
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.archives.Root
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.utils.activityChooser
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.utils.checkAndAskPermission
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.utils.saveImage
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.utils.savePdf
 import dev.borisochieng.sketchpad.ui.theme.AppTheme
-import dev.borisochieng.sketchpad.utils.VOID_ID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -37,7 +35,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.Theme_SketchPad)
         super.onCreate(savedInstanceState)
-        //enableEdgeToEdge()
         setContent {
             Root(window = window) {
                 val navController = rememberNavController()
@@ -108,12 +105,16 @@ class MainActivity : ComponentActivity() {
     private fun handleDeepLink(intent: Intent) {
         val action = intent.action
         val data: Uri? = intent.data
-
+        var boardId: String? = null
+        var userId: String? = null
         action?.let {
-            if (it == Intent.ACTION_VIEW && data != null && ::navActions.isInitialized) {
+            if (it == Intent.ACTION_VIEW && data != null) {
 
-                val userId = data.getQueryParameter("user_id")
-                val boardId = data.getQueryParameter("board_id")
+                userId = data.getQueryParameter("user_id")
+                boardId = data.getQueryParameter("board_id")
+            }
+
+            if(boardId !=null && userId != null && ::navActions.isInitialized) {
 
                 navActions.navigate(
                     Screens.SketchPad(
@@ -122,12 +123,11 @@ class MainActivity : ComponentActivity() {
                         userId = userId!!
                     )
                 )
+            }
 
                 val message = "User id: $userId \n BoardId: $boardId"
                 Log.d("DeepLink", message)
                 Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-
-            }
         }
     }
 }

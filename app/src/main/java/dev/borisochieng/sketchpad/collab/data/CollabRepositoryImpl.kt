@@ -7,7 +7,6 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.GenericTypeIndicator
-import com.google.firebase.database.getValue
 import dev.borisochieng.sketchpad.auth.data.FirebaseResponse
 import dev.borisochieng.sketchpad.collab.data.models.BoardDetails
 import dev.borisochieng.sketchpad.collab.data.models.DBOffset
@@ -17,17 +16,14 @@ import dev.borisochieng.sketchpad.collab.domain.CollabRepository
 import dev.borisochieng.sketchpad.collab.domain.toPathProperties
 import dev.borisochieng.sketchpad.collab.domain.toSketch
 import dev.borisochieng.sketchpad.database.Sketch
-import dev.borisochieng.sketchpad.ui.screens.drawingboard.alt.PathProperties
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.PathProperties
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import org.koin.core.component.KoinComponent
-import kotlin.coroutines.resume
 
 class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepository {
 
@@ -350,7 +346,7 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
             id = (pathObject["id"]) as? String ?: "",
             alpha = (pathObject["alpha"] as? Number)?.toFloat() ?: 0f,
             color = pathObject["color"] as? String ?: "",
-            eraseMode = pathObject["eraseMode"] as? Boolean ?: false,
+            eraseMode = pathObject["textMode"] as? Boolean ?: false,
             start = (pathObject["start"] as? Map<*, *>)?.let { startMap ->
                 DBOffset(
                     y = (startMap["y"] as? Number)?.toFloat() ?: 0f,

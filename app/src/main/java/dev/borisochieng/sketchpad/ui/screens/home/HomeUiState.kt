@@ -7,5 +7,6 @@ data class HomeUiState(
 	val remoteSketches: List<Sketch> = emptyList(),
 	val userIsLoggedIn: Boolean = false,
 	val isLoading: Boolean = true,
-	val feedback: String? = null
+	val feedback: String? = null,
+	val fetchedFromRemoteDb: Boolean = false
 )
