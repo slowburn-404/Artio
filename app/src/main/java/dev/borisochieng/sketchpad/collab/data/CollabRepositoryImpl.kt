@@ -138,7 +138,6 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
                 }
 
 
-
                 //update path in db
                 pathRef.updateChildren(updates).await()
 
@@ -159,69 +158,57 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
     ): Flow<FirebaseResponse<List<PathProperties>>> =
         callbackFlow {
             val boardRef =
-                databaseRef.child("Users").child(userId).child("boards").child(boardId)
+                databaseRef
+                    .child("Users")
+                    .child(userId).child("boards")
+                    .child(boardId)
                     .child("paths")
 
-            val pathsFromDb = mutableListOf<DBPathProperties>()
 
             val listener = object : ChildEventListener {
                 //monitor drawing of new lines
                 override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-                    val newPath = snapshot.getValue(object : GenericTypeIndicator<Map<*, *>>() {})
-                    val deserializedNewPath = newPath?.let {
-                        deserializeDBPathProperties(pathObject = it)
+                    val newPath = snapshot.getValue(object : GenericTypeIndicator<Map<String, Any>>() {})
+                    val deserializedNewPath = newPath?.let { pathMap ->
+                        deserializeDBPathProperties(pathObject = pathMap)
                     }
 
-                    if (deserializedNewPath != null) {
-                        pathsFromDb.add(deserializedNewPath)
-                        val domainPaths = pathsFromDb.map { it.toPathProperties() }
-
-                        Log.i("New paths", domainPaths.toString())
-
-                        //emit new values
-                        trySend(FirebaseResponse.Success(domainPaths))
+                    deserializedNewPath?.let {
+                        //emit new paths
+                        trySend(FirebaseResponse.Success(listOf(it.toPathProperties())))
                     }
                 }
 
                 //monitor modification of existing lines
                 override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
                     val updatedPath =
-                        snapshot.getValue(object : GenericTypeIndicator<Map<*, *>>() {})
+                        snapshot.getValue(object : GenericTypeIndicator<Map<String, Any>>() {})
                     val deserializedUpdatedPath = updatedPath?.let {
                         deserializeDBPathProperties(
                             pathObject = it
                         )
                     }
-                    if (updatedPath != null) {
-                        val index = pathsFromDb.indexOfFirst { it == deserializedUpdatedPath }
-
-                        if (index != -1 && deserializedUpdatedPath != null) {
-                            pathsFromDb[index] = deserializedUpdatedPath
-                            val domainPaths = pathsFromDb.map { it.toPathProperties() }
-
-                            trySend(FirebaseResponse.Success(domainPaths))
-                        }
+                    deserializedUpdatedPath?.let {
+                        trySend(FirebaseResponse.Success(listOf(it.toPathProperties())))
                     }
                 }
 
                 //monitor removal of lines
                 override fun onChildRemoved(snapshot: DataSnapshot) {
                     val removedPath =
-                        snapshot.getValue(object : GenericTypeIndicator<Map<*, *>>() {})
+                        snapshot.getValue(object : GenericTypeIndicator<Map<String, Any>>() {})
                     val deserializedPath = removedPath?.let {
                         deserializeDBPathProperties(
                             pathObject = it
                         )
                     }
-                    if (removedPath != null) {
-                        pathsFromDb.removeAll { it == deserializedPath }
-                        val domainPaths = pathsFromDb.map { it.toPathProperties() }
-                        trySend(FirebaseResponse.Success(domainPaths))
+                    deserializedPath?.let {
+                        trySend(FirebaseResponse.Success(listOf(it.toPathProperties())))
                     }
                 }
 
                 override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
-                    TODO("Not yet implemented")
+                    //ignore child moved for now
                 }
 
 
@@ -363,6 +350,9 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
         )
     }
 
+    /*for deletion of the void user id in past versions
+     since it is tedious to remove them one by one
+     */
     override suspend fun delete000() {
         val userRef = databaseRef.child("Users/0000")
         userRef.removeValue()

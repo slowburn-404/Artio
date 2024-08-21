@@ -67,12 +67,16 @@ fun AppRoute(
                 ?: FirebaseAuth.getInstance().currentUser?.uid ?: VOID_ID
             val isFromCollabUrl = backStackEntry.arguments?.getString("isFromCollabUrl").toBoolean()
 
-            LaunchedEffect(sketchId) {
+            LaunchedEffect(sketchId, isFromCollabUrl) {
                 if (!isFromCollabUrl) {
                     sketchPadViewModel.fetchSketch(sketchId)
                     sketchPadViewModel.generateCollabUrl(sketchId)
                 } else if(userId != VOID_ID){
                     sketchPadViewModel.fetchSingleSketch(boardId = sketchId, userId = userId)
+                }
+                //listen for path changes in collab mode
+                if(isFromCollabUrl && userId != VOID_ID && sketchId != VOID_ID) {
+                    sketchPadViewModel.listenForSketchChanges(userId = userId, boardId = sketchId)
                 }
             }
 
