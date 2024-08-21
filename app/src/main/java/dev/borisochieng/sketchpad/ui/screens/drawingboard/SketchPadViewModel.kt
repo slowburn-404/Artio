@@ -20,6 +20,7 @@ import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.CanvasUiEvents
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.CanvasUiState
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.PathProperties
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.SketchPadActions
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.TextProperties
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -74,7 +75,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 	fun actions(action: SketchPadActions) {
 		when (action) {
 			is SketchPadActions.SaveSketch -> saveSketch(action.sketch)
-			is SketchPadActions.UpdateSketch -> updateSketch(action.paths)
+			is SketchPadActions.UpdateSketch -> updateSketch(action.paths, action.texts)
 			SketchPadActions.CheckIfUserIsLoggedIn -> isLoggedIn()
 			SketchPadActions.SketchClosed -> _uiState.update { it.copy(sketch = null) }
 		}
@@ -88,15 +89,19 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
         }
     }
 
-    private fun updateSketch(paths: List<PathProperties>) {
+    private fun updateSketch(
+	    paths: List<PathProperties>,
+	    texts: List<TextProperties>
+	) {
         viewModelScope.launch {
             if (uiState.sketch == null) return@launch
             val updatedSketch = Sketch(
                 id = uiState.sketch!!.id,
                 name = uiState.sketch!!.name,
                 dateCreated = uiState.sketch!!.dateCreated,
+                lastModified = Calendar.getInstance().time,
                 pathList = paths,
-                lastModified = Calendar.getInstance().time
+				textList = texts
             )
             sketchRepository.updateSketch(updatedSketch)
 

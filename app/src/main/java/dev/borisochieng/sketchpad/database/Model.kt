@@ -3,6 +3,7 @@ package dev.borisochieng.sketchpad.database
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.PathProperties
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.TextProperties
 import java.util.Calendar
 import java.util.Date
 import java.util.UUID
@@ -14,5 +15,6 @@ data class Sketch(
 	val name: String,
 	val dateCreated: Date = Calendar.getInstance().time,
 	val lastModified: Date = Calendar.getInstance().time,
-	val pathList: List<PathProperties>
+	val pathList: List<PathProperties>,
+	val textList: List<TextProperties>
 )

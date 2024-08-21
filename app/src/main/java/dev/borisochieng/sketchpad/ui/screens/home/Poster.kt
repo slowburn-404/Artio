@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.borisochieng.sketchpad.database.Sketch
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.components.MovableTextBox
 import dev.borisochieng.sketchpad.utils.Extensions.formatDate
 
 typealias SketchId = String
@@ -55,18 +56,26 @@ fun SketchPoster(
 				.height(140.dp),
 			contentAlignment = Alignment.Center
 		) {
-			Canvas(
-				modifier = Modifier
-					.fillMaxSize()
-					.scale(0.1f)
+			Box(Modifier
+				.fillMaxSize()
+				.scale(0.1f)
 			) {
-				sketch.pathList.forEach { path ->
-					drawLine(
-						color = path.color,
-						start = path.start,
-						end = path.end,
-						strokeWidth = path.strokeWidth,
-						cap = StrokeCap.Round
+				Canvas(Modifier.fillMaxSize()) {
+					sketch.pathList.forEach { path ->
+						drawLine(
+							color = path.color,
+							start = path.start,
+							end = path.end,
+							strokeWidth = path.strokeWidth,
+							cap = StrokeCap.Round
+						)
+					}
+				}
+				sketch.textList.forEach { property ->
+					MovableTextBox(
+						properties = property,
+						active = false,
+						onRemove = {}
 					)
 				}
 			}
