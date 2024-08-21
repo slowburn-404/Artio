@@ -3,6 +3,7 @@ package dev.borisochieng.sketchpad.database.repository
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.toObject
@@ -159,6 +160,39 @@ class SketchRepositoryImpl: SketchRepository, KoinComponent {
 				// Remove the listener when the flow is cancelled
 				listener.remove()
 			}
+		}
+	}
+
+
+	override suspend fun updateTypingStatus(isTyping: Boolean) {
+		val projectRef = firestore.collection("projects").document(TEST_PROJECT_ID)
+
+		if (isTyping) {
+
+			projectRef.update("typingUsers", FieldValue.arrayUnion(currentUser?.displayName ?: ""))
+		} else {
+
+			projectRef.update("typingUsers", FieldValue.arrayRemove(currentUser?.displayName ?: ""))
+		}}
+
+	// Function to listen for typing status changes
+	override suspend fun listenForTypingStatuses(): Flow<List<String>> = callbackFlow {
+		val projectRef = firestore.collection("projects").document(TEST_PROJECT_ID)
+		val listener = projectRef.addSnapshotListener { snapshot, error ->
+			if (error != null) {
+				// Handle error
+				close(error) // Close the flow with the error
+				return@addSnapshotListener
+			}
+
+			if (snapshot != null && snapshot.exists()) {
+				val typingUsers = snapshot.get("typingUsers") as? List<String> ?: emptyList()
+				trySend(typingUsers) // Emit the list of typing users
+			}
+		}
+
+		awaitClose {
+			listener.remove() // Remove the listener when the flow is closed
 		}
 	}
 

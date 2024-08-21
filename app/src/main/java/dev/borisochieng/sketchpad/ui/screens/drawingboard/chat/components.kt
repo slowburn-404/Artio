@@ -139,77 +139,77 @@ fun SenderChat(
     )
     val timex = dateTime.toLocalTime()
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.End
-        ) {
-           Column() {
-                if (!senderCount.value) {
-                    Text(
-                        text = senderName,
-                        style = TextStyle(
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight(400),
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.End
+    ) {
+        Column() {
+            if (!senderCount.value) {
+                Text(
+                    text = senderName,
+                    style = TextStyle(
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight(400),
+                    )
+                )
+            }
+            Row(horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.Bottom) {
+                Box(
+                    modifier = Modifier
+                        .background(
+                            color = colorScheme.primary,
+                            shape = RoundedCornerShape(10.dp, 10.dp, shape, 10.dp)
                         )
+                        .padding(16.dp)
+                        .widthIn(max = maxWidth * 0.7f)
+                ) {
+                    Column(
+                        verticalArrangement = Arrangement.SpaceBetween,
+                        horizontalAlignment = Alignment.End
+                    ) {
+                        Text(
+                            style = TextStyle(
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight(400),
+                                color = textColor
+                            ),
+                            text = message,
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = timex.format(
+                                org.threeten.bp.format.DateTimeFormatter.ofPattern(
+                                    "hh:mm a"
+                                )
+                            ),
+                            style = TextStyle(
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight(300),
+                                color = Color(0xFFBEBEBE),
+                                textAlign = TextAlign.Left,
+                            )
+                        )
+                    }
+
+                }
+                if (!senderCount.value) {
+                    Image(
+                        painter = painterResource(id = R.drawable.placeholder_foreground),
+                        contentDescription = "Profile picture",
+                        modifier = Modifier
+                            // Set image size to 40 dp
+                            .size(16.dp)
+                            // Clip image to be shaped as a circle
+                            .clip(CircleShape)
+
                     )
                 }
-              Row(horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.Bottom) {
-                   Box(
-                       modifier = Modifier
-                           .background(
-                               color = colorScheme.primary,
-                               shape = RoundedCornerShape(10.dp, 10.dp, shape, 10.dp)
-                           )
-                           .padding(16.dp)
-                           .widthIn(max = maxWidth * 0.7f)
-                   ) {
-                       Column(
-                           verticalArrangement = Arrangement.SpaceBetween,
-                           horizontalAlignment = Alignment.End
-                       ) {
-                           Text(
-                               style = TextStyle(
-                                   fontSize = 14.sp,
-                                   fontWeight = FontWeight(400),
-                                   color = textColor
-                               ),
-                               text = message,
-                           )
-                           Spacer(modifier = Modifier.height(4.dp))
-                           Text(
-                               text = timex.format(
-                                   org.threeten.bp.format.DateTimeFormatter.ofPattern(
-                                       "hh:mm a"
-                                   )
-                               ),
-                               style = TextStyle(
-                                   fontSize = 10.sp,
-                                   fontWeight = FontWeight(300),
-                                   color = Color(0xFFBEBEBE),
-                                   textAlign = TextAlign.Left,
-                               )
-                           )
-                       }
-
-                   }
-                   if (!senderCount.value) {
-                       Image(
-                           painter = painterResource(id = R.drawable.placeholder_foreground),
-                           contentDescription = "Profile picture",
-                           modifier = Modifier
-                               // Set image size to 40 dp
-                               .size(16.dp)
-                               // Clip image to be shaped as a circle
-                               .clip(CircleShape)
-
-                       )
-                   }
-               }
             }
-
         }
+
+    }
 
 }
 
@@ -222,7 +222,7 @@ fun ReceiverChat(
     textColor: Color,
     receiverCount: MutableState<Boolean>,
     time: Long,
-    receiverName:String,
+    receiverName: String,
 ) {
     val shape = if (receiverCount.value) 10.dp else 0.dp
     val timeInSeconds = time / 1000
@@ -252,17 +252,17 @@ fun ReceiverChat(
 
             )
         }
-       Column {
+        Column {
 
-               if (!receiverCount.value) {
-                   Text(
-                       text = receiverName,
-                       style = TextStyle(
-                           fontSize = 14.sp,
-                           fontWeight = FontWeight(400),
-                       )
-                   )
-               }
+            if (!receiverCount.value) {
+                Text(
+                    text = receiverName,
+                    style = TextStyle(
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight(400),
+                    )
+                )
+            }
             Box(
                 modifier = Modifier
                     .background(
