@@ -304,11 +304,11 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
                     } else {
                         Log.d(TAG, "message failed")
                     }
-                    sketchRepository.loadChats().collect { messagesList ->
+                   /* sketchRepository.loadChats().collect { messagesList ->
                         _messages.value = emptyList()
                         _messages.value = messagesList
                         Log.d(TAG, "list of messages after creation ${messages.value}")
-                    }
+                    }*/
 
                 }
             }
