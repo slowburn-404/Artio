@@ -71,7 +71,7 @@ fun AppRoute(
                 if (!isFromCollabUrl) {
                     sketchPadViewModel.fetchSketch(sketchId)
                     sketchPadViewModel.generateCollabUrl(sketchId)
-                } else {
+                } else if(userId != VOID_ID){
                     sketchPadViewModel.fetchSingleSketch(boardId = sketchId, userId = userId)
                 }
             }

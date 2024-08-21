@@ -65,6 +65,7 @@ import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.TextProperties
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.utils.DrawMode
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.utils.ExportOption
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.utils.rememberDrawController
+import dev.borisochieng.sketchpad.utils.VOID_ID
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import java.util.UUID.randomUUID
@@ -154,14 +155,14 @@ fun DrawingBoard(
     }
 
     //update paths in db
-    LaunchedEffect(paths) {
-        if (!userIsLoggedIn) {
-            return@LaunchedEffect
-        } else if (uiState.sketchIsBackedUp && isFromCollabUrl) {
-            //delay(300)
-            viewModel.updatePathInDb(paths = paths, userId = userId, boardId = boardId)
-        }
-    }
+//    LaunchedEffect(paths) {
+//        if (!userIsLoggedIn) {
+//            return@LaunchedEffect
+//        } else if (uiState.sketchIsBackedUp && isFromCollabUrl && userId != VOID_ID) {
+//            //delay(300)
+//            viewModel.updatePathInDb(paths = paths, userId = userId, boardId = boardId)
+//        }
+//    }
 
     LaunchedEffect(texts) {
         if (texts.size > absoluteTexts.size) {
@@ -353,12 +354,14 @@ fun DrawingBoard(
                                                 absolutePaths.addAll(paths)
 
                                                 //update paths in db as they are drawn
-                                                viewModel.updatePathInDb(
-                                                    paths = paths,
-                                                    userId = userId,
-                                                    boardId = boardId
-                                                )
-                                                Log.i("SketchInfo", "$paths")
+                                                if(isFromCollabUrl && userId != VOID_ID && boardId != VOID_ID) {
+                                                    viewModel.updatePathInDb(
+                                                        paths = paths,
+                                                        userId = userId,
+                                                        boardId = boardId
+                                                    )
+                                                }
+                                                Log.i("PathInfo", "$paths")
                                             }
                                         }
                                 ) {
