@@ -137,32 +137,26 @@ fun DrawingBoard(
         absolutePaths.add(paths.size, existingTextPath)
     }
 
+    var isCollabUrlShared by remember { mutableStateOf(false) }
+
     val uiEvents by viewModel.uiEvents.collectAsState(initial = null)
 
-//    //initialize based on source
-//    LaunchedEffect(Unit) {
-//        if (isFromCollabUrl) {
-//            viewModel.fetchSingleSketch(boardId = boardId, userId = userId)
+//    LaunchedEffect(isCollabUrlShared) {
+//        //only listen when collab url has been shared
+//        if(isCollabUrlShared && userId != VOID_ID && boardId != VOID_ID) {
+//            viewModel.listenForSketchChanges(userId = userId, boardId = boardId)
 //        }
 //    }
+
 
     //listen for path changes
     LaunchedEffect(uiState.paths) {
         if (!userIsLoggedIn) return@LaunchedEffect
+        //update local paths with collaborative paths
         absolutePaths.clear()
         paths = uiState.paths
         absolutePaths.addAll(paths)
     }
-
-    //update paths in db
-//    LaunchedEffect(paths) {
-//        if (!userIsLoggedIn) {
-//            return@LaunchedEffect
-//        } else if (uiState.sketchIsBackedUp && isFromCollabUrl && userId != VOID_ID) {
-//            //delay(300)
-//            viewModel.updatePathInDb(paths = paths, userId = userId, boardId = boardId)
-//        }
-//    }
 
     LaunchedEffect(texts) {
         if (texts.size > absoluteTexts.size) {
@@ -218,6 +212,7 @@ fun DrawingBoard(
                             scope.launch { snackbarHostState.showSnackbar("Sketch is not backed up yet") }
                             return@PaletteTopBar
                         }
+                        isCollabUrlShared = true
                         onBroadCastUrl(collabUrl)
                     } else {
                         scope.launch {
@@ -349,18 +344,21 @@ fun DrawingBoard(
                                                     strokeWidth = pencilSize
                                                 )
 
+                                                //update paths locally
                                                 paths += path
                                                 absolutePaths.clear()
                                                 absolutePaths.addAll(paths)
 
-                                                //update paths in db as they are drawn
-                                                if(isFromCollabUrl && userId != VOID_ID && boardId != VOID_ID) {
+
+                                                //send path updates to Firebase for collab
+                                                if (isFromCollabUrl && userId != VOID_ID && boardId != VOID_ID) {
                                                     viewModel.updatePathInDb(
                                                         paths = paths,
                                                         userId = userId,
                                                         boardId = boardId
                                                     )
                                                 }
+
                                                 Log.i("PathInfo", "$paths")
                                             }
                                         }
