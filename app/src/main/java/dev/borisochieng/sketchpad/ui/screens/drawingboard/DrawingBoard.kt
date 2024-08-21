@@ -113,6 +113,20 @@ fun DrawingBoard(
         navigate(Screens.Back)
     }
 
+    val addTextToPaths: (String) -> Unit = { textId ->
+        val textPath = PathProperties(id = textId, textMode = true)
+        paths += textPath
+	    absolutePaths.clear()
+        absolutePaths.addAll(paths)
+    }
+    val removeTextFromPaths: (String) -> Unit = { textId ->
+        val existingTextPath = paths.first { it.id == textId }
+        paths -= existingTextPath
+        absolutePaths -= existingTextPath
+        // add it to undo/redo history
+        absolutePaths.add(paths.size, existingTextPath)
+    }
+
     val uiEvents by viewModel.uiEvents.collectAsState(initial = null)
 
     //listen for path changes
@@ -166,9 +180,17 @@ fun DrawingBoard(
                         save(null)
                     }
                 },
-                unUndoClicked = { paths -= paths.last() },
+                unUndoClicked = {
+                    if (paths.last().textMode && texts.isNotEmpty()) {
+                        texts -= texts.last()
+                    }
+                    paths -= paths.last()
+                },
                 unRedoClicked = {
                     val nextPath = absolutePaths[paths.size]
+                    if (nextPath.textMode && texts.size != absoluteTexts.size) {
+                        texts += absoluteTexts[texts.size]
+                    }
                     paths += nextPath
                 },
                 onExportClicked = { drawController.saveBitmap() },
@@ -282,7 +304,6 @@ fun DrawingBoard(
                                             if (drawMode == DrawMode.Touch) return@pointerInput
                                             detectDragGestures { change, dragAmount ->
                                                 change.consume()
-                                                val eraseMode = drawMode == DrawMode.Erase
                                                 val path = PathProperties(
                                                     id = randomUUID().toString(), //generate id for each new path
                                                     color = when (drawMode) {
@@ -290,14 +311,15 @@ fun DrawingBoard(
                                                         DrawMode.Draw -> color
                                                         else -> Color.Transparent
                                                     },
-                                                    eraseMode = eraseMode,
+                                                    textMode = false,
                                                     start = change.position - dragAmount,
                                                     end = change.position,
                                                     strokeWidth = pencilSize
                                                 )
 
-                                                absolutePaths += path
-                                                paths = absolutePaths.toList()
+                                                paths += path
+	                                            absolutePaths.clear()
+                                                absolutePaths.addAll(paths)
 
                                                 //update paths in db as they are drawn
                                                 viewModel.updatePathInDb(
@@ -309,27 +331,30 @@ fun DrawingBoard(
                                             }
                                         }
                                 ) {
-                                    paths.forEach { path ->
-                                        drawLine(
-                                            color = path.color,
-                                            start = path.start,
-                                            end = path.end,
-                                            strokeWidth = path.strokeWidth,
-                                            cap = StrokeCap.Round
-                                        )
-                                    }
+                                    paths
+                                        .filterNot { it.textMode }
+                                        .forEach { path ->
+											drawLine(
+                                                color = path.color,
+                                                start = path.start,
+                                                end = path.end,
+                                                strokeWidth = path.strokeWidth,
+                                                cap = StrokeCap.Round
+                                            )
+                                        }
                                 }
 
                                 texts.forEach { property ->
                                     MovableTextBox(
                                         properties = property,
                                         active = false,
-                                        onRemove = { texts -= it },
-                                        onFinish = { texts += it },
+                                        onRemove = { texts -= it; removeTextFromPaths(it.id) },
                                         onUpdate = { text ->
+                                            removeTextFromPaths(text.id)
                                             val existingText = texts.first { it.id == text.id }
                                             texts -= existingText
                                             texts += text
+                                            addTextToPaths(text.id)
                                         }
                                     )
                                 }
@@ -344,6 +369,7 @@ fun DrawingBoard(
                                             texts += it
                                             absoluteTexts.clear()
                                             absoluteTexts.addAll(texts)
+                                            addTextToPaths(it.id)
                                             showNewTextBox.value = false
                                             drawMode = DrawMode.Draw
                                         }
@@ -385,7 +411,7 @@ fun DrawingBoard(
         }
 
         // onBackPress, if canvas has new lines drawn, prompt user to save sketch or changes
-        if (paths.isNotEmpty() && paths != sketch?.pathList) {
+        if ((paths.isNotEmpty() && paths != sketch?.pathList) || texts.isNotEmpty()) {
             BackHandler { openSavePromptDialog.value = true }
         }
     }

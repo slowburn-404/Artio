@@ -14,6 +14,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -31,13 +32,13 @@ fun MovableTextBox(
     properties: TextProperties = TextProperties(),
     active: Boolean,
     onRemove: (TextProperties) -> Unit,
-    onFinish: (TextProperties) -> Unit,
+    onFinish: (TextProperties) -> Unit = {},
     onUpdate: (TextProperties) -> Unit = {}
 ) {
     var text by remember { mutableStateOf(properties.text) }
     var offset by remember { mutableStateOf(properties.offset) }
-    var scale by remember { mutableStateOf(properties.scale) }
-    var rotation by remember { mutableStateOf(properties.rotation) }
+    var scale by remember { mutableFloatStateOf(properties.scale) }
+    var rotation by remember { mutableFloatStateOf(properties.rotation) }
     var activeText by remember(active) { mutableStateOf(active) }
 
     Box(
