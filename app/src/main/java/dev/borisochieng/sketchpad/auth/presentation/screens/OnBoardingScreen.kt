@@ -20,15 +20,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.borisochieng.sketchpad.auth.presentation.components.HorizontalPagerIndicator
 import dev.borisochieng.sketchpad.auth.presentation.components.HorizontalPagerItem
+import dev.borisochieng.sketchpad.auth.presentation.viewmodels.AuthViewModel
 import dev.borisochieng.sketchpad.ui.navigation.Screens
 import dev.borisochieng.sketchpad.ui.theme.AppTheme
 import dev.borisochieng.sketchpad.ui.theme.AppTypography
 import dev.borisochieng.sketchpad.ui.theme.lightScheme
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun OnBoardingScreen(navigate: (Screens) -> Unit) {
+fun OnBoardingScreen(navigate: (Screens) -> Unit, viewModel: AuthViewModel = koinViewModel()) {
     val pagerState = rememberPagerState(pageCount = { 3 })
     val scope = rememberCoroutineScope()
 
@@ -69,6 +71,7 @@ fun OnBoardingScreen(navigate: (Screens) -> Unit) {
                         )
                     }
                 } else {
+                    viewModel.saveLaunchStatus()
                     navigate(Screens.HomeScreen)
                 }
             }

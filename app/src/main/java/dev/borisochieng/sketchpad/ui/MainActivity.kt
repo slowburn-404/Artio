@@ -7,6 +7,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -56,7 +57,7 @@ class MainActivity : ComponentActivity() {
                                     CoroutineScope(Dispatchers.IO).launch {
                                         val uri = saveImage(it)
                                         withContext(Dispatchers.Main) {
-                                        startActivity(activityChooser(uri))
+                                            startActivity(activityChooser(uri))
                                         }
                                     }
                                 }
@@ -79,6 +80,9 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
+        handleDeepLink(intent = intent) // handle deep link on cold start
+
     }
 
     private fun shareCollaborateUrl(url: Uri) {
@@ -92,23 +96,38 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        setIntent(intent) //update current intent with new one
         handleDeepLink(intent)
     }
+
+//    override fun onResume() {
+//        super.onResume()
+//        handleDeepLink(intent)
+//    }
 
     private fun handleDeepLink(intent: Intent) {
         val action = intent.action
         val data: Uri? = intent.data
 
-        if(action != Intent.ACTION_VIEW || data == null) return
+        action?.let {
+            if (it == Intent.ACTION_VIEW && data != null && ::navActions.isInitialized) {
 
-        val userId = data.getQueryParameter("user_id")
-        val boardId = data.getQueryParameter("board_id")
+                val userId = data.getQueryParameter("user_id")
+                val boardId = data.getQueryParameter("board_id")
 
-        //TODO(navigate to drawing board)
-        navActions.navigate(Screens.SketchPad(boardId ?: VOID_ID))
+                navActions.navigate(
+                    Screens.SketchPad(
+                        sketchId = boardId!!,
+                        isFromCollabUrl = true,
+                        userId = userId!!
+                    )
+                )
 
-        val message = "User id: $userId \n BoardId: $boardId"
-        Log.d("DeepLink", message)
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+                val message = "User id: $userId \n BoardId: $boardId"
+                Log.d("DeepLink", message)
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+
+            }
+        }
     }
 }

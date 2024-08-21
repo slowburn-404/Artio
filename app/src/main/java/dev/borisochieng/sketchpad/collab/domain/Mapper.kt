@@ -26,11 +26,12 @@ fun DBSketch.toSketch(): Sketch {
 
 fun DBPathProperties.toPathProperties(): PathProperties {
     return PathProperties(
-        alpha = alpha.toFloat(),
+        id = id,
+        alpha = alpha,
         color = color.toColor(),
         eraseMode = eraseMode,
-        start = Offset(start.x.toFloat(), start.y.toFloat()),
-        end = Offset(end.x.toFloat(), end.y.toFloat()),
-        strokeWidth = strokeWidth.toFloat()
+        start = Offset(start.x, start.y),
+        end = Offset(end.x, end.y),
+        strokeWidth = strokeWidth
     )
 }

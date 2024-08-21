@@ -22,12 +22,14 @@ interface CollabRepository {
 
     suspend fun fetchSingleSketch(userId: String, boardId: String): FirebaseResponse<Sketch>
 
-    suspend fun updatePathInDB(userId: String, boardId: String, paths: List<DBPathProperties>, pathIds: List<String>): FirebaseResponse<String>
+    suspend fun updatePathInDB(userId: String, boardId: String, paths: List<DBPathProperties>): FirebaseResponse<String>
 
     fun generateCollabUrl(userId: String, boardId: String): Uri
 
     suspend fun deleteSketch(userId: String, boardId : String): FirebaseResponse<String>
 
     suspend fun renameSketchInRemoteDB(userId: String, boardId: String, title: String): FirebaseResponse<String>
+
+    suspend fun delete000()
 
 }

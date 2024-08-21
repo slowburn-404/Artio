@@ -67,6 +67,7 @@ import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.rememberDrawContr
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
+import java.util.UUID.randomUUID
 
 @Composable
 fun DrawingBoard(
@@ -76,7 +77,10 @@ fun DrawingBoard(
     exportSketchAsPdf: (Bitmap) -> Unit,
     navigate: (Screens) -> Unit,
     onBroadCastUrl: (Uri) -> Unit,
-    viewModel: SketchPadViewModel = koinViewModel()
+    viewModel: SketchPadViewModel = koinViewModel(),
+    boardId: String,
+    userId: String,
+    isFromCollabUrl: Boolean
 ) {
     val chatVisible = remember { mutableStateOf(false) }
     val chatEnabled = remember { mutableStateOf(false) }
@@ -111,6 +115,13 @@ fun DrawingBoard(
 
     val uiEvents by viewModel.uiEvents.collectAsState(initial = null)
 
+//    //initialize based on source
+//    LaunchedEffect(Unit) {
+//        if (isFromCollabUrl) {
+//            viewModel.fetchSingleSketch(boardId = boardId, userId = userId)
+//        }
+//    }
+
     //listen for path changes
     LaunchedEffect(uiState.paths) {
         if (!userIsLoggedIn) return@LaunchedEffect
@@ -121,10 +132,12 @@ fun DrawingBoard(
 
     //update paths in db
     LaunchedEffect(paths) {
-        if (!userIsLoggedIn) return@LaunchedEffect
-        delay(300)
-        viewModel.updatePathInDb(paths)
-
+        if (!userIsLoggedIn) {
+            return@LaunchedEffect
+        } else if (uiState.sketchIsBackedUp && isFromCollabUrl) {
+            //delay(300)
+            viewModel.updatePathInDb(paths = paths, userId = userId, boardId = boardId)
+        }
     }
 
     LaunchedEffect(uiEvents) {
@@ -161,10 +174,6 @@ fun DrawingBoard(
                 },
                 onExportClicked = { drawController.saveBitmap() },
                 onBroadCastUrl = {
-                    Log.d(
-                        "Credentials",
-                        "User id: ${boardDetails.boardId} \n Board id: ${boardDetails.boardId}"
-                    )
                     if (userIsLoggedIn) {
                         if (!sketchIsBackedUp || collabUrl == null) {
                             scope.launch { snackbarHostState.showSnackbar("Sketch is not backed up yet") }
@@ -228,8 +237,8 @@ fun DrawingBoard(
 
         BoxWithConstraints(
             modifier = Modifier
-				.fillMaxSize()
-				.padding(paddingValues),
+                .fillMaxSize()
+                .padding(paddingValues),
             contentAlignment = Alignment.BottomCenter
         ) {
             val state = rememberTransformableState { zoomChange, panChange, _ ->
@@ -252,7 +261,6 @@ fun DrawingBoard(
                 factory = {
                     ComposeView(context).apply {
                         setContent {
-
                             LaunchedEffect(drawController) {
                                 drawController.trackBitmaps(
                                     this@apply,
@@ -269,39 +277,44 @@ fun DrawingBoard(
                             var showTextBox by remember { mutableStateOf(false) }
                             Canvas(
                                 modifier = Modifier
-									.fillMaxSize()
-									.background(Color.White)
-									.graphicsLayer {
-										scaleX = scale
-										scaleY = scale
-										translationX = offset.x
-										translationY = offset.y
-									}
-									.transformable(state)
-									.pointerInput(true) {
-										if (drawMode == DrawMode.Touch) return@pointerInput
-										detectDragGestures { change, dragAmount ->
-											change.consume()
-											val eraseMode = drawMode == DrawMode.Erase
-											val path = PathProperties(
-												color = when (drawMode) {
-													DrawMode.Erase -> Color.White
-													DrawMode.Draw -> color
-													else -> Color.Transparent
-												},
-												eraseMode = eraseMode,
-												start = change.position - dragAmount,
-												end = change.position,
-												strokeWidth = pencilSize
-											)
+                                    .fillMaxSize()
+                                    .background(Color.White)
+                                    .graphicsLayer {
+                                        scaleX = scale
+                                        scaleY = scale
+                                        translationX = offset.x
+                                        translationY = offset.y
+                                    }
+                                    .transformable(state)
+                                    .pointerInput(true) {
+                                        if (drawMode == DrawMode.Touch) return@pointerInput
+                                        detectDragGestures { change, dragAmount ->
+                                            change.consume()
+                                            val eraseMode = drawMode == DrawMode.Erase
+                                            val path = PathProperties(
+                                                id = randomUUID().toString(), //generate id for each new path
+                                                color = when (drawMode) {
+                                                    DrawMode.Erase -> Color.White
+                                                    DrawMode.Draw -> color
+                                                    else -> Color.Transparent
+                                                },
+                                                eraseMode = eraseMode,
+                                                start = change.position - dragAmount,
+                                                end = change.position,
+                                                strokeWidth = pencilSize
+                                            )
 
-											absolutePaths += path
-											paths = absolutePaths.toList()
+                                            absolutePaths += path
+                                            paths = absolutePaths.toList()
 
                                             //update paths in db as they are drawn
-                                            viewModel.updatePathInDb(paths)
-										}
-									}
+                                            viewModel.updatePathInDb(
+                                                paths = paths,
+                                                userId = userId,
+                                                boardId = boardId
+                                            )
+                                        }
+                                    }
                             ) {
                                 paths.forEach { path ->
                                     drawLine(
@@ -362,7 +375,7 @@ fun DrawingBoard(
         }
 
         // onBackPress, if canvas has new lines drawn, prompt user to save sketch or changes
-        if (paths.isNotEmpty() && paths != sketch?.pathList) {
+        if (paths.isNotEmpty() && paths != sketch?.pathList && !isFromCollabUrl) {
             BackHandler { openSavePromptDialog.value = true }
         }
     }
