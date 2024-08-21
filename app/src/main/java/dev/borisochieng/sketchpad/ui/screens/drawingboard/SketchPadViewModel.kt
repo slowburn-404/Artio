@@ -14,8 +14,10 @@ import dev.borisochieng.sketchpad.collab.data.models.BoardDetails
 import dev.borisochieng.sketchpad.collab.data.toDBPathProperties
 import dev.borisochieng.sketchpad.collab.data.toDBSketch
 import dev.borisochieng.sketchpad.collab.domain.CollabRepository
+import dev.borisochieng.sketchpad.database.MessageModel
 import dev.borisochieng.sketchpad.database.Sketch
 import dev.borisochieng.sketchpad.database.repository.SketchRepository
+import dev.borisochieng.sketchpad.database.repository.TAG
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.alt.PathProperties
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,6 +40,14 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 
     private val _uiEvents = MutableSharedFlow<CanvasUiEvents>()
     val uiEvents: SharedFlow<CanvasUiEvents> = _uiEvents
+
+
+    val messages = MutableStateFlow<List<MessageModel?>>(emptyList())
+
+    var messageState = mutableStateOf(MessageUiState())
+        private set
+    private val message
+        get() = messageState.value.message
 
     //    var sketch by mutableStateOf<Sketch?>(null); private set
     private var remoteSketches by mutableStateOf<List<Sketch>>(emptyList())
@@ -255,6 +265,42 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
             else -> emptyList()
         }
         return remoteSketches
+    }
+
+
+    fun initialize() {
+        viewModelScope.launch {
+            sketchRepository.getChats().collect {
+                messages.value = emptyList()
+                messages.value = it
+                Log.d(TAG, "list of messages during initalization ${messages.value}")
+            }
+        }
+    }
+
+    fun onMessageSent() {
+        viewModelScope.launch {
+            if (message.isNotEmpty()) {
+                sketchRepository.createChats(message,).collect {
+                    if (it) {
+                        Log.d(TAG, "message sent successfully")
+                    } else {
+                        Log.d(TAG, "message failed")
+                    }
+                    sketchRepository.loadChats().collect { messagesList ->
+                        messages.value = emptyList()
+                        messages.value = messagesList
+                        Log.d(TAG, "list of messages after creation ${messages.value}")
+                    }
+
+                }
+            }
+
+        }
+
+    }
+    fun onMessageChange(newValue: String) {
+        messageState.value = messageState.value.copy(message = newValue)
     }
 
 }

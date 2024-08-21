@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import dev.borisochieng.sketchpad.database.Sketch
 import dev.borisochieng.sketchpad.ui.navigation.Screens
 import dev.borisochieng.sketchpad.ui.screens.dialog.NameSketchDialog
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.chat.ChatDialog
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.DrawMode
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.convertToOldColor
 
@@ -46,6 +47,7 @@ fun SketchPadScreen(
     actions: (SketchPadActions) -> Unit,
     navigate: (Screens) -> Unit
 ) {
+
     val undoVisibility = remember { mutableStateOf(false) }
     val redoVisibility = remember { mutableStateOf(false) }
     val colorBarVisibility = remember { mutableStateOf(false) }
@@ -228,5 +230,7 @@ fun SketchPadScreen(
                 onDismiss = { openNameSketchDialog.value = false }
             )
         }
+
+
     }
 }

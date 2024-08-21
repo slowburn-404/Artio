@@ -15,6 +15,11 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -56,6 +61,7 @@ import dev.borisochieng.sketchpad.ui.screens.drawingboard.CanvasUiEvents
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.CanvasUiState
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadActions
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadViewModel
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.chat.ChatDialog
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.ExportOption
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.rememberDrawController
 import kotlinx.coroutines.delay
@@ -76,6 +82,8 @@ fun DrawingBoard(
     userId: String,
     isFromCollabUrl: Boolean
 ) {
+    val chatVisible = remember { mutableStateOf(false) }
+    val chatEnabled = remember { mutableStateOf(false) }
     val (userIsLoggedIn, boardDetails, sketchIsBackedUp, _, sketch, collabUrl) = uiState
     var currentTextInput by remember { mutableStateOf(TextInput()) }
     var exportOption by remember { mutableStateOf(ExportOption.PNG) }
@@ -187,6 +195,9 @@ fun DrawingBoard(
                     exportOption = ExportOption.PDF
                     drawController.saveBitmap()
                 },
+                chatEnabled = {
+                    chatEnabled.value = !chatEnabled.value
+                }
             )
         },
         bottomBar = {
@@ -200,7 +211,22 @@ fun DrawingBoard(
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = Color.White
+        containerColor = Color.White,
+        floatingActionButton = {
+            if(chatEnabled.value && userIsLoggedIn){
+                FloatingActionButton(
+                    onClick = {
+                        chatVisible.value = true
+                    },
+                    content = {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Chat,
+                            contentDescription = "Chat"
+                        )
+                    }
+                )
+            }
+        }
     ) { paddingValues ->
         LaunchedEffect(sketch) {
             if (sketch == null) return@LaunchedEffect
@@ -352,6 +378,16 @@ fun DrawingBoard(
         if (paths.isNotEmpty() && paths != sketch?.pathList && !isFromCollabUrl) {
             BackHandler { openSavePromptDialog.value = true }
         }
+    }
+
+    if(chatVisible.value){
+
+        ChatDialog(
+            onCancel = { chatVisible.value = false },
+            onOk = {chatVisible.value = false },
+            viewModel = viewModel,
+            projectId = uiState.boardDetails.boardId
+        )
     }
 }
 
