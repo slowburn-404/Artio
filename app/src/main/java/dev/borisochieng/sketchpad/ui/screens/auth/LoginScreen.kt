@@ -324,7 +324,6 @@ fun LoginScreen(
                     modifier = Modifier
                         .padding(4.dp)
                         .clickable(onClick = {
-                            viewModel.saveLaunchStatus()
                             navigate(Screens.ResetPasswordScreen)
                         }),
                     text = "Forgot password?",

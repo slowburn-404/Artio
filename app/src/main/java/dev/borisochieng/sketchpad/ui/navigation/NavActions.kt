@@ -8,7 +8,7 @@ class NavActions(private val navController: NavHostController) {
     fun navigate(screen: Screens) {
         when (screen) {
             Screens.HomeScreen -> navigateToHomeScreen()
-            is Screens.SketchPad -> navigateToSketchPad(screen.sketchId, screen.userId)
+            is Screens.SketchPad -> navigateToSketchPad(screen.sketchId, screen.userId, isFromCollabUrl = false)
             Screens.SettingsScreen -> navigateToSettingsScreen()
             Screens.ProfileScreen -> navigateToProfileScreen()
             Screens.Back -> navController.navigateUp()
@@ -29,9 +29,13 @@ class NavActions(private val navController: NavHostController) {
         }
     }
 
+<<<<<<< HEAD
     private fun navigateToSketchPad(sketchId: String, userId: String?) {
+=======
+    private fun navigateToSketchPad(sketchId: String, userId: String, isFromCollabUrl: Boolean) {
+>>>>>>> ce382ff (bugfix: onboarding screen showing on every launch)
         navController.navigate(
-            AppRoute.SketchPad.routeWithId(sketchId, userId)
+            AppRoute.SketchPad.routeWithId(sketchId, userId, isFromCollabUrl)
         ) { launchSingleTop = true }
     }
 
@@ -78,8 +82,13 @@ class NavActions(private val navController: NavHostController) {
 @SuppressLint("DefaultLocale")
 sealed class AppRoute(val route: String) {
     data object HomeScreen : AppRoute("home_screen")
+<<<<<<< HEAD
     data object SketchPad : AppRoute("sketchpad/{sketchId}/{userId}") {
         fun routeWithId(sketchId: String, userId: String?) = String.format("sketchpad/%s/%2s", sketchId, userId)
+=======
+    data object SketchPad : AppRoute("sketchpad/{sketchId}/{userId}/{isFromCollabUrl}") {
+        fun routeWithId(sketchId: String, userId: String, isFromCollabUrl: Boolean) = String.format("sketchpad/%s/%s/%b", sketchId, userId, isFromCollabUrl)
+>>>>>>> ce382ff (bugfix: onboarding screen showing on every launch)
     }
     data object SettingsScreen : AppRoute("settings_screen")
     data object ProfileScreen : AppRoute("profile_screen")
@@ -92,7 +101,11 @@ sealed class AppRoute(val route: String) {
 
 sealed class Screens {
     data object HomeScreen : Screens()
+<<<<<<< HEAD
     data class SketchPad(val sketchId: String, val userId: String? = null) : Screens()
+=======
+    data class SketchPad(val sketchId: String, val userId: String, val isFromCollabUrl: Boolean = false) : Screens()
+>>>>>>> ce382ff (bugfix: onboarding screen showing on every launch)
     data object SettingsScreen : Screens()
     data object ProfileScreen : Screens()
     data object Back : Screens()

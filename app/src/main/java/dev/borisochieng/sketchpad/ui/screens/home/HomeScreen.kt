@@ -71,7 +71,11 @@ fun HomeScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(
+<<<<<<< HEAD
                 onClick = { navigate(Screens.SketchPad(VOID_ID)) },
+=======
+                onClick = { navigate(Screens.SketchPad(VOID_ID,FirebaseAuth.getInstance().uid ?: "0000", false)) },
+>>>>>>> ce382ff (bugfix: onboarding screen showing on every launch)
                 modifier = Modifier.padding(bottom = bottomPadding),
                 containerColor = colorScheme.primary,
                 contentColor = colorScheme.onPrimary
@@ -111,7 +115,11 @@ fun HomeScreen(
                             SketchPoster(
                                 sketch = sketch,
                                 modifier = Modifier.animateItemPlacement(),
+<<<<<<< HEAD
                                 onClick = { navigate(Screens.SketchPad(it)) },
+=======
+                                onClick = { navigate(Screens.SketchPad(it, sketch.id, false)) },
+>>>>>>> ce382ff (bugfix: onboarding screen showing on every launch)
                                 onMenuClicked = { selectedSketch.value = it }
                             )
                         }

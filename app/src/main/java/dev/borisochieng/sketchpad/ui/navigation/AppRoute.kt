@@ -28,18 +28,19 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun AppRoute(
-	paddingValues: PaddingValues,
-	navActions: NavActions,
-	navController: NavHostController,
-	saveImage: (Bitmap) -> Unit,
-	saveImageAsPdf: (Bitmap) -> Unit,
-	authViewModel: AuthViewModel = koinViewModel(),
-	homeViewModel: HomeViewModel = koinViewModel(),
-	sketchPadViewModel: SketchPadViewModel = koinViewModel(),
-	broadCastUrl: (Uri) -> Unit,
+    paddingValues: PaddingValues,
+    navActions: NavActions,
+    navController: NavHostController,
+    saveImage: (Bitmap) -> Unit,
+    saveImageAsPdf: (Bitmap) -> Unit,
+    authViewModel: AuthViewModel = koinViewModel(),
+    homeViewModel: HomeViewModel = koinViewModel(),
+    sketchPadViewModel: SketchPadViewModel = koinViewModel(),
+    broadCastUrl: (Uri) -> Unit,
 ) {
-	NavHost(
+    NavHost(
 //		modifier = Modifier.padding(paddingValues), this gives the app unnecessary padding
+<<<<<<< HEAD
 		navController = navController,
 		startDestination = authViewModel.startScreen
 	) {
@@ -67,41 +68,71 @@ fun AppRoute(
 					fetchSingleSketch(sketchId, userId) // from remote db
 				}
 			}
+=======
+        navController = navController,
+        startDestination = authViewModel.startScreen
+    ) {
+        composable(AppRoute.HomeScreen.route) {
+            HomeScreen(
+                bottomPadding = paddingValues.calculateBottomPadding(),
+                uiState = homeViewModel.uiState,
+                actions = homeViewModel::actions,
+                navigate = navActions::navigate
+            )
+        }
+        animatedComposable(
+            route = AppRoute.SketchPad.route,
+            animationDirection = AnimationDirection.UpDown
+        ) { backStackEntry ->
+            val sketchId = backStackEntry.arguments?.getString("sketchId")
+                ?: "" // sketchId is the same as boardId
+            val userId = backStackEntry.arguments?.getString("userId")
+                ?: FirebaseAuth.getInstance().currentUser?.uid ?: VOID_ID
+            val isFromCollabUrl = backStackEntry.arguments?.getBoolean("isFromCollabUrl")!!
+>>>>>>> ce382ff (bugfix: onboarding screen showing on every launch)
 
-			DrawingBoard(
-				uiState = sketchPadViewModel.uiState,
-				exportSketch = saveImage,
-				actions = sketchPadViewModel::actions,
-				exportSketchAsPdf = saveImageAsPdf,
-				navigate = navActions::navigate,
-				onBroadCastUrl = broadCastUrl,
-				boardId = sketchId,
-				userId = userId
-			)
-		}
-		composable(AppRoute.SettingsScreen.route) {
-			SettingsScreen(navigate = navActions::navigate)
-		}
-		composable(AppRoute.ProfileScreen.route) {
-			ProfileScreen(
-				bottomPadding = paddingValues.calculateBottomPadding(),
-				navigate = navActions::navigate
-			)
-		}
-		animatedComposable(AppRoute.OnBoardingScreen.route) {
-			OnBoardingScreen(navigate = navActions::navigate)
-		}
-		animatedComposable(AppRoute.SignUpScreen.route) {
-			SignUpScreen(navigate = navActions:: navigate)
-		}
-		animatedComposable(AppRoute.LoginScreen.route) {
-			LoginScreen(navigate = navActions::navigate)
-		}
-		animatedComposable(AppRoute.UpdateProfileScreen.route) {
-			UpdateProfileScreen(navigate = navActions::navigate)
-		}
-		animatedComposable(AppRoute.ResetPasswordScreen.route) {
-			ResetPasswordScreen(navigate = navActions::navigate)
-		}
-	}
+            LaunchedEffect(sketchId) {
+                if (!isFromCollabUrl) {
+                    sketchPadViewModel.fetchSketch(sketchId)
+                    sketchPadViewModel.generateCollabUrl(sketchId)
+                }
+            }
+
+            DrawingBoard(
+                uiState = sketchPadViewModel.uiState,
+                exportSketch = saveImage,
+                actions = sketchPadViewModel::actions,
+                exportSketchAsPdf = saveImageAsPdf,
+                navigate = navActions::navigate,
+                onBroadCastUrl = broadCastUrl,
+                boardId = sketchId,
+                userId = userId,
+                isFromCollabUrl = isFromCollabUrl
+            )
+        }
+        composable(AppRoute.SettingsScreen.route) {
+            SettingsScreen(navigate = navActions::navigate)
+        }
+        composable(AppRoute.ProfileScreen.route) {
+            ProfileScreen(
+                bottomPadding = paddingValues.calculateBottomPadding(),
+                navigate = navActions::navigate
+            )
+        }
+        animatedComposable(AppRoute.OnBoardingScreen.route) {
+            OnBoardingScreen(navigate = navActions::navigate)
+        }
+        animatedComposable(AppRoute.SignUpScreen.route) {
+            SignUpScreen(navigate = navActions::navigate)
+        }
+        animatedComposable(AppRoute.LoginScreen.route) {
+            LoginScreen(navigate = navActions::navigate)
+        }
+        animatedComposable(AppRoute.UpdateProfileScreen.route) {
+            UpdateProfileScreen(navigate = navActions::navigate)
+        }
+        animatedComposable(AppRoute.ResetPasswordScreen.route) {
+            ResetPasswordScreen(navigate = navActions::navigate)
+        }
+    }
 }

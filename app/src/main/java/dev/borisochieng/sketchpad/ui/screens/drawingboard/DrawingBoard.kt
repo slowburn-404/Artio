@@ -73,7 +73,8 @@ fun DrawingBoard(
     onBroadCastUrl: (Uri) -> Unit,
     viewModel: SketchPadViewModel = koinViewModel(),
     boardId: String,
-    userId: String
+    userId: String,
+    isFromCollabUrl: Boolean
 ) {
     val (userIsLoggedIn, boardDetails, sketchIsBackedUp, _, sketch, collabUrl) = uiState
 //    var currentTextInput by remember { mutableStateOf(TextInput()) }
@@ -129,6 +130,13 @@ fun DrawingBoard(
 
     val uiEvents by viewModel.uiEvents.collectAsState(initial = null)
 
+    //initialize based on source
+    LaunchedEffect(boardId) {
+        if (isFromCollabUrl) {
+            viewModel.fetchSingleSketch(boardId = boardId, userId = userId)
+        }
+    }
+
     //listen for path changes
     LaunchedEffect(uiState.paths) {
         if (!userIsLoggedIn) return@LaunchedEffect
@@ -146,6 +154,7 @@ fun DrawingBoard(
         viewModel.updatePathInDb(paths = paths, userId = userId, boardId = boardId)
     }
 
+<<<<<<< HEAD:app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/DrawingBoard.kt
     LaunchedEffect(texts) {
         if (texts.size > absoluteTexts.size) {
             absoluteTexts.clear()
@@ -153,6 +162,8 @@ fun DrawingBoard(
         }
     }
 
+=======
+>>>>>>> ce382ff (bugfix: onboarding screen showing on every launch):app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/alt/DrawingBoard.kt
     LaunchedEffect(uiEvents) {
         uiEvents?.let { event ->
             when (event) {
@@ -295,6 +306,38 @@ fun DrawingBoard(
                                         translationY = offset.y
                                     }
                                     .transformable(state)
+<<<<<<< HEAD:app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/DrawingBoard.kt
+=======
+                                    .pointerInput(true) {
+                                        if (drawMode == DrawMode.Touch) return@pointerInput
+                                        detectDragGestures { change, dragAmount ->
+                                            change.consume()
+                                            val eraseMode = drawMode == DrawMode.Erase
+                                            val path = PathProperties(
+                                                id = randomUUID().toString(), //generate id for each new path
+                                                color = when (drawMode) {
+                                                    DrawMode.Erase -> Color.White
+                                                    DrawMode.Draw -> color
+                                                    else -> Color.Transparent
+                                                },
+                                                eraseMode = eraseMode,
+                                                start = change.position - dragAmount,
+                                                end = change.position,
+                                                strokeWidth = pencilSize
+                                            )
+
+                                            absolutePaths += path
+                                            paths = absolutePaths.toList()
+
+                                            //update paths in db as they are drawn
+                                            viewModel.updatePathInDb(
+                                                paths = paths,
+                                                userId = userId,
+                                                boardId = boardId
+                                            )
+                                        }
+                                    }
+>>>>>>> ce382ff (bugfix: onboarding screen showing on every launch):app/src/main/java/dev/borisochieng/sketchpad/ui/screens/drawingboard/alt/DrawingBoard.kt
                             ) {
                                 Canvas(
                                     modifier = Modifier
