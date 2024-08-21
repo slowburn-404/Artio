@@ -18,13 +18,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.borisochieng.sketchpad.ui.navigation.Screens
+import dev.borisochieng.sketchpad.ui.screens.auth.AuthViewModel
 import dev.borisochieng.sketchpad.ui.theme.AppTypography
 import dev.borisochieng.sketchpad.ui.theme.lightScheme
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun OnBoardingScreen(navigate: (Screens) -> Unit) {
+fun OnBoardingScreen(navigate: (Screens) -> Unit, viewModel: AuthViewModel = koinViewModel()) {
     val pagerState = rememberPagerState(pageCount = { 3 })
     val scope = rememberCoroutineScope()
 
@@ -65,6 +67,7 @@ fun OnBoardingScreen(navigate: (Screens) -> Unit) {
                         )
                     }
                 } else {
+                    viewModel.saveLaunchStatus()
                     navigate(Screens.HomeScreen)
                 }
             }

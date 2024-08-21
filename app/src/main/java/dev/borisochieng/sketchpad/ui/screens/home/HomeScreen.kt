@@ -43,6 +43,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.auth.FirebaseAuth
 import dev.borisochieng.sketchpad.database.Sketch
 import dev.borisochieng.sketchpad.ui.components.HomeTopBar
 import dev.borisochieng.sketchpad.ui.navigation.Screens
@@ -71,7 +72,8 @@ fun HomeScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navigate(Screens.SketchPad(VOID_ID)) },
+                onClick = { navigate(Screens.SketchPad(VOID_ID,
+                    FirebaseAuth.getInstance().uid ?: "0000", false)) },
                 modifier = Modifier.padding(bottom = bottomPadding),
                 containerColor = colorScheme.primary,
                 contentColor = colorScheme.onPrimary
@@ -111,7 +113,7 @@ fun HomeScreen(
                             SketchPoster(
                                 sketch = sketch,
                                 modifier = Modifier.animateItemPlacement(),
-                                onClick = { navigate(Screens.SketchPad(it)) },
+                                onClick = { navigate(Screens.SketchPad(it, sketch.id, false)) },
                                 onMenuClicked = { selectedSketch.value = it }
                             )
                         }

@@ -73,7 +73,8 @@ fun DrawingBoard(
     onBroadCastUrl: (Uri) -> Unit,
     viewModel: SketchPadViewModel = koinViewModel(),
     boardId: String,
-    userId: String
+    userId: String,
+    isFromCollabUrl: Boolean
 ) {
     val (userIsLoggedIn, boardDetails, sketchIsBackedUp, _, sketch, collabUrl) = uiState
 //    var currentTextInput by remember { mutableStateOf(TextInput()) }
@@ -116,7 +117,7 @@ fun DrawingBoard(
     val addTextToPaths: (String) -> Unit = { textId ->
         val textPath = PathProperties(id = textId, textMode = true)
         paths += textPath
-	    absolutePaths.clear()
+        absolutePaths.clear()
         absolutePaths.addAll(paths)
     }
     val removeTextFromPaths: (String) -> Unit = { textId ->
@@ -129,6 +130,13 @@ fun DrawingBoard(
 
     val uiEvents by viewModel.uiEvents.collectAsState(initial = null)
 
+//    //initialize based on source
+//    LaunchedEffect(Unit) {
+//        if (isFromCollabUrl) {
+//            viewModel.fetchSingleSketch(boardId = boardId, userId = userId)
+//        }
+//    }
+
     //listen for path changes
     LaunchedEffect(uiState.paths) {
         if (!userIsLoggedIn) return@LaunchedEffect
@@ -139,11 +147,12 @@ fun DrawingBoard(
 
     //update paths in db
     LaunchedEffect(paths) {
-        if (!userIsLoggedIn) return@LaunchedEffect
-        delay(300)
-        viewModel.listenForSketchChanges(userId = userId, boardId = boardId)
-        if (paths == uiState.paths) return@LaunchedEffect
-        viewModel.updatePathInDb(paths = paths, userId = userId, boardId = boardId)
+        if (!userIsLoggedIn) {
+            return@LaunchedEffect
+        } else if (uiState.sketchIsBackedUp && isFromCollabUrl) {
+            //delay(300)
+            viewModel.updatePathInDb(paths = paths, userId = userId, boardId = boardId)
+        }
     }
 
     LaunchedEffect(uiEvents) {
@@ -188,10 +197,6 @@ fun DrawingBoard(
                 },
                 onExportClicked = { drawController.saveBitmap() },
                 onBroadCastUrl = {
-                    Log.d(
-                        "Credentials",
-                        "User id: ${boardDetails.boardId} \n Board id: ${boardDetails.boardId}"
-                    )
                     if (userIsLoggedIn) {
                         if (!sketchIsBackedUp || collabUrl == null) {
                             scope.launch { snackbarHostState.showSnackbar("Sketch is not backed up yet") }
@@ -316,7 +321,7 @@ fun DrawingBoard(
                                                 )
 
                                                 paths += path
-	                                            absolutePaths.clear()
+                                                absolutePaths.clear()
                                                 absolutePaths.addAll(paths)
 
                                                 //update paths in db as they are drawn
@@ -332,7 +337,7 @@ fun DrawingBoard(
                                     paths
                                         .filterNot { it.textMode }
                                         .forEach { path ->
-											drawLine(
+                                            drawLine(
                                                 color = path.color,
                                                 start = path.start,
                                                 end = path.end,
@@ -408,13 +413,12 @@ fun DrawingBoard(
             onDispose { actions(SketchPadActions.SketchClosed) }
         }
 
-        // onBackPress, if canvas has new lines drawn, prompt user to save sketch or changes
+        // onBackPress, if canvas has new lines drawn or text written, prompt user to save sketch or changes
         if ((paths.isNotEmpty() && paths != sketch?.pathList) ||
-            (texts.isNotEmpty() && texts != sketch?.textList)) {
+            (texts.isNotEmpty() && texts != sketch?.textList) &&
+            !isFromCollabUrl) {
             BackHandler { openSavePromptDialog.value = true }
-        }
     }
-}
 
 //data class TextInput(
 //    val text: String = "",
