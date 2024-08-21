@@ -47,7 +47,10 @@ class HomeViewModel : ViewModel(), KoinComponent {
 			sketchRepository.getAllSketches().collect { sketches ->
 				localSketches = sketches
 				if (synced) {
-					_uiState.update { it.copy(localSketches = sketches) }
+					_uiState.update { it.copy(
+						localSketches = sketches,
+						remoteSketches = fetchSketchesFromRemoteDB()
+					) }
 					delay(1000)
 					_uiState.update { it.copy(isLoading = false) }
 					return@collect
@@ -94,6 +97,7 @@ class HomeViewModel : ViewModel(), KoinComponent {
 
 	private fun refreshDatabase() {
 		synced = true
+		_uiState.update { it.copy(fetchedFromRemoteDb = false) }
 		viewModelScope.launch {
 //			val remoteSketches = listOf(Sketch(name = "Jankz", pathList = emptyList())) // for testing
 			val remoteSketches = fetchSketchesFromRemoteDB()
@@ -101,7 +105,10 @@ class HomeViewModel : ViewModel(), KoinComponent {
 				sketch.name in remoteSketches.map { it.name }
 			}
 			sketchRepository.refreshDatabase(remoteSketches + unsyncedSketches)
-			_uiState.update { it.copy(remoteSketches = remoteSketches) }
+			_uiState.update { it.copy(
+				remoteSketches = remoteSketches,
+				fetchedFromRemoteDb = true
+			) }
 		}
 	}
 
@@ -134,7 +141,6 @@ class HomeViewModel : ViewModel(), KoinComponent {
             }
 
             is FirebaseResponse.Error -> {
-
                 _uiState.update {
                     it.copy(
                         feedback = renameTask.message
@@ -212,11 +218,12 @@ class HomeViewModel : ViewModel(), KoinComponent {
 	private fun fallbackPlan() {
 		viewModelScope.launch {
 			delay(10000)
-			if (!uiState.isLoading || localSketches == uiState.localSketches) return@launch
+			if (!uiState.isLoading) return@launch
 			_uiState.update {
 				it.copy(
-					localSketches = localSketches,
-					isLoading = false
+					localSketches = localSketches.ifEmpty { emptyList() },
+					isLoading = false,
+					fetchedFromRemoteDb = localSketches.isEmpty()
 				)
 			}
 		}

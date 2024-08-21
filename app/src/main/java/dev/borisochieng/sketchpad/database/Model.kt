@@ -2,7 +2,7 @@ package dev.borisochieng.sketchpad.database
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import dev.borisochieng.sketchpad.ui.screens.drawingboard.alt.PathProperties
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.PathProperties
 import java.util.Calendar
 import java.util.Date
 import java.util.UUID

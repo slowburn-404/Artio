@@ -11,17 +11,17 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.google.firebase.auth.FirebaseAuth
-import dev.borisochieng.sketchpad.auth.presentation.screens.LoginScreen
-import dev.borisochieng.sketchpad.auth.presentation.screens.OnBoardingScreen
-import dev.borisochieng.sketchpad.auth.presentation.screens.ProfileScreen
-import dev.borisochieng.sketchpad.auth.presentation.screens.ResetPasswordScreen
-import dev.borisochieng.sketchpad.auth.presentation.screens.SignUpScreen
-import dev.borisochieng.sketchpad.auth.presentation.screens.UpdateProfileScreen
-import dev.borisochieng.sketchpad.auth.presentation.viewmodels.AuthViewModel
+import dev.borisochieng.sketchpad.ui.screens.auth.AuthViewModel
+import dev.borisochieng.sketchpad.ui.screens.auth.LoginScreen
+import dev.borisochieng.sketchpad.ui.screens.auth.ResetPasswordScreen
+import dev.borisochieng.sketchpad.ui.screens.auth.SignUpScreen
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.DrawingBoard
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadViewModel
-import dev.borisochieng.sketchpad.ui.screens.drawingboard.alt.DrawingBoard
 import dev.borisochieng.sketchpad.ui.screens.home.HomeScreen
 import dev.borisochieng.sketchpad.ui.screens.home.HomeViewModel
+import dev.borisochieng.sketchpad.ui.screens.onboarding.OnBoardingScreen
+import dev.borisochieng.sketchpad.ui.screens.profile.ProfileScreen
+import dev.borisochieng.sketchpad.ui.screens.profile.UpdateProfileScreen
 import dev.borisochieng.sketchpad.ui.screens.settings.SettingsScreen
 import dev.borisochieng.sketchpad.utils.AnimationDirection
 import dev.borisochieng.sketchpad.utils.VOID_ID
@@ -41,10 +41,9 @@ fun AppRoute(
     broadCastUrl: (Uri) -> Unit,
 ) {
     NavHost(
-//		modifier = Modifier.padding(paddingValues), this gives the app unnecessary padding
-        navController = navController,
-        startDestination = authViewModel.startScreen
-    ) {
+		navController = navController,
+		startDestination = authViewModel.startScreen
+	) {
         composable(AppRoute.HomeScreen.route) {
             HomeScreen(
                 bottomPadding = paddingValues.calculateBottomPadding(),

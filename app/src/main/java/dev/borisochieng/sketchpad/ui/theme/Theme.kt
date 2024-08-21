@@ -3,7 +3,6 @@ package dev.borisochieng.sketchpad.ui.theme
 import android.content.res.Configuration
 import android.os.Build
 import android.view.Window
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -16,9 +15,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowInsetsControllerCompat
-import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.dataStore
-import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.isDarkThemeOn
-import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.themePreferenceKey
+import dev.borisochieng.sketchpad.database.dataStore
+import dev.borisochieng.sketchpad.database.isDarkThemeOn
+import dev.borisochieng.sketchpad.database.themePreferenceKey
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 

@@ -18,7 +18,10 @@ import dev.borisochieng.sketchpad.database.MessageModel
 import dev.borisochieng.sketchpad.database.Sketch
 import dev.borisochieng.sketchpad.database.repository.SketchRepository
 import dev.borisochieng.sketchpad.database.repository.TAG
-import dev.borisochieng.sketchpad.ui.screens.drawingboard.alt.PathProperties
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.CanvasUiEvents
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.CanvasUiState
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.PathProperties
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.SketchPadActions
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -42,7 +45,6 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 
     private val _uiEvents = MutableSharedFlow<CanvasUiEvents>()
     val uiEvents: SharedFlow<CanvasUiEvents> = _uiEvents
-
 
 
     private val _messages = MutableStateFlow<List<MessageModel?>>(emptyList())
@@ -76,7 +78,6 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
         viewModelScope.launch {
             sketchRepository.getSketch(sketchId).collect { fetchedSketch ->
                 _uiState.update { it.copy(sketch = fetchedSketch) }
-                //if (uiState.userIsLoggedIn) fetchSingleSketch(sketchId)
                 try {
                     _uiState.update { state ->
                         state.copy(
@@ -161,8 +162,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 
     private fun listenForSketchChanges(userId: String, boardId: String) =
         viewModelScope.launch {
-            if (!uiState.userIsLoggedIn || !uiState.sketchIsBackedUp) return@launch
-
+            if (!uiState.sketchIsBackedUp) return@launch
             val response = collabRepository.listenForPathChanges(
                 userId = userId,
                 boardId = boardId
@@ -185,13 +185,16 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
                     is FirebaseResponse.Error -> {
                         _uiState.update { it.copy(error = dbResponse.message) }
                         _uiEvents.emit(CanvasUiEvents.SnackBarEvent(dbResponse.message))
-
                     }
                 }
             }
         }
 
-    fun updatePathInDb(paths: List<PathProperties>, userId: String, boardId: String) =
+    fun updatePathInDb(
+        paths: List<PathProperties>,
+        userId: String,
+        boardId: String
+    ) =
         viewModelScope.launch {
             if (paths.isNotEmpty()) {
                 val response =
@@ -216,7 +219,6 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
                 userId = userId,
                 boardId = boardId
             )
-
             when (sketchResponse) {
                 is FirebaseResponse.Success -> {
                     Log.i("Single sketch from DB", sketchResponse.data.toString())
