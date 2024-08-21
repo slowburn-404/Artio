@@ -96,7 +96,7 @@ fun ChatEditText(
                 // Send the message if the icon is send
 
 
-                viewModel.onMessageSent()
+                viewModel.onMessageSent(projectId)
                 keyboardController?.hide()
                 viewModel.messageState.value =
                     viewModel.messageState.value.copy(message = "")

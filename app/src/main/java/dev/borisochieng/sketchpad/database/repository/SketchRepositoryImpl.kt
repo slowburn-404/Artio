@@ -52,14 +52,14 @@ class SketchRepositoryImpl: SketchRepository, KoinComponent {
 	}
 	private val currentUser = FirebaseAuth.getInstance().currentUser
 	private val firestore = FirebaseFirestore.getInstance()
-	override suspend fun createChats(message1: String): Flow<Boolean> {
-		val messageId = firestore.collection("projects").document(TEST_PROJECT_ID).collection("chats").document().id // Generate message ID
+	override suspend fun createChats(message1: String,boardId: String): Flow<Boolean> {
+		val messageId = firestore.collection("projects").document(boardId).collection("chats").document().id // Generate message ID
 
 		val message = MessageModel(
 			senderName = currentUser?.displayName ?: "",
 			senderId = "${currentUser?.uid}",
 			message = message1,
-			projectId = TEST_PROJECT_ID ,
+			projectId = boardId,
 			messageId = messageId,
 			timestamp = System.currentTimeMillis(),
 			audioUrl = null,
@@ -71,7 +71,7 @@ class SketchRepositoryImpl: SketchRepository, KoinComponent {
 			// Add the message to the collection
 			try {
 				firestore.collection("projects")
-					.document(TEST_PROJECT_ID)
+					.document(boardId)
 					.collection("chats")
 					.document(messageId) // Use message ID for the document
 					.set(message)
@@ -85,14 +85,14 @@ class SketchRepositoryImpl: SketchRepository, KoinComponent {
 
 	}
 
-	override suspend fun getChats(): Flow<List<MessageModel>> {
+	override suspend fun getChats(boardId: String): Flow<List<MessageModel>> {
 		val messages = mutableStateListOf<MessageModel?>()
 
 		return callbackFlow {
 
 
 			firestore.collection("projects")
-				.document(TEST_PROJECT_ID)
+				.document(boardId)
 				.collection("chats")
 				.orderBy("timestamp", Query.Direction.ASCENDING)
 				.get()
@@ -123,14 +123,14 @@ class SketchRepositoryImpl: SketchRepository, KoinComponent {
 
 	}
 
-	override suspend fun loadChats(): Flow<List<MessageModel>> {
+	override suspend fun loadChats(boardId: String): Flow<List<MessageModel>> {
 		val messages = mutableStateListOf<MessageModel?>()
 
 		return callbackFlow {
 
 
 			val listener = firestore.collection("projects")
-				.document(TEST_PROJECT_ID)
+				.document(boardId)
 				.collection("chats")
 				.orderBy("timestamp", Query.Direction.ASCENDING)
 				.addSnapshotListener { querySnapshot, exception ->
@@ -164,20 +164,34 @@ class SketchRepositoryImpl: SketchRepository, KoinComponent {
 	}
 
 
-	override suspend fun updateTypingStatus(isTyping: Boolean) {
-		val projectRef = firestore.collection("projects").document(TEST_PROJECT_ID)
+	override suspend fun updateTypingStatus(isTyping: Boolean, boardId: String) {
+		val projectRef = firestore.collection("projects").document(boardId)
 
-		if (isTyping) {
-
-			projectRef.update("typingUsers", FieldValue.arrayUnion(currentUser?.displayName ?: ""))
-		} else {
-
-			projectRef.update("typingUsers", FieldValue.arrayRemove(currentUser?.displayName ?: ""))
-		}}
-
+		projectRef.get().addOnSuccessListener { document ->
+			if (document != null&& document.exists()) {
+				// Field exists, proceed with update
+				if (isTyping) {
+					projectRef.update("typingUsers", FieldValue.arrayUnion(currentUser?.displayName ?: ""))
+				} else {
+					projectRef.update("typingUsers", FieldValue.arrayRemove(currentUser?.displayName ?: ""))
+				}
+			} else {
+				// Field doesn't exist, create it with an empty array
+				val initialData = hashMapOf("typingUsers" to emptyList<String>())
+				projectRef.set(initialData).addOnSuccessListener {
+					// After creating the field, proceed with the update
+					if (isTyping) {
+						projectRef.update("typingUsers", FieldValue.arrayUnion(currentUser?.displayName ?: ""))
+					} else {
+						projectRef.update("typingUsers", FieldValue.arrayRemove(currentUser?.displayName ?: ""))
+					}
+				}
+			}
+		}
+	}
 	// Function to listen for typing status changes
-	override suspend fun listenForTypingStatuses(): Flow<List<String>> = callbackFlow {
-		val projectRef = firestore.collection("projects").document(TEST_PROJECT_ID)
+	override suspend fun listenForTypingStatuses(boardId: String): Flow<List<String>> = callbackFlow {
+		val projectRef = firestore.collection("projects").document(boardId)
 		val listener = projectRef.addSnapshotListener { snapshot, error ->
 			if (error != null) {
 				// Handle error

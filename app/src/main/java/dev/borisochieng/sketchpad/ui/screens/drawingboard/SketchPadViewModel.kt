@@ -278,29 +278,29 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
     }
 
 
-    fun initialize() {
+    fun initialize(boardId: String) {
         viewModelScope.launch {
-            sketchRepository.getChats().collect {
+            sketchRepository.getChats(boardId).collect {
                 _messages.value = emptyList()
                 _messages.value = it
                 Log.d(TAG, "list of messages during initalization ${messages.value}")
             }
         }
     }
-    fun load(){
+    fun load(boardId: String){
         viewModelScope.launch {
-        sketchRepository.loadChats().collect { messagesList ->
+        sketchRepository.loadChats(boardId).collect { messagesList ->
             _messages.value = emptyList()
             _messages.value = messagesList
             Log.d(TAG, "list of messages after creation ${messages.value}")
         }}
     }
 
-    fun onMessageSent() {
-        updateTypingStatus( false)
+    fun onMessageSent(boardId: String) {
+        updateTypingStatus( false,boardId)
         viewModelScope.launch {
             if (message.isNotEmpty()) {
-                sketchRepository.createChats(message,).collect {
+                sketchRepository.createChats(message,boardId).collect {
                     if (it) {
                         Log.d(TAG, "message sent successfully")
                     } else {
@@ -313,21 +313,21 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
         }
 
     }
-    fun onMessageChange(newValue: String) {
+    fun onMessageChange(newValue: String,boardId: String) {
         messageState.value = messageState.value.copy(message = newValue)
-      if (newValue.isNotEmpty()){ updateTypingStatus(true) }
-        else { updateTypingStatus(false) }
+      if (newValue.isNotEmpty()){ updateTypingStatus(true,boardId) }
+        else { updateTypingStatus(false,boardId) }
     }
-    fun listenForTypingStatuses() {
+    fun listenForTypingStatuses(boardId: String) {
         viewModelScope.launch {
-            sketchRepository.listenForTypingStatuses().collect { users ->
+            sketchRepository.listenForTypingStatuses(boardId).collect { users ->
                 _typingUsers.value = users
             }
         }
     }
-    private fun updateTypingStatus(isTyping: Boolean) {
+    private fun updateTypingStatus(isTyping: Boolean,boardId: String) {
         viewModelScope.launch {
-            sketchRepository.updateTypingStatus( isTyping)
+            sketchRepository.updateTypingStatus( isTyping,boardId)
            if (!isTyping) { _typingUsers.value = emptyList() }
         }
     }
