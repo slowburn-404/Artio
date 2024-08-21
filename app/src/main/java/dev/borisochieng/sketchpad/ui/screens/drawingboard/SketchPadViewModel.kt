@@ -22,6 +22,8 @@ import dev.borisochieng.sketchpad.ui.screens.drawingboard.alt.PathProperties
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -42,7 +44,12 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
     val uiEvents: SharedFlow<CanvasUiEvents> = _uiEvents
 
 
-    val messages = MutableStateFlow<List<MessageModel?>>(emptyList())
+
+    private val _messages = MutableStateFlow<List<MessageModel?>>(emptyList())
+    val messages: StateFlow<List<MessageModel?>> = _messages.asStateFlow()
+
+    private val _typingUsers = MutableStateFlow<List<String>>(emptyList())
+    val typingUsers: StateFlow<List<String>> = _typingUsers.asStateFlow()
 
     var messageState = mutableStateOf(MessageUiState())
         private set
@@ -61,6 +68,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
         viewModelScope.launch {
             _uiState.collect { uiState = it }
         }
+        _typingUsers.value = emptyList()
     }
 
     fun fetchSketch(sketchId: String) {
@@ -271,14 +279,23 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
     fun initialize() {
         viewModelScope.launch {
             sketchRepository.getChats().collect {
-                messages.value = emptyList()
-                messages.value = it
+                _messages.value = emptyList()
+                _messages.value = it
                 Log.d(TAG, "list of messages during initalization ${messages.value}")
             }
         }
     }
+    fun load(){
+        viewModelScope.launch {
+        sketchRepository.loadChats().collect { messagesList ->
+            _messages.value = emptyList()
+            _messages.value = messagesList
+            Log.d(TAG, "list of messages after creation ${messages.value}")
+        }}
+    }
 
     fun onMessageSent() {
+        updateTypingStatus( false)
         viewModelScope.launch {
             if (message.isNotEmpty()) {
                 sketchRepository.createChats(message,).collect {
@@ -288,8 +305,8 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
                         Log.d(TAG, "message failed")
                     }
                     sketchRepository.loadChats().collect { messagesList ->
-                        messages.value = emptyList()
-                        messages.value = messagesList
+                        _messages.value = emptyList()
+                        _messages.value = messagesList
                         Log.d(TAG, "list of messages after creation ${messages.value}")
                     }
 
@@ -301,6 +318,20 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
     }
     fun onMessageChange(newValue: String) {
         messageState.value = messageState.value.copy(message = newValue)
+      if (newValue.isNotEmpty()){ updateTypingStatus(true) }
+        else { updateTypingStatus(false) }
     }
-
+    fun listenForTypingStatuses() {
+        viewModelScope.launch {
+            sketchRepository.listenForTypingStatuses().collect { users ->
+                _typingUsers.value = users
+            }
+        }
+    }
+    private fun updateTypingStatus(isTyping: Boolean) {
+        viewModelScope.launch {
+            sketchRepository.updateTypingStatus( isTyping)
+           if (!isTyping) { _typingUsers.value = emptyList() }
+        }
+    }
 }

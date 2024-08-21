@@ -386,7 +386,7 @@ fun DrawingBoard(
             onCancel = { chatVisible.value = false },
             onOk = {chatVisible.value = false },
             viewModel = viewModel,
-            projectId = uiState.boardDetails.boardId
+            projectId = uiState.boardDetails.boardId,
         )
     }
 }
