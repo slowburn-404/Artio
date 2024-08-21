@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import dev.borisochieng.sketchpad.database.repository.TAG
+import dev.borisochieng.sketchpad.database.repository.TEST_PROJECT_ID
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadViewModel
 
 @Composable
@@ -39,12 +40,13 @@ fun ChatDialog(
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val typingUsers by viewModel.typingUsers.collectAsState()
+    val boardId = projectId ?: TEST_PROJECT_ID
 
     LaunchedEffect(Unit) {
-        viewModel.load()
+        viewModel.load(boardId)
     }
     LaunchedEffect(Unit) {
-        viewModel.listenForTypingStatuses()
+        viewModel.listenForTypingStatuses(boardId)
     }
 
     Dialog(onDismissRequest = onCancel) {
@@ -135,17 +137,17 @@ fun ChatDialog(
                 ChatEditText(
                     text = viewModel.messageState.value.message,
                     onValueChange = { text ->
-                        viewModel.onMessageChange(text)
+                        viewModel.onMessageChange(text,boardId)
 
                     },
                     onSendActionClicked = {
-                        viewModel.onMessageSent()
+                        viewModel.onMessageSent(boardId)
                         keyboardController?.hide()
                         viewModel.messageState.value =
                             viewModel.messageState.value.copy(message = "")
                     },
                     viewModel = viewModel,
-                    projectId = projectId
+                    projectId = boardId
                 )
             }
         }

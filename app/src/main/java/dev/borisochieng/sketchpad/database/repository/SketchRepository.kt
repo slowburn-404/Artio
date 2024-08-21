@@ -18,10 +18,10 @@ interface SketchRepository {
 
 	suspend fun deleteSketch(sketch: Sketch)
 
-	suspend fun createChats(message1:String): Flow<Boolean>
-	suspend fun getChats(): Flow<List<MessageModel>>
-	suspend fun loadChats(): Flow<List<MessageModel>>
-	suspend fun updateTypingStatus(isTyping: Boolean)
-	suspend fun listenForTypingStatuses(): Flow<List<String>>
+	suspend fun createChats(message1:String,boardId: String): Flow<Boolean>
+	suspend fun getChats(boardId: String): Flow<List<MessageModel>>
+	suspend fun loadChats(boardId: String): Flow<List<MessageModel>>
+	suspend fun updateTypingStatus(isTyping: Boolean,boardId: String)
+	suspend fun listenForTypingStatuses(boardId: String): Flow<List<String>>
 
 }
