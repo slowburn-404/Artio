@@ -103,31 +103,25 @@ class MainActivity : ComponentActivity() {
 //    }
 
     private fun handleDeepLink(intent: Intent) {
-        val action = intent.action
         val data: Uri? = intent.data
-        var boardId: String? = null
-        var userId: String? = null
-        action?.let {
-            if (it == Intent.ACTION_VIEW && data != null) {
 
-                userId = data.getQueryParameter("user_id")
-                boardId = data.getQueryParameter("board_id")
-            }
+        if (intent.action != Intent.ACTION_VIEW || data == null) return
 
-            if(boardId !=null && userId != null && ::navActions.isInitialized) {
+        val userId = data.getQueryParameter("user_id")
+        val boardId = data.getQueryParameter("board_id")
 
-                navActions.navigate(
-                    Screens.SketchPad(
-                        sketchId = boardId!!,
-                        isFromCollabUrl = true,
-                        userId = userId!!
-                    )
+        if(::navActions.isInitialized) {
+            navActions.navigate(
+                Screens.SketchPad(
+                    sketchId = boardId!!,
+                    isFromCollabUrl = true,
+                    userId = userId!!
                 )
-            }
-
-                val message = "User id: $userId \n BoardId: $boardId"
-                Log.d("DeepLink", message)
-                Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+            )
         }
+
+        val message = "User id: $userId \n BoardId: $boardId"
+        Log.d("DeepLink", message)
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 }

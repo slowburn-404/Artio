@@ -20,6 +20,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -30,6 +31,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -46,6 +48,9 @@ import com.google.firebase.auth.FirebaseAuth
 import dev.borisochieng.sketchpad.R
 import dev.borisochieng.sketchpad.database.MessageModel
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadViewModel
+import org.threeten.bp.LocalDateTime
+import org.threeten.bp.ZoneOffset
+import org.threeten.bp.format.DateTimeFormatter
 
 // view type
 const val SENDER_VIEW_TYPE = 1
@@ -61,6 +66,7 @@ fun ChatEditText(
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val emojiOn = remember { mutableStateOf(false) }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -78,13 +84,10 @@ fun ChatEditText(
             ),
             maxLines = 2,
             value = text,
-            onValueChange = {
-                onValueChange(it)
-            },
-            placeholder = { Text("Type a message") },
+            onValueChange = { onValueChange(it) },
+            placeholder = { Text("Type a message", Modifier.alpha(0.7f)) },
             shape = RoundedCornerShape(40.dp),
-            modifier = Modifier
-                .width(248.dp),
+            modifier = Modifier.width(248.dp),
             keyboardOptions = KeyboardOptions.Default.copy(
                 imeAction = ImeAction.Send,
                 keyboardType = if (emojiOn.value) KeyboardType.Ascii else KeyboardType.Text,
@@ -94,31 +97,28 @@ fun ChatEditText(
         IconButton(
             onClick = {
                 // Send the message if the icon is send
-
-
                 viewModel.onMessageSent(projectId)
                 keyboardController?.hide()
                 viewModel.messageState.value =
                     viewModel.messageState.value.copy(message = "")
-
-
             },
             modifier = Modifier
-                .background(color = Color.White, shape = CircleShape)
-                .width(48.dp)
-                .height(48.dp),
-
-            ) {
-
+                .padding(start = 6.dp)
+                .size(48.dp),
+            enabled = text.isNotEmpty(),
+            colors = IconButtonDefaults.iconButtonColors(
+                containerColor = colorScheme.primary,
+                contentColor = colorScheme.onPrimary,
+                disabledContainerColor = Color.Gray
+            )
+        ) {
             Icon(
                 painter = painterResource(id = R.drawable.send_icon),
-                contentDescription = "Record voice or send message",
-                tint = Color(0xff808080)
+                contentDescription = "Send message" // "Record voice or send message"
             )
         }
     }
 }
-
 
 @Composable
 fun SenderChat(
@@ -132,10 +132,10 @@ fun SenderChat(
 ) {
     val shape = if (senderCount.value) 10.dp else 0.dp
     val timeInSeconds = time / 1000
-    val dateTime = org.threeten.bp.LocalDateTime.ofEpochSecond(
-        timeInSeconds,
-        0,
-        org.threeten.bp.ZoneOffset.UTC
+    val dateTime = LocalDateTime.ofEpochSecond(
+        /* epochSecond = */ timeInSeconds,
+        /* nanoOfSecond = */ 0,
+        /* offset = */ ZoneOffset.UTC
     )
     val timex = dateTime.toLocalTime()
 
@@ -145,14 +145,12 @@ fun SenderChat(
             .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.End
     ) {
-        Column() {
+        Column {
             if (!senderCount.value) {
                 Text(
                     text = senderName,
-                    style = TextStyle(
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight(400),
-                    )
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight(400)
                 )
             }
             Row(horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.Bottom) {
@@ -170,29 +168,24 @@ fun SenderChat(
                         horizontalAlignment = Alignment.End
                     ) {
                         Text(
-                            style = TextStyle(
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight(400),
-                                color = textColor
-                            ),
                             text = message,
+                            color = textColor,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight(400)
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = timex.format(
-                                org.threeten.bp.format.DateTimeFormatter.ofPattern(
+                                DateTimeFormatter.ofPattern(
                                     "hh:mm a"
                                 )
                             ),
-                            style = TextStyle(
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight(300),
-                                color = Color(0xFFBEBEBE),
-                                textAlign = TextAlign.Left,
-                            )
+                            color = Color(0xFFBEBEBE),
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight(300),
+                            textAlign = TextAlign.Left,
                         )
                     }
-
                 }
                 if (!senderCount.value) {
                     Image(
@@ -201,18 +194,14 @@ fun SenderChat(
                         modifier = Modifier
                             // Set image size to 40 dp
                             .size(16.dp)
-                            // Clip image to be shaped as a circle
                             .clip(CircleShape)
 
                     )
                 }
             }
         }
-
     }
-
 }
-
 
 @Composable
 fun ReceiverChat(
@@ -226,12 +215,13 @@ fun ReceiverChat(
 ) {
     val shape = if (receiverCount.value) 10.dp else 0.dp
     val timeInSeconds = time / 1000
-    val dateTime = org.threeten.bp.LocalDateTime.ofEpochSecond(
-        timeInSeconds,
-        0,
-        org.threeten.bp.ZoneOffset.UTC
+    val dateTime = LocalDateTime.ofEpochSecond(
+        /* epochSecond = */ timeInSeconds,
+        /* nanoOfSecond = */ 0,
+        /* offset = */ ZoneOffset.UTC
     )
     val timex = dateTime.toLocalTime()
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -245,15 +235,11 @@ fun ReceiverChat(
                 modifier = Modifier
                     // Set image size to 40 dp
                     .size(16.dp)
-                    // Clip image to be shaped as a circle
                     .clip(CircleShape)
-                    // Align image to bottom end of row
                     .align(Alignment.Bottom)
-
             )
         }
         Column {
-
             if (!receiverCount.value) {
                 Text(
                     text = receiverName,
@@ -271,8 +257,7 @@ fun ReceiverChat(
                     )
                     .padding(16.dp)
                     .widthIn(max = maxWidth * 0.7f)
-            )
-            {
+            ) {
                 Column(
                     verticalArrangement = Arrangement.SpaceBetween,
                     horizontalAlignment = Alignment.End
@@ -285,7 +270,7 @@ fun ReceiverChat(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = timex.format(org.threeten.bp.format.DateTimeFormatter.ofPattern("hh:mm a")),
+                        text = timex.format(DateTimeFormatter.ofPattern("hh:mm a")),
                         style = TextStyle(
                             fontSize = 10.sp,
                             fontWeight = FontWeight(300),
@@ -296,7 +281,6 @@ fun ReceiverChat(
                 }
             }
         }
-
     }
 }
 
@@ -314,11 +298,8 @@ fun checkNextSame(position: Int, messageModels: List<MessageModel?>): Boolean? {
 }
 
 fun getItemViewType(position: Int, messageModels: List<MessageModel?>): Int {
-
-
     // val messageModelModels : List<MessageModel> = emptyList()
     return if (messageModels[position]?.senderId == FirebaseAuth.getInstance().uid) {
-
         SENDER_VIEW_TYPE
     } else {
         RECEIVER_VIEW_TYPE
