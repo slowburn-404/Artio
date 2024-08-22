@@ -14,11 +14,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import dev.borisochieng.sketchpad.ui.screens.drawingboard.chat.ChatDialog
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
-import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -54,6 +51,7 @@ import dev.borisochieng.sketchpad.ui.navigation.Screens
 import dev.borisochieng.sketchpad.ui.screens.dialog.NameSketchDialog
 import dev.borisochieng.sketchpad.ui.screens.dialog.SavePromptDialog
 import dev.borisochieng.sketchpad.ui.screens.dialog.Sizes
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.chat.ChatDialog
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.components.MovableTextBox
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.components.PaletteMenu
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.components.PaletteTopBar
@@ -85,7 +83,7 @@ fun DrawingBoard(
 ) {
     val chatVisible = remember { mutableStateOf(false) }
     val chatEnabled = remember { mutableStateOf(false) }
-    val (userIsLoggedIn, boardDetails, sketchIsBackedUp, _, sketch, collabUrl) = uiState
+    val (userIsLoggedIn, _, sketchIsBackedUp, _, sketch, collabUrl) = uiState
 //    var currentTextInput by remember { mutableStateOf(TextInput()) }
     val drawController = rememberDrawController()
     var drawMode by remember { mutableStateOf(DrawMode.Draw) }
@@ -148,7 +146,6 @@ fun DrawingBoard(
 //        }
 //    }
 
-
     //listen for path changes
     LaunchedEffect(uiState.paths) {
         if (!userIsLoggedIn) return@LaunchedEffect
@@ -162,7 +159,7 @@ fun DrawingBoard(
     LaunchedEffect(paths) {
         if (!userIsLoggedIn) {
             return@LaunchedEffect
-        } else if (uiState.sketchIsBackedUp && isFromCollabUrl) {
+        } else if (sketchIsBackedUp && isFromCollabUrl) {
             //delay(300)
             viewModel.updatePathInDb(paths = paths, userId = userId, boardId = boardId)
         }
@@ -231,9 +228,6 @@ fun DrawingBoard(
                 onExportClickedAsPdf = {
                     exportOption = ExportOption.PDF
                     drawController.saveBitmap()
-                },
-                chatEnabled = {
-                    chatEnabled.value = !chatEnabled.value
                 }
             )
         },
@@ -248,6 +242,7 @@ fun DrawingBoard(
                     drawMode = it
                     if (it == DrawMode.Text) showNewTextBox.value = true
                 },
+                chatEnabled = { chatEnabled.value = !chatEnabled.value }
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -357,7 +352,6 @@ fun DrawingBoard(
                                                 absolutePaths.clear()
                                                 absolutePaths.addAll(paths)
 
-
                                                 //send path updates to Firebase for collab
                                                 if (isFromCollabUrl && userId != VOID_ID && boardId != VOID_ID) {
                                                     viewModel.updatePathInDb(
@@ -459,16 +453,13 @@ fun DrawingBoard(
     }
 
     if (chatVisible.value) {
-
         ChatDialog(
-            onCancel = { chatVisible.value = false },
-            onOk = { chatVisible.value = false },
+            boardId = boardId,
             viewModel = viewModel,
-            projectId = boardId,
+            onCancel = { chatVisible.value = false },
         )
     }
 }
-
 
 //data class TextInput(
 //    val text: String = "",

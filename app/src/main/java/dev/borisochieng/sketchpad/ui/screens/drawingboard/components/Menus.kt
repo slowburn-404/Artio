@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Chat
+import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.PictureAsPdf
 import androidx.compose.material.icons.outlined.TextFields
@@ -52,6 +52,7 @@ fun PaletteMenu(
     onColorChanged: (Color) -> Unit,
     onSizeChanged: (Float) -> Unit,
     onDrawModeChanged: (DrawMode) -> Unit,
+    chatEnabled: () -> Unit
 ) {
     var currentDrawMode = drawMode
     val openColorPickerDialog = remember { mutableStateOf(false) }
@@ -64,9 +65,15 @@ fun PaletteMenu(
             .clip(MaterialTheme.shapes.large)
             .background(Color.LightGray)
             .padding(8.dp),
-        horizontalArrangement = Arrangement.SpaceAround,
+        horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
+        IconButton(onClick = chatEnabled) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Outlined.Chat,
+                contentDescription = "Toggle chat mode"
+            )
+        }
         IconButton(
             onClick = {
                 currentDrawMode =
@@ -109,7 +116,7 @@ fun PaletteMenu(
             }
         ) {
             Icon(
-                Icons.Outlined.TextFields,
+                imageVector = Icons.Outlined.TextFields,
                 contentDescription = "Text mode",
                 tint = if (currentDrawMode == DrawMode.Text) Color.Black else Color.Gray
             )
@@ -145,8 +152,7 @@ fun PaletteTopBar(
     unRedoClicked: () -> Unit,
     onExportClicked: () -> Unit,
     onBroadCastUrl: () -> Unit,
-    onExportClickedAsPdf: () -> Unit,
-    chatEnabled: () -> Unit
+    onExportClickedAsPdf: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -184,14 +190,6 @@ fun PaletteTopBar(
         ) {
             Icon(
                 painter = painterResource(R.drawable.ic_redo),
-                contentDescription = "Redo"
-            )
-        }
-        IconButton(
-            onClick = chatEnabled,
-        ) {
-            Icon(
-                Icons.Outlined.Chat,
                 contentDescription = "Redo"
             )
         }
@@ -250,7 +248,6 @@ private fun Pencil(
             .clip(MaterialTheme.shapes.large)
             .background(Color.Gray)
             .padding(4.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(
