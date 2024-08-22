@@ -37,10 +37,6 @@ class HomeViewModel : ViewModel(), KoinComponent {
 		fallbackPlan()
 
 		viewModelScope.launch {
-			collabRepository.delete000()
-		}
-
-		viewModelScope.launch {
 			_uiState.collect { uiState = it }
 		}
 		viewModelScope.launch {

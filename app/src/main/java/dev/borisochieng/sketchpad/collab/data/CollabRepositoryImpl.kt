@@ -84,6 +84,7 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
     override suspend fun fetchExistingSketches(userId: String): FirebaseResponse<List<Sketch>> =
         withContext(Dispatchers.IO) {
             val userRef = database.getReference("Users").child(userId).child("boards")
+            userRef.keepSynced(true) //for disk persistentce
 
             return@withContext try {
                 val snapshot = userRef.get().await()
@@ -163,6 +164,8 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
                     .child(userId).child("boards")
                     .child(boardId)
                     .child("paths")
+
+            boardRef.keepSynced(true)
 
 
             val listener = object : ChildEventListener {
@@ -284,6 +287,8 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
                 val boardRef =
                     databaseRef.child("Users").child(userId).child("boards").child(boardId)
 
+                boardRef.keepSynced(true)
+
                 //fetch board data
                 val dataSnapshot = boardRef.get().await()
 
@@ -349,14 +354,5 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
             strokeWidth = (pathObject["strokeWidth"] as? Number)?.toFloat() ?: 0f
         )
     }
-
-    /*for deletion of the void user id in past versions
-     since it is tedious to remove them one by one
-     */
-    override suspend fun delete000() {
-        val userRef = databaseRef.child("Users/0000")
-        userRef.removeValue()
-    }
-
 
 }
