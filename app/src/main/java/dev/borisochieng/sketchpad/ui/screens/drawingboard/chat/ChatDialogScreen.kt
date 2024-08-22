@@ -98,7 +98,7 @@ fun ChatDialog(
 
                 LazyColumn(
                     modifier = Modifier
-                        .height(300.dp)
+                        .weight(1f)
                         .fillMaxWidth()
                         .imePadding()
                 ) {
