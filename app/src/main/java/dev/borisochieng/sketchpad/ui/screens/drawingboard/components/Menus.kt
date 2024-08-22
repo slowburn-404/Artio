@@ -187,14 +187,14 @@ fun PaletteTopBar(
                 contentDescription = "Redo"
             )
         }
-        IconButton(
-            onClick = chatEnabled,
-        ) {
-            Icon(
-                Icons.Outlined.Chat,
-                contentDescription = "Redo"
-            )
-        }
+//        IconButton(
+//            onClick = chatEnabled,
+//        ) {
+//            Icon(
+//                Icons.Outlined.Chat,
+//                contentDescription = "Redo"
+//            )
+//        }
         Column {
             IconButton(onClick = { expanded = true }) {
                 Icon(

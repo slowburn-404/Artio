@@ -1,16 +1,21 @@
 package dev.borisochieng.sketchpad.ui.screens.drawingboard.chat
 
 import android.util.Log
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
 import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,15 +29,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.borisochieng.sketchpad.database.repository.TAG
 import dev.borisochieng.sketchpad.database.repository.TEST_PROJECT_ID
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadViewModel
+import dev.borisochieng.sketchpad.ui.theme.AppTheme
 
 @Composable
 fun ChatDialog(
+    modifier: Modifier = Modifier,
     onCancel: () -> Unit,
     onOk: () -> Unit,
     viewModel: SketchPadViewModel,
@@ -53,8 +62,9 @@ fun ChatDialog(
         val messages by viewModel.messages.collectAsState()
         Log.d(TAG, "list of messages in chatsScreen $messages")
         Card(
-            modifier = Modifier
-                .size(width = 460.dp, height = 520.dp)
+            modifier = modifier
+                .fillMaxWidth()
+                .height(520.dp)
         ) {
             // Add your UI elements here
             Column(
@@ -62,27 +72,41 @@ fun ChatDialog(
                     .padding(8.dp)
                     .fillMaxWidth()
             ) {
-                Text(text = "Chat", style = TextStyle(
+                Text(
+                    modifier = Modifier.padding(8.dp),
+                    text = "Chat", style = TextStyle(
                         fontSize = 24.sp,
-                    fontWeight = FontWeight(400),
+                        fontWeight = FontWeight(400),
+                    )
                 )
-                )
+
                 Spacer(modifier = Modifier.size(4.dp))
                 if (typingUsers.isNotEmpty()) {
-                    Text("${typingUsers[0]} is typing...", style = TextStyle(
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight(400),
-                    ))
+                    Text(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        text = "${typingUsers[0]} is typing..."
+                        , style = TextStyle(
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight(400),
+                        )
+                    )
                 }
 
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                )
+
                 LazyColumn(
-                    modifier = Modifier.size(420.dp, 380.dp)
+                    modifier = Modifier
+                        .height(300.dp)
+                        .fillMaxWidth()
+                        .imePadding()
                 ) {
                     items(messages.size) { index ->
                         val checkNextSame = checkNextSame(index, messages)
                         val viewType = getItemViewType(index, messages)
 
-                        BoxWithConstraints(
+                        Box(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             val senderCount = remember { mutableStateOf(false) }
@@ -94,7 +118,6 @@ fun ChatDialog(
                                 }
                                 SenderChat(
                                     message = messages[index]!!.message,
-                                    maxWidth = maxWidth,
                                     backgroundColor = Color(0xFF1EBE71),
                                     textColor = Color.White,
                                     senderCount = senderCount,
@@ -108,7 +131,6 @@ fun ChatDialog(
                                 }
                                 ReceiverChat(
                                     message = messages[index]!!.message,
-                                    maxWidth = maxWidth,
                                     backgroundColor = Color(0xFFF2F2F2),
                                     textColor = Color(0xFF000000),
                                     receiverCount = receiverCount,
@@ -121,24 +143,22 @@ fun ChatDialog(
                         }
 
 
-
                     }
 
                 }
 
                 // A horizontal divider to separate the content and the footer
-                Divider(
+                HorizontalDivider(
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
                     modifier = Modifier
+                        .padding(horizontal = 8.dp)
                         .fillMaxWidth()
-                        .height(1.dp)
                 )
-                Spacer(modifier = Modifier.size(4.dp))
+
                 ChatEditText(
                     text = viewModel.messageState.value.message,
                     onValueChange = { text ->
-                        viewModel.onMessageChange(text,boardId)
-
+                        viewModel.onMessageChange(text, boardId)
                     },
                     onSendActionClicked = {
                         viewModel.onMessageSent(boardId)
@@ -151,5 +171,18 @@ fun ChatDialog(
                 )
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ChatDialogPreview() {
+    AppTheme {
+        ChatDialog(
+            onCancel = { /*TODO*/ },
+            onOk = { /*TODO*/ },
+            viewModel = viewModel(),
+            projectId = ""
+        )
     }
 }
