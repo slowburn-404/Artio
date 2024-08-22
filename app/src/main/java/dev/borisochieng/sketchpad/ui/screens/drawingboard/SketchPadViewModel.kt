@@ -22,6 +22,7 @@ import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.CanvasUiEvents
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.CanvasUiState
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.PathProperties
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.SketchPadActions
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.TextProperties
 import dev.borisochieng.sketchpad.utils.VOID_ID
 import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -110,15 +111,19 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
         }
     }
 
-    private fun updateSketch(paths: List<PathProperties>) {
+    private fun updateSketch(
+	    paths: List<PathProperties>,
+	    texts: List<TextProperties>
+	) {
         viewModelScope.launch {
             if (uiState.sketch == null) return@launch
             val updatedSketch = Sketch(
                 id = uiState.sketch!!.id,
                 name = uiState.sketch!!.name,
                 dateCreated = uiState.sketch!!.dateCreated,
+                lastModified = Calendar.getInstance().time,
                 pathList = paths,
-                lastModified = Calendar.getInstance().time
+				textList = texts
             )
             sketchRepository.updateSketch(updatedSketch)
         }

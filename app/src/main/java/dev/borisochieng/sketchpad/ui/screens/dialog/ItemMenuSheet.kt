@@ -99,7 +99,8 @@ fun ItemMenuSheet(
 					name = newName,
 					dateCreated = sketch.dateCreated,
 					lastModified = sketch.lastModified,
-					pathList = sketch.pathList
+					pathList = sketch.pathList,
+					textList = sketch.textList
 				)
 				action(HomeActions.RenameSketch(renamedSketch))
 				openRenameDialog.value = false; onDismiss()
