@@ -112,10 +112,10 @@ fun DrawingBoard(
 
     val save: (String?) -> Unit = { name ->
         val action = if (name == null) {
-            SketchPadActions.UpdateSketch(paths)
+            SketchPadActions.UpdateSketch(paths, texts)
         } else {
             openNameSketchDialog.value = false
-            val newSketch = Sketch(name = name, pathList = paths)
+            val newSketch = Sketch(name = name, pathList = paths, textList = texts)
             SketchPadActions.SaveSketch(newSketch)
         }
         actions(action)
@@ -158,10 +158,13 @@ fun DrawingBoard(
         absolutePaths.addAll(paths)
     }
 
-    LaunchedEffect(texts) {
-        if (texts.size > absoluteTexts.size) {
-            absoluteTexts.clear()
-            absoluteTexts.addAll(texts)
+    //update paths in db
+    LaunchedEffect(paths) {
+        if (!userIsLoggedIn) {
+            return@LaunchedEffect
+        } else if (uiState.sketchIsBackedUp && isFromCollabUrl) {
+            //delay(300)
+            viewModel.updatePathInDb(paths = paths, userId = userId, boardId = boardId)
         }
     }
 
@@ -267,9 +270,14 @@ fun DrawingBoard(
     ) { paddingValues ->
         LaunchedEffect(sketch) {
             if (sketch == null) return@LaunchedEffect
+            // paths
             absolutePaths.clear(); paths = emptyList()
             absolutePaths.addAll(sketch.pathList)
             paths = sketch.pathList
+            // texts
+            absoluteTexts.clear(); texts = emptyList()
+            absoluteTexts.addAll(sketch.textList)
+            texts = sketch.textList
         }
 
         BoxWithConstraints(
@@ -442,8 +450,10 @@ fun DrawingBoard(
             onDispose { actions(SketchPadActions.SketchClosed) }
         }
 
-        // onBackPress, if canvas has new lines drawn, prompt user to save sketch or changes
-        if ((paths.isNotEmpty() && paths != sketch?.pathList) || texts.isNotEmpty() && !isFromCollabUrl) {
+        // onBackPress, if canvas has new lines drawn or text written, prompt user to save sketch or changes
+        if ((paths.isNotEmpty() && paths != sketch?.pathList) ||
+            (texts.isNotEmpty() && texts != sketch?.textList) &&
+            !isFromCollabUrl) {
             BackHandler { openSavePromptDialog.value = true }
         }
     }

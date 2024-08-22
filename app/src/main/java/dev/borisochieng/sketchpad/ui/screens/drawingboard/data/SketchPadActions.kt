@@ -6,7 +6,10 @@ sealed class SketchPadActions {
 
 	data class SaveSketch(val sketch: Sketch) : SketchPadActions()
 
-	data class UpdateSketch(val paths: List<PathProperties>) : SketchPadActions()
+	data class UpdateSketch(
+		val paths: List<PathProperties>,
+		val texts: List<TextProperties>
+	) : SketchPadActions()
 
 	data object CheckIfUserIsLoggedIn : SketchPadActions()
 
