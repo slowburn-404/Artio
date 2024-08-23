@@ -6,21 +6,18 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -31,7 +28,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -41,13 +37,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
 import dev.borisochieng.sketchpad.R
 import dev.borisochieng.sketchpad.database.MessageModel
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadViewModel
+import dev.borisochieng.sketchpad.ui.theme.lightScheme
 import org.threeten.bp.LocalDateTime
 import org.threeten.bp.ZoneOffset
 import org.threeten.bp.format.DateTimeFormatter
@@ -66,12 +62,12 @@ fun ChatEditText(
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val emojiOn = remember { mutableStateOf(false) }
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .wrapContentHeight(),
-        horizontalArrangement = Arrangement.Center,
+            .wrapContentHeight()
+            .imePadding(),
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         TextField(
@@ -84,10 +80,14 @@ fun ChatEditText(
             ),
             maxLines = 2,
             value = text,
-            onValueChange = { onValueChange(it) },
-            placeholder = { Text("Type a message", Modifier.alpha(0.7f)) },
+            onValueChange = {
+                onValueChange(it)
+            },
+            placeholder = { Text("Type a message") },
             shape = RoundedCornerShape(40.dp),
-            modifier = Modifier.width(248.dp),
+            modifier = Modifier
+                .padding(8.dp)
+                .weight(1f),
             keyboardOptions = KeyboardOptions.Default.copy(
                 imeAction = ImeAction.Send,
                 keyboardType = if (emojiOn.value) KeyboardType.Ascii else KeyboardType.Text,
@@ -97,33 +97,35 @@ fun ChatEditText(
         IconButton(
             onClick = {
                 // Send the message if the icon is send
+
+
                 viewModel.onMessageSent(projectId)
                 keyboardController?.hide()
                 viewModel.messageState.value =
                     viewModel.messageState.value.copy(message = "")
+
+
             },
             modifier = Modifier
-                .padding(start = 6.dp)
-                .size(48.dp),
-            enabled = text.isNotEmpty(),
-            colors = IconButtonDefaults.iconButtonColors(
-                containerColor = colorScheme.primary,
-                contentColor = colorScheme.onPrimary,
-                disabledContainerColor = Color.Gray
-            )
+                .background(color = Color.White, shape = CircleShape)
+//                .width(48.dp)
+//                .height(48.dp),
+
         ) {
+
             Icon(
                 painter = painterResource(id = R.drawable.send_icon),
-                contentDescription = "Send message" // "Record voice or send message"
+                contentDescription = "Record voice or send message",
+                tint = Color(0xff808080)
             )
         }
     }
 }
 
+
 @Composable
 fun SenderChat(
     message: String,
-    maxWidth: Dp,
     backgroundColor: Color,
     textColor: Color,
     senderCount: MutableState<Boolean>,
@@ -132,10 +134,10 @@ fun SenderChat(
 ) {
     val shape = if (senderCount.value) 10.dp else 0.dp
     val timeInSeconds = time / 1000
-    val dateTime = LocalDateTime.ofEpochSecond(
-        /* epochSecond = */ timeInSeconds,
-        /* nanoOfSecond = */ 0,
-        /* offset = */ ZoneOffset.UTC
+    val dateTime = org.threeten.bp.LocalDateTime.ofEpochSecond(
+        timeInSeconds,
+        0,
+        org.threeten.bp.ZoneOffset.UTC
     )
     val timex = dateTime.toLocalTime()
 
@@ -143,70 +145,77 @@ fun SenderChat(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.End
+        horizontalArrangement = Arrangement.End,
     ) {
-        Column {
-            if (!senderCount.value) {
-                Text(
-                    text = senderName,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight(400)
+        Box(
+            modifier = Modifier
+                .background(
+                    color = colorScheme.primary,
+                    shape = RoundedCornerShape(10.dp, 10.dp, shape, 10.dp)
                 )
-            }
-            Row(horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.Bottom) {
-                Box(
-                    modifier = Modifier
-                        .background(
-                            color = colorScheme.primary,
-                            shape = RoundedCornerShape(10.dp, 10.dp, shape, 10.dp)
-                        )
-                        .padding(16.dp)
-                        .widthIn(max = maxWidth * 0.7f)
-                ) {
-                    Column(
-                        verticalArrangement = Arrangement.SpaceBetween,
-                        horizontalAlignment = Alignment.End
-                    ) {
-                        Text(
-                            text = message,
-                            color = textColor,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight(400)
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = timex.format(
-                                DateTimeFormatter.ofPattern(
-                                    "hh:mm a"
-                                )
-                            ),
-                            color = Color(0xFFBEBEBE),
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight(300),
-                            textAlign = TextAlign.Left,
-                        )
-                    }
-                }
+                .padding(8.dp)
+                .wrapContentWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
                 if (!senderCount.value) {
-                    Image(
-                        painter = painterResource(id = R.drawable.placeholder_foreground),
-                        contentDescription = "Profile picture",
-                        modifier = Modifier
-                            // Set image size to 40 dp
-                            .size(16.dp)
-                            .clip(CircleShape)
-
+                    Text(
+                        text = "You",
+                        style = TextStyle(
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = lightScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Right
+                        ),
                     )
                 }
+                Text(
+                    style = TextStyle(
+                        fontSize = 14.sp,
+                        color = textColor,
+                    ),
+                    text = message,
+                    textAlign = TextAlign.Left
+                )
+                Text(
+                    text = timex.format(
+                        org.threeten.bp.format.DateTimeFormatter.ofPattern(
+                            "hh:mm a"
+                        )
+                    ),
+                    style = TextStyle(
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight(300),
+                        color = Color(0xFFBEBEBE),
+                        textAlign = TextAlign.Right,
+                    )
+                )
             }
+
         }
+        if (!senderCount.value) {
+            Image(
+                painter = painterResource(id = R.drawable.placeholder_foreground),
+                contentDescription = "Profile picture",
+                modifier = Modifier
+                    // Set image size to 40 dp
+                    .size(40.dp)
+                    // Clip image to be shaped as a circle
+                    .clip(CircleShape)
+
+            )
+        }
+
     }
+
 }
+
 
 @Composable
 fun ReceiverChat(
     message: String,
-    maxWidth: Dp,
     backgroundColor: Color,
     textColor: Color,
     receiverCount: MutableState<Boolean>,
@@ -215,13 +224,12 @@ fun ReceiverChat(
 ) {
     val shape = if (receiverCount.value) 10.dp else 0.dp
     val timeInSeconds = time / 1000
-    val dateTime = LocalDateTime.ofEpochSecond(
-        /* epochSecond = */ timeInSeconds,
-        /* nanoOfSecond = */ 0,
-        /* offset = */ ZoneOffset.UTC
+    val dateTime = org.threeten.bp.LocalDateTime.ofEpochSecond(
+        timeInSeconds,
+        0,
+        org.threeten.bp.ZoneOffset.UTC
     )
     val timex = dateTime.toLocalTime()
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -234,53 +242,57 @@ fun ReceiverChat(
                 contentDescription = "Profile picture",
                 modifier = Modifier
                     // Set image size to 40 dp
-                    .size(16.dp)
+                    .size(40.dp)
+                    // Clip image to be shaped as a circle
                     .clip(CircleShape)
+                    // Align image to bottom end of row
                     .align(Alignment.Bottom)
+
             )
         }
-        Column {
-            if (!receiverCount.value) {
+        Box(
+            modifier = Modifier
+                .wrapContentWidth()
+                .background(
+                    color = backgroundColor,
+                    shape = RoundedCornerShape(10.dp, 10.dp, 10.dp, shape)
+                )
+                .padding(8.dp)
+        )
+        {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                if (!receiverCount.value) {
+                    Text(
+                        text = receiverName,
+                        style = TextStyle(
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = lightScheme.onBackground
+                        ),
+                        textAlign = TextAlign.Left
+                    )
+                }
                 Text(
-                    text = receiverName,
+                    text = message,
+                    color = textColor,
+                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight(400)),
+                    textAlign = TextAlign.Left,
+                )
+
+                Text(
+                    text = timex.format(org.threeten.bp.format.DateTimeFormatter.ofPattern("hh:mm a")),
                     style = TextStyle(
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight(400),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight(300),
+                        color = Color(0xFFBEBEBE),
+                        textAlign = TextAlign.Left,
                     )
                 )
             }
-            Box(
-                modifier = Modifier
-                    .background(
-                        color = backgroundColor,
-                        shape = RoundedCornerShape(10.dp, 10.dp, 10.dp, shape)
-                    )
-                    .padding(16.dp)
-                    .widthIn(max = maxWidth * 0.7f)
-            ) {
-                Column(
-                    verticalArrangement = Arrangement.SpaceBetween,
-                    horizontalAlignment = Alignment.End
-                ) {
-                    Text(
-                        text = message,
-                        color = textColor,
-                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight(400)),
-                        textAlign = TextAlign.Left,
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = timex.format(DateTimeFormatter.ofPattern("hh:mm a")),
-                        style = TextStyle(
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight(300),
-                            color = Color(0xFFBEBEBE),
-                            textAlign = TextAlign.Left,
-                        )
-                    )
-                }
-            }
         }
+
     }
 }
 
@@ -298,8 +310,11 @@ fun checkNextSame(position: Int, messageModels: List<MessageModel?>): Boolean? {
 }
 
 fun getItemViewType(position: Int, messageModels: List<MessageModel?>): Int {
+
+
     // val messageModelModels : List<MessageModel> = emptyList()
     return if (messageModels[position]?.senderId == FirebaseAuth.getInstance().uid) {
+
         SENDER_VIEW_TYPE
     } else {
         RECEIVER_VIEW_TYPE

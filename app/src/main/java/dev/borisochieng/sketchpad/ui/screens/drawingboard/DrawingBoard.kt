@@ -64,6 +64,7 @@ import dev.borisochieng.sketchpad.ui.screens.drawingboard.utils.DrawMode
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.utils.ExportOption
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.utils.rememberDrawController
 import dev.borisochieng.sketchpad.utils.VOID_ID
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import java.util.UUID.randomUUID
@@ -135,16 +136,10 @@ fun DrawingBoard(
         absolutePaths.add(paths.size, existingTextPath)
     }
 
-    var isCollabUrlShared by remember { mutableStateOf(false) }
-
     val uiEvents by viewModel.uiEvents.collectAsState(initial = null)
 
-//    LaunchedEffect(isCollabUrlShared) {
-//        //only listen when collab url has been shared
-//        if(isCollabUrlShared && userId != VOID_ID && boardId != VOID_ID) {
-//            viewModel.listenForSketchChanges(userId = userId, boardId = boardId)
-//        }
-//    }
+    val pathsBuffer = mutableListOf<PathProperties>() //cache newly drawn paths
+
 
     //listen for path changes
     LaunchedEffect(uiState.paths) {
@@ -155,15 +150,16 @@ fun DrawingBoard(
         absolutePaths.addAll(paths)
     }
 
-    //update paths in db
-    LaunchedEffect(paths) {
-        if (!userIsLoggedIn) {
-            return@LaunchedEffect
-        } else if (sketchIsBackedUp && isFromCollabUrl) {
-            //delay(300)
-            viewModel.updatePathInDb(paths = paths, userId = userId, boardId = boardId)
-        }
-    }
+//    //update paths in db
+//    LaunchedEffect(paths) {
+//        if (!userIsLoggedIn) {
+//            return@LaunchedEffect
+//        } else if (uiState.sketchIsBackedUp) {
+//            delay(300)
+//            pathsBuffer.addAll(paths)
+//            viewModel.updatePathInDb(paths = pathsBuffer, userId = userId, boardId = boardId)
+//        }
+//    }
 
     LaunchedEffect(uiEvents) {
         uiEvents?.let { event ->
@@ -212,7 +208,7 @@ fun DrawingBoard(
                             scope.launch { snackbarHostState.showSnackbar("Sketch is not backed up yet") }
                             return@PaletteTopBar
                         }
-                        isCollabUrlShared = true
+                        //isCollabUrlShared = true
                         onBroadCastUrl(collabUrl)
                     } else {
                         scope.launch {
@@ -248,7 +244,7 @@ fun DrawingBoard(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = Color.White,
         floatingActionButton = {
-            if (chatEnabled.value && userIsLoggedIn) {
+            if (userIsLoggedIn && isFromCollabUrl) {
                 FloatingActionButton(
                     onClick = {
                         chatVisible.value = true
@@ -354,14 +350,16 @@ fun DrawingBoard(
 
                                                 //send path updates to Firebase for collab
                                                 if (isFromCollabUrl && userId != VOID_ID && boardId != VOID_ID) {
-                                                    viewModel.updatePathInDb(
-                                                        paths = paths,
-                                                        userId = userId,
-                                                        boardId = boardId
-                                                    )
+                                                    scope.launch {
+                                                        delay(300)
+                                                        pathsBuffer.addAll(paths)
+                                                        viewModel.updatePathInDb(
+                                                            paths = pathsBuffer,
+                                                            userId = userId,
+                                                            boardId = boardId
+                                                        )
+                                                    }
                                                 }
-
-                                                Log.i("PathInfo", "$paths")
                                             }
                                         }
                                 ) {
@@ -441,20 +439,27 @@ fun DrawingBoard(
         }
 
         DisposableEffect(Unit) {
-            onDispose { actions(SketchPadActions.SketchClosed) }
+            onDispose {
+                actions(SketchPadActions.SketchClosed)
+                absolutePaths.clear()
+                absoluteTexts.clear()
+                paths = emptyList()
+                texts = emptyList()
+            }
         }
 
         // onBackPress, if canvas has new lines drawn or text written, prompt user to save sketch or changes
-        if ((paths.isNotEmpty() && paths != sketch?.pathList) ||
-            (texts.isNotEmpty() && texts != sketch?.textList) &&
-            !isFromCollabUrl) {
+        // don't show dialog if in collab mode since update has already been done
+        if (!isFromCollabUrl && (paths.isNotEmpty() && paths != sketch?.pathList) ||
+            (texts.isNotEmpty() && texts != sketch?.textList)
+        ) {
             BackHandler { openSavePromptDialog.value = true }
         }
     }
 
     if (chatVisible.value) {
         ChatDialog(
-            boardId = boardId,
+            projectId = boardId,
             viewModel = viewModel,
             onCancel = { chatVisible.value = false },
         )
