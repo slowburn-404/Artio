@@ -43,11 +43,10 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
     private val firebaseUser by inject<FirebaseUser>()
 
     private val _uiState = MutableStateFlow(CanvasUiState())
-    var uiState by mutableStateOf(_uiState.value)
+    var uiState by mutableStateOf(_uiState.value); private set
 
     private val _uiEvents = MutableSharedFlow<CanvasUiEvents>()
     val uiEvents: SharedFlow<CanvasUiEvents> = _uiEvents
-
 
     private val _messages = MutableStateFlow<List<MessageModel?>>(emptyList())
     val messages: StateFlow<List<MessageModel?>> = _messages.asStateFlow()
@@ -282,7 +281,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
             sketchRepository.getChats(boardId).collect {
                 _messages.value = emptyList()
                 _messages.value = it.reversed()
-                Log.d(TAG, "list of messages during initalization ${messages.value}")
+                Log.d(TAG, "list of messages during initialization ${messages.value}")
             }
         }
     }
