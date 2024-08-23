@@ -43,10 +43,7 @@ class HomeViewModel : ViewModel(), KoinComponent {
 			sketchRepository.getAllSketches().collect { sketches ->
 				localSketches = sketches
 				if (synced) {
-					_uiState.update { it.copy(
-						localSketches = sketches,
-						remoteSketches = fetchSketchesFromRemoteDB()
-					) }
+					_uiState.update { it.copy(localSketches = sketches) }
 					delay(1000)
 					_uiState.update { it.copy(isLoading = false) }
 					return@collect
@@ -62,6 +59,7 @@ class HomeViewModel : ViewModel(), KoinComponent {
 			is HomeActions.RenameSketch -> renameSketch(action.sketch)
 			is HomeActions.DeleteSketch -> deleteSketch(action.sketch)
 			is HomeActions.CheckIfUserIsLogged -> isLoggedIn(warmCheck = true)
+			is HomeActions.Refresh -> refreshDatabase()
 			is HomeActions.ClearFeedback -> _uiState.update { it.copy(feedback = null) }
 		}
 	}

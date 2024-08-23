@@ -43,11 +43,10 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
     private val firebaseUser by inject<FirebaseUser>()
 
     private val _uiState = MutableStateFlow(CanvasUiState())
-    var uiState by mutableStateOf(_uiState.value)
+    var uiState by mutableStateOf(_uiState.value); private set
 
     private val _uiEvents = MutableSharedFlow<CanvasUiEvents>()
     val uiEvents: SharedFlow<CanvasUiEvents> = _uiEvents
-
 
     private val _messages = MutableStateFlow<List<MessageModel?>>(emptyList())
     val messages: StateFlow<List<MessageModel?>> = _messages.asStateFlow()
@@ -272,30 +271,29 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
             is FirebaseResponse.Success -> {
                 response.data ?: emptyList()
             }
-
             else -> emptyList()
         }
         return remoteSketches
     }
 
-
     fun initialize(boardId: String) {
         viewModelScope.launch {
             sketchRepository.getChats(boardId).collect {
                 _messages.value = emptyList()
-                _messages.value = it
-                Log.d(TAG, "list of messages during initalization ${messages.value}")
+                _messages.value = it.reversed()
+                Log.d(TAG, "list of messages during initialization ${messages.value}")
             }
         }
     }
 
     fun load(boardId: String){
         viewModelScope.launch {
-        sketchRepository.loadChats(boardId).collect { messagesList ->
-            _messages.value = emptyList()
-            _messages.value = messagesList
-            Log.d(TAG, "list of messages after creation ${messages.value}")
-        }}
+            sketchRepository.loadChats(boardId).collect { messagesList ->
+                _messages.value = emptyList()
+                _messages.value = messagesList.reversed()
+                Log.d(TAG, "list of messages after creation ${messages.value}")
+            }
+        }
     }
 
     fun onMessageSent(boardId: String) {
@@ -308,12 +306,11 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
                     } else {
                         Log.d(TAG, "message failed")
                     }
-
                 }
             }
         }
-
     }
+
     fun onMessageChange(newValue: String, boardId: String) {
         messageState.value = messageState.value.copy(message = newValue)
         if (newValue.isNotEmpty()) {

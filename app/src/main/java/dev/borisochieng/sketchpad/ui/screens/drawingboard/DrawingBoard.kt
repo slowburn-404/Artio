@@ -2,7 +2,6 @@ package dev.borisochieng.sketchpad.ui.screens.drawingboard
 
 import android.graphics.Bitmap
 import android.net.Uri
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
@@ -82,8 +81,6 @@ fun DrawingBoard(
     userId: String,
     isFromCollabUrl: Boolean
 ) {
-    val chatVisible = remember { mutableStateOf(false) }
-    val chatEnabled = remember { mutableStateOf(false) }
     val (userIsLoggedIn, _, sketchIsBackedUp, _, sketch, collabUrl) = uiState
 //    var currentTextInput by remember { mutableStateOf(TextInput()) }
     val drawController = rememberDrawController()
@@ -101,6 +98,9 @@ fun DrawingBoard(
     var color by remember { mutableStateOf(Color.Black) }
     var scale by remember { mutableFloatStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
+
+    val chatEnabled = remember { mutableStateOf(false) }
+    val chatVisible = remember { mutableStateOf(false) }
 
     val openNameSketchDialog = rememberSaveable { mutableStateOf(false) }
     val openSavePromptDialog = rememberSaveable { mutableStateOf(false) }
@@ -139,7 +139,6 @@ fun DrawingBoard(
     val uiEvents by viewModel.uiEvents.collectAsState(initial = null)
 
     val pathsBuffer = mutableListOf<PathProperties>() //cache newly drawn paths
-
 
     //listen for path changes
     LaunchedEffect(uiState.paths) {
@@ -246,9 +245,7 @@ fun DrawingBoard(
         floatingActionButton = {
             if (userIsLoggedIn && isFromCollabUrl) {
                 FloatingActionButton(
-                    onClick = {
-                        chatVisible.value = true
-                    },
+                    onClick = { chatVisible.value = true },
                     content = {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Chat,
@@ -439,27 +436,20 @@ fun DrawingBoard(
         }
 
         DisposableEffect(Unit) {
-            onDispose {
-                actions(SketchPadActions.SketchClosed)
-                absolutePaths.clear()
-                absoluteTexts.clear()
-                paths = emptyList()
-                texts = emptyList()
-            }
+            onDispose { actions(SketchPadActions.SketchClosed) }
         }
 
         // onBackPress, if canvas has new lines drawn or text written, prompt user to save sketch or changes
-        // don't show dialog if in collab mode since update has already been done
-        if (!isFromCollabUrl && (paths.isNotEmpty() && paths != sketch?.pathList) ||
-            (texts.isNotEmpty() && texts != sketch?.textList)
-        ) {
+        if (((paths.isNotEmpty() && paths != sketch?.pathList) ||
+            (texts.isNotEmpty() && texts != sketch?.textList)) &&
+            !isFromCollabUrl) {
             BackHandler { openSavePromptDialog.value = true }
         }
     }
 
     if (chatVisible.value) {
         ChatDialog(
-            projectId = boardId,
+            boardId = boardId,
             viewModel = viewModel,
             onCancel = { chatVisible.value = false },
         )
