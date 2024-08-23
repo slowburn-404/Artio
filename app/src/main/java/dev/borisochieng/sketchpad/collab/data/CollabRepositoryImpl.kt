@@ -53,7 +53,8 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
                     "title" to sketch.title,
                     "paths" to pathData,
                     "dateCreated" to sketch.dateCreated,
-                    "lastModified" to sketch.lastModified
+                    "lastModified" to sketch.lastModified,
+                    "isBackedUp" to true
                 )
 
 
@@ -84,7 +85,7 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
     override suspend fun fetchExistingSketches(userId: String): FirebaseResponse<List<Sketch>> =
         withContext(Dispatchers.IO) {
             val userRef = database.getReference("Users").child(userId).child("boards")
-            userRef.keepSynced(true) //for disk persistentce
+            //userRef.keepSynced(true) //for disk persistentce
 
             return@withContext try {
                 val snapshot = userRef.get().await()
@@ -165,7 +166,7 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
                     .child(boardId)
                     .child("paths")
 
-            boardRef.keepSynced(true)
+            //boardRef.keepSynced(true)
 
 
             val listener = object : ChildEventListener {
@@ -287,7 +288,7 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
                 val boardRef =
                     databaseRef.child("Users").child(userId).child("boards").child(boardId)
 
-                boardRef.keepSynced(true)
+                //boardRef.keepSynced(true)
 
                 //fetch board data
                 val dataSnapshot = boardRef.get().await()
@@ -327,7 +328,8 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
             title = board["title"] as? String ?: "",
             dateCreated = board["dateCreated"] as? String ?: "",
             lastModified = board["lastModified"] as? String ?: "",
-            paths = paths
+            paths = paths,
+            isBackedUp = board["isBackedUp"] as? Boolean ?: true
         )
     }
 

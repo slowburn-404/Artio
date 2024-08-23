@@ -138,8 +138,6 @@ fun DrawingBoard(
 
     val uiEvents by viewModel.uiEvents.collectAsState(initial = null)
 
-    val pathsBuffer = mutableListOf<PathProperties>() //cache newly drawn paths
-
 
     //listen for path changes
     LaunchedEffect(uiState.paths) {
@@ -204,12 +202,14 @@ fun DrawingBoard(
                 onExportClicked = { drawController.saveBitmap() },
                 onBroadCastUrl = {
                     if (userIsLoggedIn) {
-                        if (!sketchIsBackedUp || collabUrl == null) {
-                            scope.launch { snackbarHostState.showSnackbar("Sketch is not backed up yet") }
-                            return@PaletteTopBar
+                        sketch?.let {
+                            if (!it.isBackedUp || collabUrl == null) {
+                                scope.launch { snackbarHostState.showSnackbar("Sketch is not backed up yet") }
+                                return@PaletteTopBar
+                            }
+                            //isCollabUrlShared = true
+                            onBroadCastUrl(collabUrl)
                         }
-                        //isCollabUrlShared = true
-                        onBroadCastUrl(collabUrl)
                     } else {
                         scope.launch {
                             val action = snackbarHostState.showSnackbar(
@@ -351,10 +351,8 @@ fun DrawingBoard(
                                                 //send path updates to Firebase for collab
                                                 if (isFromCollabUrl && userId != VOID_ID && boardId != VOID_ID) {
                                                     scope.launch {
-                                                        delay(300)
-                                                        pathsBuffer.addAll(paths)
                                                         viewModel.updatePathInDb(
-                                                            paths = pathsBuffer,
+                                                            paths = paths,
                                                             userId = userId,
                                                             boardId = boardId
                                                         )

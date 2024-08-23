@@ -28,5 +28,6 @@ fun Sketch.toDBSketch(): DBSketch {
         lastModified = lastModified.formatDate(),
         title = name,
         paths = pathList.map { it.toDBPathProperties() },
+        isBackedUp = isBackedUp
     )
 }
