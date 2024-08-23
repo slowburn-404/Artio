@@ -6,14 +6,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
@@ -26,7 +22,6 @@ import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -42,16 +37,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
 import dev.borisochieng.sketchpad.R
 import dev.borisochieng.sketchpad.database.MessageModel
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadViewModel
-import dev.borisochieng.sketchpad.ui.theme.AppTheme
 import dev.borisochieng.sketchpad.ui.theme.lightScheme
+import org.threeten.bp.LocalDateTime
+import org.threeten.bp.ZoneOffset
+import org.threeten.bp.format.DateTimeFormatter
 
 // view type
 const val SENDER_VIEW_TYPE = 1
@@ -255,48 +250,48 @@ fun ReceiverChat(
 
             )
         }
-            Box(
-                modifier = Modifier
-                    .wrapContentWidth()
-                    .background(
-                        color = backgroundColor,
-                        shape = RoundedCornerShape(10.dp, 10.dp, 10.dp, shape)
-                    )
-                    .padding(8.dp)
-            )
-            {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    if (!receiverCount.value) {
-                        Text(
-                            text = receiverName,
-                            style = TextStyle(
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = lightScheme.onBackground
-                            ),
-                            textAlign = TextAlign.Left
-                        )
-                    }
+        Box(
+            modifier = Modifier
+                .wrapContentWidth()
+                .background(
+                    color = backgroundColor,
+                    shape = RoundedCornerShape(10.dp, 10.dp, 10.dp, shape)
+                )
+                .padding(8.dp)
+        )
+        {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                if (!receiverCount.value) {
                     Text(
-                        text = message,
-                        color = textColor,
-                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight(400)),
-                        textAlign = TextAlign.Left,
-                    )
-
-                    Text(
-                        text = timex.format(org.threeten.bp.format.DateTimeFormatter.ofPattern("hh:mm a")),
+                        text = receiverName,
                         style = TextStyle(
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight(300),
-                            color = Color(0xFFBEBEBE),
-                            textAlign = TextAlign.Left,
-                        )
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = lightScheme.onBackground
+                        ),
+                        textAlign = TextAlign.Left
                     )
                 }
+                Text(
+                    text = message,
+                    color = textColor,
+                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight(400)),
+                    textAlign = TextAlign.Left,
+                )
+
+                Text(
+                    text = timex.format(org.threeten.bp.format.DateTimeFormatter.ofPattern("hh:mm a")),
+                    style = TextStyle(
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight(300),
+                        color = Color(0xFFBEBEBE),
+                        textAlign = TextAlign.Left,
+                    )
+                )
             }
+        }
 
     }
 }

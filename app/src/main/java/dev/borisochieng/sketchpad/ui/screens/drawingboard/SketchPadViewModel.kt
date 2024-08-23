@@ -24,7 +24,6 @@ import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.PathProperties
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.SketchPadActions
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.TextProperties
 import dev.borisochieng.sketchpad.utils.VOID_ID
-import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -61,7 +60,6 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
     private val message
         get() = messageState.value.message
 
-    //    var sketch by mutableStateOf<Sketch?>(null); private set
     private var remoteSketches by mutableStateOf<List<Sketch>>(emptyList())
 
     init {

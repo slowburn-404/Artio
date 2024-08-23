@@ -2,19 +2,15 @@ package dev.borisochieng.sketchpad.ui.screens.drawingboard.chat
 
 import android.util.Log
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
-import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,21 +25,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.borisochieng.sketchpad.database.repository.TAG
 import dev.borisochieng.sketchpad.database.repository.TEST_PROJECT_ID
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadViewModel
-import dev.borisochieng.sketchpad.ui.theme.AppTheme
 
 @Composable
 fun ChatDialog(
     modifier: Modifier = Modifier,
     onCancel: () -> Unit,
-    onOk: () -> Unit,
     viewModel: SketchPadViewModel,
     projectId: String,
 ) {
@@ -171,18 +163,5 @@ fun ChatDialog(
                 )
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun ChatDialogPreview() {
-    AppTheme {
-        ChatDialog(
-            onCancel = { /*TODO*/ },
-            onOk = { /*TODO*/ },
-            viewModel = viewModel(),
-            projectId = ""
-        )
     }
 }
