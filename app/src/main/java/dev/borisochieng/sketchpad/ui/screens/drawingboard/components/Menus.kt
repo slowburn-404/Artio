@@ -68,12 +68,12 @@ fun PaletteMenu(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = chatEnabled) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Outlined.Chat,
-                contentDescription = "Toggle chat mode"
-            )
-        }
+//        IconButton(onClick = chatEnabled) {
+//            Icon(
+//                imageVector = Icons.AutoMirrored.Outlined.Chat,
+//                contentDescription = "Toggle chat mode"
+//            )
+//        }
         IconButton(
             onClick = {
                 currentDrawMode =

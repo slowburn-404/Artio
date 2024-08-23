@@ -152,7 +152,7 @@ class HomeViewModel : ViewModel(), KoinComponent {
             if (!_uiState.value.userIsLoggedIn) return@launch
             val selectedSKetchIndex =
                 _uiState.value.remoteSketches.indexOfFirst { it == sketchToDelete }
-            if (selectedSKetchIndex != 1) {
+            if (selectedSKetchIndex != -1) {
                 deleteSketchFromRemoteDB(
                     userId = firebaseUser.uid,
                     boardId = sketchToDelete.id

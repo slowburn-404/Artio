@@ -96,7 +96,9 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
             is SketchPadActions.SaveSketch -> saveSketch(action.sketch)
             is SketchPadActions.UpdateSketch -> updateSketch(action.paths, action.texts)
             SketchPadActions.CheckIfUserIsLoggedIn -> isLoggedIn()
-            SketchPadActions.SketchClosed -> _uiState.update { it.copy(sketch = null) }
+            SketchPadActions.SketchClosed -> {
+                _uiState.update { it.copy(sketch = null, paths = emptyList()) }
+            }
         }
     }
 

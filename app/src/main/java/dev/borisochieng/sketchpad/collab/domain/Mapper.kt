@@ -15,7 +15,8 @@ fun DBSketch.toSketch(): Sketch {
         pathList = paths.map { it.toPathProperties() },
         dateCreated = dateCreated.toDate()!!,
         lastModified = lastModified.toDate()!!,
-        textList = emptyList()
+        textList = emptyList(),
+        isBackedUp = isBackedUp
     )
 
 }

@@ -16,7 +16,8 @@ data class Sketch(
 	val dateCreated: Date = Calendar.getInstance().time,
 	val lastModified: Date = Calendar.getInstance().time,
 	val pathList: List<PathProperties>,
-	val textList: List<TextProperties>
+	val textList: List<TextProperties>,
+	val isBackedUp: Boolean = false
 )
 
 

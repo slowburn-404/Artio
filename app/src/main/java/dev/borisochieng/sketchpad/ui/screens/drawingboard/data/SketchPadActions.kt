@@ -14,5 +14,4 @@ sealed class SketchPadActions {
 	data object CheckIfUserIsLoggedIn : SketchPadActions()
 
 	data object SketchClosed : SketchPadActions()
-
 }

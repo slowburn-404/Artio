@@ -78,7 +78,7 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        handleDeepLink(intent = intent) // handle deep link on cold start
+        //handleDeepLink(intent = intent) // handle deep link on cold start
 
     }
 
@@ -97,10 +97,10 @@ class MainActivity : ComponentActivity() {
         handleDeepLink(intent)
     }
 
-//    override fun onResume() {
-//        super.onResume()
-//        handleDeepLink(intent)
-//    }
+    override fun onResume() {
+        super.onResume()
+        handleDeepLink(intent)
+    }
 
     private fun handleDeepLink(intent: Intent) {
         val data: Uri? = intent.data
@@ -122,6 +122,5 @@ class MainActivity : ComponentActivity() {
 
         val message = "User id: $userId \n BoardId: $boardId"
         Log.d("DeepLink", message)
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 }
