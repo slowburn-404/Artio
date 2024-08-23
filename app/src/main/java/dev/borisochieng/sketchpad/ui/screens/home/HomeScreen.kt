@@ -3,6 +3,7 @@ package dev.borisochieng.sketchpad.ui.screens.home
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,6 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Brush
 import androidx.compose.material.icons.rounded.History
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -27,6 +29,8 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult.ActionPerformed
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -37,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -52,7 +57,7 @@ import dev.borisochieng.sketchpad.utils.ShimmerBoxItem
 import dev.borisochieng.sketchpad.utils.VOID_ID
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     bottomPadding: Dp,
@@ -64,6 +69,9 @@ fun HomeScreen(
     val selectedSketch = remember { mutableStateOf<Sketch?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val pullToRefreshState = rememberPullToRefreshState(
+        enabled = { !uiState.isLoading && uiState.fetchedFromRemoteDb }
+    )
 
     LaunchedEffect(Unit) { actions(HomeActions.CheckIfUserIsLogged) }
 
@@ -85,44 +93,65 @@ fun HomeScreen(
             }
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .animateContentSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            if (!isLoading && !uiState.fetchedFromRemoteDb) {
-                LinearProgressIndicator(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 10.dp, end = 10.dp, bottom = 2.dp)
-                        .clip(MaterialTheme.shapes.medium)
-                )
-            }
-            when {
-                isLoading -> LoadingScreen()
-                localSketches.isNotEmpty() && !isLoading -> {
-                    LazyVerticalGrid(
-                        columns = GridCells.Adaptive(150.dp),
-                        modifier = Modifier.padding(start = 10.dp),
-                        contentPadding = PaddingValues(bottom = 100.dp)
-                    ) {
-                        items(localSketches.size) { index ->
-                            val sketch = localSketches[index]
-                            SketchPoster(
-                                sketch = sketch,
-                                modifier = Modifier.animateItemPlacement(),
-                                onClick = { navigate(Screens.SketchPad(it, sketch.id, false)) },
-                                onMenuClicked = { selectedSketch.value = it }
-                            )
+        Box(Modifier.nestedScroll(pullToRefreshState.nestedScrollConnection)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .animateContentSize(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                if (!isLoading && !uiState.fetchedFromRemoteDb) {
+                    LinearProgressIndicator(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 10.dp, end = 10.dp, bottom = 2.dp)
+                            .clip(MaterialTheme.shapes.medium)
+                    )
+                }
+                when {
+                    isLoading -> LoadingScreen()
+                    localSketches.isNotEmpty() && !isLoading -> {
+                        LazyVerticalGrid(
+                            columns = GridCells.Adaptive(150.dp),
+                            modifier = Modifier.padding(start = 10.dp),
+                            contentPadding = PaddingValues(bottom = 100.dp)
+                        ) {
+                            items(localSketches.size) { index ->
+                                val sketch = localSketches[index]
+                                SketchPoster(
+                                    sketch = sketch,
+                                    modifier = Modifier.animateItemPlacement(),
+                                    onClick = { navigate(Screens.SketchPad(it, sketch.id, false)) },
+                                    onMenuClicked = { selectedSketch.value = it }
+                                )
+                            }
                         }
                     }
-                }
-                else -> {
-                    EmptyScreen(Modifier.padding(bottom = bottomPadding))
+                    else -> {
+                        EmptyScreen(Modifier.padding(bottom = bottomPadding))
+                    }
                 }
             }
+
+            if (pullToRefreshState.isRefreshing) {
+                LaunchedEffect(true) {
+                    actions(HomeActions.Refresh)
+                }
+            }
+
+            LaunchedEffect(uiState.fetchedFromRemoteDb) {
+                if (uiState.fetchedFromRemoteDb) {
+                    pullToRefreshState.endRefresh()
+                } else {
+                    pullToRefreshState.startRefresh()
+                }
+            }
+
+            PullToRefreshContainer(
+                state = pullToRefreshState,
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
         }
 
         if (selectedSketch.value != null) {

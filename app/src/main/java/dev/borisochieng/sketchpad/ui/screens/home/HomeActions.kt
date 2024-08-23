@@ -12,6 +12,8 @@ sealed class HomeActions {
 
 	data object CheckIfUserIsLogged : HomeActions()
 
+	data object Refresh : HomeActions()
+
 	data object ClearFeedback : HomeActions()
 
 }
