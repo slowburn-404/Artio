@@ -272,18 +272,16 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
             is FirebaseResponse.Success -> {
                 response.data ?: emptyList()
             }
-
             else -> emptyList()
         }
         return remoteSketches
     }
 
-
     fun initialize(boardId: String) {
         viewModelScope.launch {
             sketchRepository.getChats(boardId).collect {
                 _messages.value = emptyList()
-                _messages.value = it
+                _messages.value = it.reversed()
                 Log.d(TAG, "list of messages during initalization ${messages.value}")
             }
         }
@@ -291,11 +289,12 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 
     fun load(boardId: String){
         viewModelScope.launch {
-        sketchRepository.loadChats(boardId).collect { messagesList ->
-            _messages.value = emptyList()
-            _messages.value = messagesList
-            Log.d(TAG, "list of messages after creation ${messages.value}")
-        }}
+            sketchRepository.loadChats(boardId).collect { messagesList ->
+                _messages.value = emptyList()
+                _messages.value = messagesList.reversed()
+                Log.d(TAG, "list of messages after creation ${messages.value}")
+            }
+        }
     }
 
     fun onMessageSent(boardId: String) {
@@ -308,12 +307,11 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
                     } else {
                         Log.d(TAG, "message failed")
                     }
-
                 }
             }
         }
-
     }
+
     fun onMessageChange(newValue: String, boardId: String) {
         messageState.value = messageState.value.copy(message = newValue)
         if (newValue.isNotEmpty()) {

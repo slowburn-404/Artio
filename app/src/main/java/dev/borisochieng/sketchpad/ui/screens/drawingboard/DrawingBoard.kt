@@ -2,7 +2,6 @@ package dev.borisochieng.sketchpad.ui.screens.drawingboard
 
 import android.graphics.Bitmap
 import android.net.Uri
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
@@ -246,9 +245,7 @@ fun DrawingBoard(
         floatingActionButton = {
             if (userIsLoggedIn && isFromCollabUrl) {
                 FloatingActionButton(
-                    onClick = {
-                        chatVisible.value = true
-                    },
+                    onClick = { chatVisible.value = true },
                     content = {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Chat,
@@ -439,13 +436,7 @@ fun DrawingBoard(
         }
 
         DisposableEffect(Unit) {
-            onDispose {
-                actions(SketchPadActions.SketchClosed)
-                absolutePaths.clear()
-                absoluteTexts.clear()
-                paths = emptyList()
-                texts = emptyList()
-            }
+            onDispose { actions(SketchPadActions.SketchClosed) }
         }
 
         // onBackPress, if canvas has new lines drawn or text written, prompt user to save sketch or changes
@@ -459,7 +450,7 @@ fun DrawingBoard(
 
     if (chatVisible.value) {
         ChatDialog(
-            projectId = boardId,
+            boardId = boardId,
             viewModel = viewModel,
             onCancel = { chatVisible.value = false },
         )
