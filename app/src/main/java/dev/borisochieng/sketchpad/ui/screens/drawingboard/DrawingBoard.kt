@@ -231,8 +231,8 @@ fun DrawingBoard(
                     drawController.saveBitmap()
                     isExport.value = false
                 },
-                expanded = {
-                    isExport.value = true
+                expanded = { value ->
+                    isExport.value = value
                 }
 
             )
