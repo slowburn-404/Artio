@@ -101,6 +101,7 @@ fun DrawingBoard(
 
     val chatEnabled = remember { mutableStateOf(false) }
     val chatVisible = remember { mutableStateOf(false) }
+    val isExport = remember { mutableStateOf(false) }
 
     val openNameSketchDialog = rememberSaveable { mutableStateOf(false) }
     val openSavePromptDialog = rememberSaveable { mutableStateOf(false) }
@@ -198,7 +199,11 @@ fun DrawingBoard(
                     }
                     paths += nextPath
                 },
-                onExportClicked = { drawController.saveBitmap() },
+                onExportClicked = {
+
+                    drawController.saveBitmap()
+                    isExport.value = false
+                                  },
                 onBroadCastUrl = {
                     if (userIsLoggedIn) {
                         sketch?.let {
@@ -221,9 +226,15 @@ fun DrawingBoard(
                     }
                 },
                 onExportClickedAsPdf = {
+
                     exportOption = ExportOption.PDF
                     drawController.saveBitmap()
+                    isExport.value = false
+                },
+                expanded = {
+                    isExport.value = true
                 }
+
             )
         },
         bottomBar = {
@@ -243,7 +254,8 @@ fun DrawingBoard(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = Color.White,
         floatingActionButton = {
-            if (userIsLoggedIn && isFromCollabUrl) {
+
+            if (userIsLoggedIn && isFromCollabUrl&& !isExport.value) {
                 FloatingActionButton(
                     onClick = { chatVisible.value = true },
                     content = {
@@ -300,8 +312,14 @@ fun DrawingBoard(
                                     onCaptured = { imageBitmap, _ ->
                                         imageBitmap?.let { bitmap ->
                                             when (exportOption) {
-                                                ExportOption.PNG -> exportSketch(bitmap.asAndroidBitmap())
-                                                ExportOption.PDF -> exportSketchAsPdf(bitmap.asAndroidBitmap())
+                                                ExportOption.PNG -> {
+                                                    exportSketch(bitmap.asAndroidBitmap())
+
+                                                }
+                                                ExportOption.PDF -> {
+                                                    exportSketchAsPdf(bitmap.asAndroidBitmap())
+
+                                                }
                                             }
                                         }
                                     }
