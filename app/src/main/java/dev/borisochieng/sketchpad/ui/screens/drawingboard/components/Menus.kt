@@ -152,7 +152,8 @@ fun PaletteTopBar(
     unRedoClicked: () -> Unit,
     onExportClicked: () -> Unit,
     onBroadCastUrl: () -> Unit,
-    onExportClickedAsPdf: () -> Unit
+    onExportClickedAsPdf: () -> Unit,
+    expanded: (Boolean) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -202,7 +203,10 @@ fun PaletteTopBar(
 //            )
 //        }
         Column {
-            IconButton(onClick = { expanded = true }) {
+            IconButton(onClick = {
+                expanded = true
+                expanded(true)
+            }) {
                 Icon(
                     painterResource(R.drawable.ic_download),
                     contentDescription = "Localized description"
@@ -210,7 +214,10 @@ fun PaletteTopBar(
             }
             DropdownMenu(
                 expanded = expanded,
-                onDismissRequest = { expanded = false }
+                onDismissRequest = {
+                    expanded = false
+                    expanded(false)
+                }
             ) {
                 DropdownMenuItem(
                     text = { Text("Save as PNG") },
