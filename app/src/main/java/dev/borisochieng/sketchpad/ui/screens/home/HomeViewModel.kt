@@ -59,6 +59,7 @@ class HomeViewModel : ViewModel(), KoinComponent {
 			is HomeActions.RenameSketch -> renameSketch(action.sketch)
 			is HomeActions.DeleteSketch -> deleteSketch(action.sketch)
 			is HomeActions.CheckIfUserIsLogged -> isLoggedIn(warmCheck = true)
+			is HomeActions.Refresh -> refreshDatabase()
 			is HomeActions.ClearFeedback -> _uiState.update { it.copy(feedback = null) }
 		}
 	}
@@ -90,6 +91,7 @@ class HomeViewModel : ViewModel(), KoinComponent {
 
 	private fun refreshDatabase() {
 		synced = true
+		_uiState.update { it.copy(fetchedFromRemoteDb = false) }
 		viewModelScope.launch {
 //			val remoteSketches = listOf(Sketch(name = "Jankz", pathList = emptyList())) // for testing
 			val remoteSketches = fetchSketchesFromRemoteDB()
@@ -97,7 +99,10 @@ class HomeViewModel : ViewModel(), KoinComponent {
 				sketch.name in remoteSketches.map { it.name }
 			}
 			sketchRepository.refreshDatabase(remoteSketches + unsyncedSketches)
-			_uiState.update { it.copy(remoteSketches = remoteSketches) }
+			_uiState.update { it.copy(
+				remoteSketches = remoteSketches,
+				fetchedFromRemoteDb = true
+			) }
 		}
 	}
 
@@ -130,7 +135,6 @@ class HomeViewModel : ViewModel(), KoinComponent {
             }
 
             is FirebaseResponse.Error -> {
-
                 _uiState.update {
                     it.copy(
                         feedback = renameTask.message
@@ -148,10 +152,10 @@ class HomeViewModel : ViewModel(), KoinComponent {
             if (!_uiState.value.userIsLoggedIn) return@launch
             val selectedSKetchIndex =
                 _uiState.value.remoteSketches.indexOfFirst { it == sketchToDelete }
-            if (selectedSKetchIndex != 1) {
+            if (selectedSKetchIndex != -1) {
                 deleteSketchFromRemoteDB(
                     userId = firebaseUser.uid,
-                    boardId = _uiState.value.remoteSketches[selectedSKetchIndex].id
+                    boardId = sketchToDelete.id
                 )
             }
         }
@@ -208,11 +212,12 @@ class HomeViewModel : ViewModel(), KoinComponent {
 	private fun fallbackPlan() {
 		viewModelScope.launch {
 			delay(10000)
-			if (!uiState.isLoading || localSketches == uiState.localSketches) return@launch
+			if (!uiState.isLoading) return@launch
 			_uiState.update {
 				it.copy(
-					localSketches = localSketches,
-					isLoading = false
+					localSketches = localSketches.ifEmpty { emptyList() },
+					isLoading = false,
+					fetchedFromRemoteDb = localSketches.isEmpty()
 				)
 			}
 		}

@@ -8,7 +8,11 @@ class NavActions(private val navController: NavHostController) {
     fun navigate(screen: Screens) {
         when (screen) {
             Screens.HomeScreen -> navigateToHomeScreen()
-            is Screens.SketchPad -> navigateToSketchPad(screen.sketchId)
+            is Screens.SketchPad -> navigateToSketchPad(
+                sketchId = screen.sketchId,
+                userId = screen.userId,
+                isFromCollabUrl = screen.isFromCollabUrl
+            )
             Screens.SettingsScreen -> navigateToSettingsScreen()
             Screens.ProfileScreen -> navigateToProfileScreen()
             Screens.Back -> navController.navigateUp()
@@ -28,10 +32,13 @@ class NavActions(private val navController: NavHostController) {
             launchSingleTop = true
         }
     }
-
-    private fun navigateToSketchPad(sketchId: String) {
+    private fun navigateToSketchPad(
+        sketchId: String,
+        userId: String,
+        isFromCollabUrl: Boolean
+    ) {
         navController.navigate(
-            AppRoute.SketchPad.routeWithId(sketchId)
+            AppRoute.SketchPad.routeWithId(sketchId, userId, isFromCollabUrl)
         ) { launchSingleTop = true }
     }
 
@@ -78,8 +85,9 @@ class NavActions(private val navController: NavHostController) {
 @SuppressLint("DefaultLocale")
 sealed class AppRoute(val route: String) {
     data object HomeScreen : AppRoute("home_screen")
-    data object SketchPad : AppRoute("sketchpad/{sketchId}") {
-        fun routeWithId(sketchId: String) = String.format("sketchpad/%s", sketchId)
+    data object SketchPad : AppRoute("sketchpad/{sketchId}/{userId}/{isFromCollabUrl}") {
+        fun routeWithId(sketchId: String, userId: String, isFromCollabUrl: Boolean) =
+            "sketchpad/$sketchId/$userId/${isFromCollabUrl}"
     }
 
     data object SettingsScreen : AppRoute("settings_screen")
@@ -87,19 +95,23 @@ sealed class AppRoute(val route: String) {
     data object OnBoardingScreen : AppRoute("onboarding_screen")
     data object SignUpScreen : AppRoute("welcome_screen")
     data object LoginScreen : AppRoute("login_screen")
-    data object UpdateProfileScreen: AppRoute("update_profile")
-    data object ResetPasswordScreen: AppRoute("'reset_password")
+    data object UpdateProfileScreen : AppRoute("update_profile")
+    data object ResetPasswordScreen : AppRoute("'reset_password")
 }
 
 sealed class Screens {
     data object HomeScreen : Screens()
-    data class SketchPad(val sketchId: String) : Screens()
+    data class SketchPad(
+        val sketchId: String,
+        val userId: String,
+        val isFromCollabUrl: Boolean = false
+    ) : Screens()
     data object SettingsScreen : Screens()
     data object ProfileScreen : Screens()
     data object Back : Screens()
     data object OnBoardingScreen : Screens()
     data object SignUpScreen : Screens()
     data object LoginScreen : Screens()
-    data object UpdateProfileScreen: Screens()
-    data object ResetPasswordScreen: Screens()
+    data object UpdateProfileScreen : Screens()
+    data object ResetPasswordScreen : Screens()
 }

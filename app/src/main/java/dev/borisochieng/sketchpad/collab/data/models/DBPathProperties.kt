@@ -1,6 +1,7 @@
 package dev.borisochieng.sketchpad.collab.data.models
 
 data class DBPathProperties(
+    val id: String = "",
     val alpha: Float = 0f,
     val color: String = "",
     val eraseMode: Boolean = false,

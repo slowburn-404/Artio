@@ -6,7 +6,7 @@ import dev.borisochieng.sketchpad.collab.data.models.BoardDetails
 import dev.borisochieng.sketchpad.collab.data.models.DBPathProperties
 import dev.borisochieng.sketchpad.collab.data.models.DBSketch
 import dev.borisochieng.sketchpad.database.Sketch
-import dev.borisochieng.sketchpad.ui.screens.drawingboard.alt.PathProperties
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.PathProperties
 import kotlinx.coroutines.flow.Flow
 
 interface CollabRepository {
@@ -22,7 +22,7 @@ interface CollabRepository {
 
     suspend fun fetchSingleSketch(userId: String, boardId: String): FirebaseResponse<Sketch>
 
-    suspend fun updatePathInDB(userId: String, boardId: String, paths: List<DBPathProperties>, pathIds: List<String>): FirebaseResponse<String>
+    suspend fun updatePathInDB(userId: String, boardId: String, paths: List<DBPathProperties>): FirebaseResponse<String>
 
     fun generateCollabUrl(userId: String, boardId: String): Uri
 
