@@ -3,7 +3,6 @@ package dev.borisochieng.sketchpad.ui.screens.home
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,7 +16,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Brush
 import androidx.compose.material.icons.rounded.History
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -29,8 +27,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult.ActionPerformed
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -41,7 +37,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -57,7 +52,7 @@ import dev.borisochieng.sketchpad.utils.ShimmerBoxItem
 import dev.borisochieng.sketchpad.utils.VOID_ID
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
     bottomPadding: Dp,
@@ -65,13 +60,10 @@ fun HomeScreen(
     actions: (HomeActions) -> Unit,
     navigate: (Screens) -> Unit
 ) {
-    val (localSketches, remoteSketches, userIsLoggedIn, isLoading, feedback) = uiState
+    val (localSketches, remoteSketches, userIsLoggedIn, isLoading, feedback, fetchedFromRemoteDb) = uiState
     val selectedSketch = remember { mutableStateOf<Sketch?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    val pullToRefreshState = rememberPullToRefreshState(
-        enabled = { !uiState.isLoading && uiState.fetchedFromRemoteDb }
-    )
 
     LaunchedEffect(Unit) { actions(HomeActions.CheckIfUserIsLogged) }
 
@@ -93,15 +85,20 @@ fun HomeScreen(
             }
         }
     ) { paddingValues ->
-        Box(Modifier.nestedScroll(pullToRefreshState.nestedScrollConnection)) {
+        PullRefreshContainer(
+	        modifier = Modifier
+		        .fillMaxSize()
+		        .padding(paddingValues),
+			pullEnabled = !isLoading && fetchedFromRemoteDb && userIsLoggedIn,
+			onRefresh = { actions(HomeActions.Refresh) }
+		) {
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
+	                .fillMaxSize()
                     .animateContentSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (!isLoading && !uiState.fetchedFromRemoteDb) {
+                if (!isLoading && !fetchedFromRemoteDb) {
                     LinearProgressIndicator(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -133,25 +130,6 @@ fun HomeScreen(
                     }
                 }
             }
-
-            if (pullToRefreshState.isRefreshing) {
-                LaunchedEffect(true) {
-                    actions(HomeActions.Refresh)
-                }
-            }
-
-            LaunchedEffect(uiState.fetchedFromRemoteDb) {
-                if (uiState.fetchedFromRemoteDb) {
-                    pullToRefreshState.endRefresh()
-                } else {
-                    pullToRefreshState.startRefresh()
-                }
-            }
-
-            PullToRefreshContainer(
-                state = pullToRefreshState,
-                modifier = Modifier.align(Alignment.TopCenter)
-            )
         }
 
         if (selectedSketch.value != null) {
