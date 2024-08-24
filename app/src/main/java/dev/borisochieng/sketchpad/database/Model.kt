@@ -20,7 +20,6 @@ data class Sketch(
 	val isBackedUp: Boolean = false
 )
 
-
 // Data class for message model
 
 enum class MessageType {
@@ -28,6 +27,7 @@ enum class MessageType {
 	MESSAGE,
 	PICTURE
 }
+
 data class MessageModel(
 	val senderId: String,
 	val projectId: String,
@@ -39,5 +39,4 @@ data class MessageModel(
 	val messageType : MessageType
 ) {
 	constructor() : this("", "", "","", "",null, null, MessageType.MESSAGE)
-
 }

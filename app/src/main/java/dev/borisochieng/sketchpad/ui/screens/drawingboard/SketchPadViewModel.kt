@@ -96,9 +96,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
             is SketchPadActions.SaveSketch -> saveSketch(action.sketch)
             is SketchPadActions.UpdateSketch -> updateSketch(action.paths, action.texts)
             SketchPadActions.CheckIfUserIsLoggedIn -> isLoggedIn()
-            SketchPadActions.SketchClosed -> {
-                _uiState.update { it.copy(sketch = null, paths = emptyList()) }
-            }
+            SketchPadActions.SketchClosed -> _uiState.value = CanvasUiState()
         }
     }
 
@@ -141,7 +139,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
                     Log.i("Board details on save", response.data.toString())
                     _uiState.update {
                         it.copy(
-                            boardDetails = response.data ?: BoardDetails("", "", emptyList()),
+                            boardDetails = response.data ?: BoardDetails(),
                             error = ""
                         )
                     }

@@ -63,7 +63,6 @@ import dev.borisochieng.sketchpad.ui.screens.drawingboard.utils.DrawMode
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.utils.ExportOption
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.utils.rememberDrawController
 import dev.borisochieng.sketchpad.utils.VOID_ID
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import java.util.UUID.randomUUID
@@ -81,7 +80,7 @@ fun DrawingBoard(
     userId: String,
     isFromCollabUrl: Boolean
 ) {
-    val (userIsLoggedIn, _, sketchIsBackedUp, _, sketch, collabUrl) = uiState
+    val (userIsLoggedIn, _, _, _, sketch, collabUrl) = uiState
 //    var currentTextInput by remember { mutableStateOf(TextInput()) }
     val drawController = rememberDrawController()
     var drawMode by remember { mutableStateOf(DrawMode.Draw) }
