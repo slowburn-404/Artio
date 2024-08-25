@@ -78,7 +78,7 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        //handleDeepLink(intent = intent) // handle deep link on cold start
+        handleDeepLink(intent = intent) // handle deep link on cold start
 
     }
 
@@ -119,6 +119,7 @@ class MainActivity : ComponentActivity() {
                 )
             )
         }
+        intent.data = null //prevent other intents from consuming the wrong data
 
         val message = "User id: $userId \n BoardId: $boardId"
         Log.d("DeepLink", message)

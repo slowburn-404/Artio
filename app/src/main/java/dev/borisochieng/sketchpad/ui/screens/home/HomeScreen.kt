@@ -80,8 +80,11 @@ fun HomeScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navigate(Screens.SketchPad(VOID_ID,
-                    FirebaseAuth.getInstance().uid ?: "0000", false)) },
+                onClick = { navigate(Screens.SketchPad(
+                    VOID_ID,
+                    FirebaseAuth.getInstance().uid ?: VOID_ID,
+                    false
+                )) },
                 modifier = Modifier.padding(bottom = bottomPadding),
                 containerColor = colorScheme.primary,
                 contentColor = colorScheme.onPrimary

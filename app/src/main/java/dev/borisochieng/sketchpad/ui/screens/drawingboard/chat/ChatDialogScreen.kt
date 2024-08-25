@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -50,7 +51,7 @@ fun ChatDialog(
         Log.d(TAG, "list of messages in chatsScreen $messages")
 
         Card {
-            Column(Modifier.padding(16.dp, 8.dp)) {
+            Column(Modifier.padding(16.dp, 8.dp).imePadding()) {
                 Text(
                     text = "Chat",
                     fontSize = 24.sp,
@@ -73,7 +74,7 @@ fun ChatDialog(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(380.dp),
+                    .height(300.dp),
                 reverseLayout = true
             ) {
                 items(messages.size) { index ->
