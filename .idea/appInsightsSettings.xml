@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="dev.borisochieng.sketchpad" />
-                  <option name="mobileSdkAppId" value="1:828662580897:android:f094ec43098864b41192e0" />
-                  <option name="projectId" value="sketchpad-50ff5" />
-                  <option name="projectNumber" value="828662580897" />
+                  <option name="appId" value="PLACEHOLDER" />
+                  <option name="mobileSdkAppId" value="" />
+                  <option name="projectId" value="" />
+                  <option name="projectNumber" value="" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
