@@ -1,5 +1,6 @@
 package dev.borisochieng.artio.ui.screens.home
 
+import dev.borisochieng.artio.auth.domain.model.User
 import dev.borisochieng.artio.database.Sketch
 
 data class HomeUiState(
@@ -8,5 +9,6 @@ data class HomeUiState(
 	val userIsLoggedIn: Boolean = false,
 	val isLoading: Boolean = true,
 	val feedback: String? = null,
-	val fetchedFromRemoteDb: Boolean = false
+	val fetchedFromRemoteDb: Boolean = false,
+	val user: User? = null
 )

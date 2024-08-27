@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="dev.borisochieng.artio" />
+                  <option name="mobileSdkAppId" value="1:828662580897:android:0e3d8adfab73b2f41192e0" />
+                  <option name="projectId" value="sketchpad-50ff5" />
+                  <option name="projectNumber" value="828662580897" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

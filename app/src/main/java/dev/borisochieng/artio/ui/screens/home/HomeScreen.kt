@@ -10,12 +10,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Brush
 import androidx.compose.material.icons.rounded.History
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -37,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -45,7 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
 import dev.borisochieng.artio.database.Sketch
-import dev.borisochieng.artio.ui.components.HomeTopBar
+import dev.borisochieng.artio.ui.components.Header
 import dev.borisochieng.artio.ui.navigation.Screens
 import dev.borisochieng.artio.ui.screens.dialog.ItemMenuSheet
 import dev.borisochieng.artio.utils.ShimmerBoxItem
@@ -60,23 +63,27 @@ fun HomeScreen(
     actions: (HomeActions) -> Unit,
     navigate: (Screens) -> Unit
 ) {
-    val (localSketches, remoteSketches, userIsLoggedIn, isLoading, feedback, fetchedFromRemoteDb) = uiState
+    val (localSketches, remoteSketches, userIsLoggedIn, isLoading, feedback, fetchedFromRemoteDb, user) = uiState
     val selectedSketch = remember { mutableStateOf<Sketch?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) { actions(HomeActions.CheckIfUserIsLogged) }
 
     Scaffold(
-        topBar = { HomeTopBar() },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navigate(Screens.SketchPad(
-                    VOID_ID,
-                    FirebaseAuth.getInstance().uid ?: VOID_ID,
-                    false
-                )) },
+                onClick = {
+                    navigate(
+                        Screens.SketchPad(
+                            VOID_ID,
+                            FirebaseAuth.getInstance().uid ?: VOID_ID,
+                            false
+                        )
+                    )
+                },
                 modifier = Modifier.padding(bottom = bottomPadding),
                 containerColor = colorScheme.primary,
                 contentColor = colorScheme.onPrimary
@@ -89,15 +96,15 @@ fun HomeScreen(
         }
     ) { paddingValues ->
         PullRefreshContainer(
-	        modifier = Modifier
-		        .fillMaxSize()
-		        .padding(paddingValues),
-			pullEnabled = !isLoading && fetchedFromRemoteDb && userIsLoggedIn,
-			onRefresh = { actions(HomeActions.Refresh) }
-		) {
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            pullEnabled = !isLoading && fetchedFromRemoteDb && userIsLoggedIn,
+            onRefresh = { actions(HomeActions.Refresh) }
+        ) {
             Column(
                 modifier = Modifier
-	                .fillMaxSize()
+                    .fillMaxSize()
                     .animateContentSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -117,6 +124,21 @@ fun HomeScreen(
                             modifier = Modifier.padding(start = 10.dp),
                             contentPadding = PaddingValues(bottom = 100.dp)
                         ) {
+
+                            user?.let {
+                                item(
+                                    span = {
+                                        GridItemSpan(maxLineSpan)
+                                    }
+                                ) {
+                                    Header(
+                                        user = it,
+                                        context = context,
+                                        onClick = { navigate(Screens.ProfileScreen) }
+                                    )
+
+                                }
+                            }
                             items(localSketches.size) { index ->
                                 val sketch = localSketches[index]
                                 SketchPoster(
@@ -128,6 +150,7 @@ fun HomeScreen(
                             }
                         }
                     }
+
                     else -> {
                         EmptyScreen(Modifier.padding(bottom = bottomPadding))
                     }
