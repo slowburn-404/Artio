@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "dev.borisochieng.sketchpad"
+    namespace = "dev.borisochieng.artio"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "dev.borisochieng.sketchpad"
+        applicationId = "dev.borisochieng.artio"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
