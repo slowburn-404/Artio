@@ -302,7 +302,7 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
                     Log.i("Single Sketch", deserializedDBSketch.toString())
                     FirebaseResponse.Success(deserializedDBSketch?.toSketch())
                 } else {
-                    FirebaseResponse.Error("Board not found")
+                    FirebaseResponse.Error("Canvas not found")
                 }
 
 

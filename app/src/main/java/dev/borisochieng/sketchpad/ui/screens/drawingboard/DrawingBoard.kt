@@ -47,6 +47,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import dev.borisochieng.sketchpad.database.Sketch
 import dev.borisochieng.sketchpad.ui.navigation.Screens
+import dev.borisochieng.sketchpad.ui.screens.dialog.LoadingCanvasDialog
 import dev.borisochieng.sketchpad.ui.screens.dialog.NameSketchDialog
 import dev.borisochieng.sketchpad.ui.screens.dialog.SavePromptDialog
 import dev.borisochieng.sketchpad.ui.screens.dialog.Sizes
@@ -80,8 +81,7 @@ fun DrawingBoard(
     userId: String,
     isFromCollabUrl: Boolean
 ) {
-    val (userIsLoggedIn, _, _, _, sketch, collabUrl) = uiState
-//    var currentTextInput by remember { mutableStateOf(TextInput()) }
+    val (userIsLoggedIn, _, _, error, sketch, collabUrl) = uiState
     val drawController = rememberDrawController()
     var drawMode by remember { mutableStateOf(DrawMode.Draw) }
     var exportOption by remember { mutableStateOf(ExportOption.PNG) }
@@ -199,10 +199,9 @@ fun DrawingBoard(
                     paths += nextPath
                 },
                 onExportClicked = {
-
                     drawController.saveBitmap()
                     isExport.value = false
-                                  },
+                },
                 onBroadCastUrl = {
                     if (userIsLoggedIn) {
                         sketch?.let {
@@ -210,7 +209,6 @@ fun DrawingBoard(
                                 scope.launch { snackbarHostState.showSnackbar("Sketch is not backed up yet") }
                                 return@PaletteTopBar
                             }
-                            //isCollabUrlShared = true
                             onBroadCastUrl(collabUrl)
                         }
                     } else {
@@ -225,7 +223,6 @@ fun DrawingBoard(
                     }
                 },
                 onExportClickedAsPdf = {
-
                     exportOption = ExportOption.PDF
                     drawController.saveBitmap()
                     isExport.value = false
@@ -253,7 +250,6 @@ fun DrawingBoard(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = Color.White,
         floatingActionButton = {
-
             if (userIsLoggedIn && isFromCollabUrl&& !isExport.value) {
                 FloatingActionButton(
                     onClick = { chatVisible.value = true },
@@ -448,13 +444,28 @@ fun DrawingBoard(
             )
         }
 
+        val openLoadingDialog = remember (isFromCollabUrl, sketch, error) {
+            mutableStateOf(isFromCollabUrl && sketch == null && error.isEmpty())
+        }
+        if (openLoadingDialog.value) {
+            LoadingCanvasDialog {
+                openLoadingDialog.value = false
+                navigate(Screens.Back)
+            }
+        }
+
+        LaunchedEffect(error) {
+            if (error.isEmpty()) return@LaunchedEffect
+            snackbarHostState.showSnackbar(error)
+        }
+
         DisposableEffect(Unit) {
             onDispose { actions(SketchPadActions.SketchClosed) }
         }
 
         // onBackPress, if canvas has new lines drawn or text written, prompt user to save sketch or changes
         if (((paths.isNotEmpty() && paths != sketch?.pathList) ||
-                    (texts.isNotEmpty() && texts != sketch?.textList)) &&
+            (texts.isNotEmpty() && texts != sketch?.textList)) &&
             !isFromCollabUrl
         ) {
             BackHandler { openSavePromptDialog.value = true }
