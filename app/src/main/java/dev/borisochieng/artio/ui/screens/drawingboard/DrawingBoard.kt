@@ -218,7 +218,7 @@ fun DrawingBoard(
                                 actionLabel = "SIGN UP", duration = SnackbarDuration.Short
                             )
                             if (action != SnackbarResult.ActionPerformed) return@launch
-                            navigate(Screens.OnBoardingScreen)
+                            navigate(Screens.LoginScreen)
                         }
                     }
                 },

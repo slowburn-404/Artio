@@ -158,7 +158,7 @@ fun HomeScreen(
                             actionLabel = "SIGN UP", duration = SnackbarDuration.Short
                         )
                         if (action != ActionPerformed) return@launch
-                        navigate(Screens.OnBoardingScreen)
+                        navigate(Screens.LoginScreen)
                     }
                 },
                 onDismiss = { selectedSketch.value = null }
