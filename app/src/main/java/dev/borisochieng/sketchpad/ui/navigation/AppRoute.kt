@@ -17,6 +17,7 @@ import dev.borisochieng.sketchpad.ui.screens.auth.ResetPasswordScreen
 import dev.borisochieng.sketchpad.ui.screens.auth.SignUpScreen
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.DrawingBoard
 import dev.borisochieng.sketchpad.ui.screens.drawingboard.SketchPadViewModel
+import dev.borisochieng.sketchpad.ui.screens.drawingboard.data.SketchPadActions
 import dev.borisochieng.sketchpad.ui.screens.home.HomeScreen
 import dev.borisochieng.sketchpad.ui.screens.home.HomeViewModel
 import dev.borisochieng.sketchpad.ui.screens.onboarding.OnBoardingScreen
@@ -68,16 +69,19 @@ fun AppRoute(
             val isFromCollabUrl = backStackEntry.arguments?.getString("isFromCollabUrl").toBoolean()
 
             LaunchedEffect(sketchId, isFromCollabUrl) {
-                if (!isFromCollabUrl) {
-                    sketchPadViewModel.fetchSketch(sketchId)
-                    sketchPadViewModel.generateCollabUrl(sketchId)
-                } else if(userId != VOID_ID){
-                    sketchPadViewModel.fetchSingleSketch(boardId = sketchId, userId = userId)
-                }
-                //listen for path changes in collab mode
-                if(isFromCollabUrl && userId != VOID_ID && sketchId != VOID_ID) {
-                    sketchPadViewModel.listenForSketchChanges(userId = userId, boardId = sketchId)
-                }
+	            sketchPadViewModel.apply {
+		            if (!isFromCollabUrl) {
+			            fetchSketch(sketchId)
+			            generateCollabUrl(sketchId)
+		            } else if (userId != VOID_ID) {
+						actions(SketchPadActions.SketchClosed)
+			            fetchSingleSketch(sketchId, userId)
+		            }
+		            //listen for path changes in collab mode
+		            if (isFromCollabUrl && VOID_ID !in setOf(userId, sketchId)) {
+			            listenForSketchChanges(userId, sketchId)
+		            }
+	            }
             }
 
             DrawingBoard(

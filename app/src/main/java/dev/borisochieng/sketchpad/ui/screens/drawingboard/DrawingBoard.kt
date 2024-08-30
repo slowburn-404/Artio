@@ -264,13 +264,13 @@ fun DrawingBoard(
         }
     ) { paddingValues ->
         LaunchedEffect(sketch) {
+            absolutePaths.clear(); paths = emptyList()
+            absoluteTexts.clear(); texts = emptyList()
             if (sketch == null) return@LaunchedEffect
             // paths
-            absolutePaths.clear(); paths = emptyList()
             absolutePaths.addAll(sketch.pathList)
             paths = sketch.pathList
             // texts
-            absoluteTexts.clear(); texts = emptyList()
             absoluteTexts.addAll(sketch.textList)
             texts = sketch.textList
         }
@@ -336,8 +336,8 @@ fun DrawingBoard(
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .background(Color.White)
-                                        .pointerInput(true) {
-                                            if (drawMode == DrawMode.Touch) return@pointerInput
+                                        .pointerInput(drawMode) {
+                                            if (drawMode !in setOf(DrawMode.Draw, DrawMode.Erase)) return@pointerInput
                                             detectDragGestures { change, dragAmount ->
                                                 change.consume()
                                                 val path = PathProperties(
