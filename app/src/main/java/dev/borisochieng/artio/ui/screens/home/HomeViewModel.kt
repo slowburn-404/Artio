@@ -66,7 +66,6 @@ class HomeViewModel : ViewModel(), KoinComponent {
                 refreshDatabase()
                 getUserDetails()
             }
-
             is HomeActions.ClearFeedback -> _uiState.update { it.copy(feedback = null) }
         }
     }
@@ -202,7 +201,11 @@ class HomeViewModel : ViewModel(), KoinComponent {
         if (uiState.userIsLoggedIn == response) return@launch
         _uiState.update { it.copy(userIsLoggedIn = response) }
         // if userIsLoggedIn and function isn't triggered on cold start...
-        if (response && warmCheck) refreshDatabase()
+        if (!warmCheck) return@launch
+        if (response) refreshDatabase() else {
+            _uiState.update { it.copy(remoteSketches = emptyList()) }
+        }
+        getUserDetails()
     }
 
     private suspend fun fetchSketchesFromRemoteDB(): List<Sketch> {
@@ -252,8 +255,7 @@ class HomeViewModel : ViewModel(), KoinComponent {
                         )
                     )
                 }
-            }
+            } ?: _uiState.update { it.copy(user = null) }
         }
-
 
 }
