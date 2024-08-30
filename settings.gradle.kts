@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "SketchPad"
+rootProject.name = "Artio"
 include(":app")
  
