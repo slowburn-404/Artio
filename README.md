@@ -18,7 +18,7 @@ A Jetpack Compose App that lets users draw on a canvas.
 
   ***Or you can install the apk from below 👇🏽***
 
-  [![SketchPad App](https://img.shields.io/badge/SketchPad-APK-orange.svg?style=for-the-badge&logo=android)](https://github.com/slowburn-404/SketchPad/releases/tag/v3.0.0)
+  [![Artio App](https://img.shields.io/badge/SketchPad-APK-orange.svg?style=for-the-badge&logo=android)](https://github.com/slowburn-404/SketchPad/releases/tag/v3.0.0)
 
 ## Technology Stack
 - **[Kotlin](https://kotlinlang.org/)**: The official programming language for developing Android applications.
@@ -40,9 +40,9 @@ A Jetpack Compose App that lets users draw on a canvas.
 
 1. **Clone the repository to your local machine.**
 ```bash
-git clone https://github.com/slowburn-404/SketchPad.git
+git clone https://github.com/slowburn-404/Artio.git
 
-cd SketchPad/
+cd Artio/
 ```
 2. **Open in Android Studio**
 - Open Android Studio
