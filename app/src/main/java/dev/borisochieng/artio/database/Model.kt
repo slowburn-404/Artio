@@ -1,5 +1,6 @@
 package dev.borisochieng.artio.database
 
+import android.net.Uri
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import dev.borisochieng.artio.ui.screens.drawingboard.data.PathProperties
@@ -36,7 +37,8 @@ data class MessageModel(
 	val senderName: String?,
 	val timestamp: Long?,
 	val audioUrl: String?,
-	val messageType : MessageType
+	val messageType : MessageType,
+	val senderPhotoUrl: String?
 ) {
-	constructor() : this("", "", "","", "",null, null, MessageType.MESSAGE)
+	constructor() : this("", "", "","", "",null, null, MessageType.MESSAGE,"")
 }
