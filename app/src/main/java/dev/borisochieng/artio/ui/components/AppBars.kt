@@ -10,56 +10,59 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import dev.borisochieng.artio.R
 import dev.borisochieng.artio.ui.navigation.AppRoute
-import dev.borisochieng.artio.ui.theme.AppTypography
 
+// Guest-user top bar
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeTopBar() {
-	TopAppBar(
+	CenterAlignedTopAppBar(
 		title = {
-			Box(
-				modifier = Modifier.fillMaxWidth(),
-				contentAlignment = Alignment.Center
+			Row(
+				horizontalArrangement = Arrangement.spacedBy(6.dp),
+				verticalAlignment = Alignment.CenterVertically
 			) {
+				Image(
+					painter = painterResource(R.drawable.ic_logo),
+					contentDescription = stringResource(R.string.app_name),
+					modifier = Modifier.size(24.dp),
+					contentScale = ContentScale.Crop
+				)
 				Text(
-					modifier = Modifier.align(Alignment.Center),
-					text = stringResource(id = R.string.app_name),
-					style = AppTypography.headlineMedium,
-					textAlign = TextAlign.Center,
-					fontWeight = FontWeight.SemiBold
+					text = stringResource(R.string.app_name),
+					fontWeight = FontWeight.Bold
 				)
 			}
 		}

@@ -10,9 +10,11 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import dev.borisochieng.artio.R
+import dev.borisochieng.artio.collab.domain.DeepLinkData
 import dev.borisochieng.artio.ui.components.NavBar
 import dev.borisochieng.artio.ui.navigation.AppRoute
 import dev.borisochieng.artio.ui.navigation.NavActions
@@ -30,6 +32,7 @@ import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
     private lateinit var navActions: NavActions
+    private var pendingDeepLink: DeepLinkData? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.Theme_Artio)
@@ -38,6 +41,8 @@ class MainActivity : ComponentActivity() {
             Root(window = window) {
                 val navController = rememberNavController()
                 navActions = NavActions(navController)
+
+                handleDeepLink(intent)
 
                 AppTheme {
                     Scaffold(
@@ -75,9 +80,24 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
-        }
 
-        handleDeepLink(intent = intent) // handle deep link on cold start
+            //handle deeplink after composition
+            LaunchedEffect(Unit) {
+                pendingDeepLink?.let { deepLink ->
+                    navActions.navigate(
+                        Screens.SketchPad(
+                            sketchId = deepLink.boardId,
+                            userId = deepLink.userId,
+                            isFromCollabUrl = true
+                        )
+                    )
+
+                    pendingDeepLink = null
+                }
+            }
+
+
+        }
 
     }
 
@@ -96,6 +116,21 @@ class MainActivity : ComponentActivity() {
         handleDeepLink(intent)
     }
 
+    override fun onResume() {
+        super.onResume()
+        handleDeepLink(intent)
+        if (::navActions.isInitialized && pendingDeepLink != null) {
+            navActions.navigate(
+                Screens.SketchPad(
+                    sketchId = pendingDeepLink!!.boardId,
+                    userId = pendingDeepLink!!.userId,
+                    isFromCollabUrl = true
+                )
+            )
+            pendingDeepLink = null
+        }
+    }
+
     private fun handleDeepLink(intent: Intent) {
         val data: Uri? = intent.data
 
@@ -104,15 +139,20 @@ class MainActivity : ComponentActivity() {
         val userId = data.getQueryParameter("user_id")
         val boardId = data.getQueryParameter("board_id")
 
-        if(::navActions.isInitialized) {
-            navActions.navigate(
-                Screens.SketchPad(
-                    sketchId = boardId!!,
-                    isFromCollabUrl = true,
-                    userId = userId!!
-                )
-            )
+        if (userId != null && boardId != null) {
+            pendingDeepLink = DeepLinkData(boardId = boardId, userId = userId)
         }
+
+
+//        if(::navActions.isInitialized) {
+//            navActions.navigate(
+//                Screens.SketchPad(
+//                    sketchId = boardId!!,
+//                    isFromCollabUrl = true,
+//                    userId = userId!!
+//                )
+//            )
+//        }
         intent.data = null //prevent other intents from consuming the wrong data
 
         val message = "User id: $userId \n BoardId: $boardId"

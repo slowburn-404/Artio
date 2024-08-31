@@ -63,7 +63,8 @@ class SketchRepositoryImpl: SketchRepository, KoinComponent {
 			messageId = messageId,
 			timestamp = System.currentTimeMillis(),
 			audioUrl = null,
-			messageType = MessageType.MESSAGE
+			messageType = MessageType.MESSAGE,
+			senderPhotoUrl = "${ currentUser?.photoUrl }",
 		)
 
 

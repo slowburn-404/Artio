@@ -10,14 +10,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Brush
 import androidx.compose.material.icons.rounded.History
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -39,7 +37,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -49,6 +46,7 @@ import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
 import dev.borisochieng.artio.database.Sketch
 import dev.borisochieng.artio.ui.components.Header
+import dev.borisochieng.artio.ui.components.HomeTopBar
 import dev.borisochieng.artio.ui.navigation.Screens
 import dev.borisochieng.artio.ui.screens.dialog.ItemMenuSheet
 import dev.borisochieng.artio.utils.ShimmerBoxItem
@@ -65,22 +63,26 @@ fun HomeScreen(
 ) {
     val (localSketches, remoteSketches, userIsLoggedIn, isLoading, feedback, fetchedFromRemoteDb, user) = uiState
     val selectedSketch = remember { mutableStateOf<Sketch?>(null) }
-    val snackbarHostState = remember { SnackbarHostState() }
+    val snackBarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
 
     LaunchedEffect(Unit) { actions(HomeActions.CheckIfUserIsLogged) }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = {
+            user?.let {
+                Header(it) { navigate(Screens.ProfileScreen) }
+            } ?: HomeTopBar()
+        },
+        snackbarHost = { SnackbarHost(snackBarHostState) },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
                     navigate(
                         Screens.SketchPad(
-                            VOID_ID,
-                            FirebaseAuth.getInstance().uid ?: VOID_ID,
-                            false
+                            sketchId = VOID_ID,
+                            userId = FirebaseAuth.getInstance().uid ?: VOID_ID,
+                            isFromCollabUrl = false
                         )
                     )
                 },
@@ -124,27 +126,21 @@ fun HomeScreen(
                             modifier = Modifier.padding(start = 10.dp),
                             contentPadding = PaddingValues(bottom = 100.dp)
                         ) {
-
-                            user?.let {
-                                item(
-                                    span = {
-                                        GridItemSpan(maxLineSpan)
-                                    }
-                                ) {
-                                    Header(
-                                        user = it,
-                                        context = context,
-                                        onClick = { navigate(Screens.ProfileScreen) }
-                                    )
-
-                                }
-                            }
                             items(localSketches.size) { index ->
                                 val sketch = localSketches[index]
                                 SketchPoster(
                                     sketch = sketch,
                                     modifier = Modifier.animateItemPlacement(),
-                                    onClick = { navigate(Screens.SketchPad(it, sketch.id, false)) },
+                                    onClick = {
+                                        navigate(
+                                            Screens.SketchPad(
+                                                sketchId = sketch.id,
+                                                userId = FirebaseAuth.getInstance().currentUser?.uid
+                                                    ?: VOID_ID,
+                                                isFromCollabUrl = sketch.isBackedUp
+                                            )
+                                        )
+                                    },
                                     onMenuClicked = { selectedSketch.value = it }
                                 )
                             }
@@ -166,12 +162,12 @@ fun HomeScreen(
                 action = actions,
                 onPromptToLogin = {
                     scope.launch {
-                        val action = snackbarHostState.showSnackbar(
+                        val action = snackBarHostState.showSnackbar(
                             message = "Sign up to avail backup feature",
                             actionLabel = "SIGN UP", duration = SnackbarDuration.Short
                         )
                         if (action != ActionPerformed) return@launch
-                        navigate(Screens.OnBoardingScreen)
+                        navigate(Screens.LoginScreen)
                     }
                 },
                 onDismiss = { selectedSketch.value = null }
@@ -181,7 +177,7 @@ fun HomeScreen(
 
     LaunchedEffect(feedback) {
         if (feedback == null) return@LaunchedEffect
-        scope.launch { snackbarHostState.showSnackbar(feedback) }
+        scope.launch { snackBarHostState.showSnackbar(feedback) }
     }
 
     DisposableEffect(Unit) {
