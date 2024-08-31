@@ -1,4 +1,4 @@
-package dev.borisochieng.sketchpad.ui.screens.dialog
+package dev.borisochieng.artio.ui.screens.dialog
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -18,7 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.borisochieng.sketchpad.ui.theme.AppTheme
+import dev.borisochieng.artio.ui.theme.AppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
