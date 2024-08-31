@@ -95,7 +95,9 @@ fun ChatDialog(
                                 textColor = Color.White,
                                 senderCount = senderCount,
                                 time = messages[index]!!.timestamp!!,
-                                senderName = messages[index]?.senderName ?: ""
+                                senderName = messages[index]?.senderName ?: "",
+                                senderUri = messages[index]?.senderPhotoUrl?: "",
+
                             )
                             senderCount.value = false
                         } else {
@@ -108,7 +110,8 @@ fun ChatDialog(
                                 textColor = Color(0xFF000000),
                                 receiverCount = receiverCount,
                                 time = messages[index]!!.timestamp!!,
-                                receiverName = messages[index]?.senderName ?: ""
+                                receiverName = messages[index]?.senderName ?: "",
+                                receiverUri = messages[index]?.senderPhotoUrl?: "",
                             )
                             receiverCount.value = false
                         }
