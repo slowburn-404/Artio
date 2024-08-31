@@ -17,6 +17,7 @@ import androidx.compose.material.icons.outlined.PictureAsPdf
 import androidx.compose.material.icons.outlined.TextFields
 import androidx.compose.material.icons.rounded.Brush
 import androidx.compose.material.icons.rounded.LineWeight
+import androidx.compose.material.icons.rounded.PersonAdd
 import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material.icons.rounded.TouchApp
 import androidx.compose.material3.DropdownMenu
@@ -238,10 +239,8 @@ fun PaletteTopBar(
         }
         IconButton(onClick = onBroadCastUrl) {
             Icon(
-                painter = painterResource(id = R.drawable.collaboration),
+                imageVector = Icons.Rounded.PersonAdd,
                 contentDescription = "Invite Collaborator",
-                modifier = Modifier.size(24.dp),
-                tint = Color.Black
             )
         }
     }

@@ -63,7 +63,7 @@ fun HomeScreen(
 ) {
     val (localSketches, remoteSketches, userIsLoggedIn, isLoading, feedback, fetchedFromRemoteDb, user) = uiState
     val selectedSketch = remember { mutableStateOf<Sketch?>(null) }
-    val snackbarHostState = remember { SnackbarHostState() }
+    val snackBarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) { actions(HomeActions.CheckIfUserIsLogged) }
@@ -74,15 +74,15 @@ fun HomeScreen(
                 Header(it) { navigate(Screens.ProfileScreen) }
             } ?: HomeTopBar()
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { SnackbarHost(snackBarHostState) },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
                     navigate(
                         Screens.SketchPad(
-                            VOID_ID,
-                            FirebaseAuth.getInstance().uid ?: VOID_ID,
-                            false
+                            sketchId = VOID_ID,
+                            userId = FirebaseAuth.getInstance().uid ?: VOID_ID,
+                            isFromCollabUrl = false
                         )
                     )
                 },
@@ -131,7 +131,16 @@ fun HomeScreen(
                                 SketchPoster(
                                     sketch = sketch,
                                     modifier = Modifier.animateItemPlacement(),
-                                    onClick = { navigate(Screens.SketchPad(it, sketch.id, false)) },
+                                    onClick = {
+                                        navigate(
+                                            Screens.SketchPad(
+                                                sketchId = sketch.id,
+                                                userId = FirebaseAuth.getInstance().currentUser?.uid
+                                                    ?: VOID_ID,
+                                                isFromCollabUrl = sketch.isBackedUp
+                                            )
+                                        )
+                                    },
                                     onMenuClicked = { selectedSketch.value = it }
                                 )
                             }
@@ -153,7 +162,7 @@ fun HomeScreen(
                 action = actions,
                 onPromptToLogin = {
                     scope.launch {
-                        val action = snackbarHostState.showSnackbar(
+                        val action = snackBarHostState.showSnackbar(
                             message = "Sign up to avail backup feature",
                             actionLabel = "SIGN UP", duration = SnackbarDuration.Short
                         )
@@ -168,7 +177,7 @@ fun HomeScreen(
 
     LaunchedEffect(feedback) {
         if (feedback == null) return@LaunchedEffect
-        scope.launch { snackbarHostState.showSnackbar(feedback) }
+        scope.launch { snackBarHostState.showSnackbar(feedback) }
     }
 
     DisposableEffect(Unit) {

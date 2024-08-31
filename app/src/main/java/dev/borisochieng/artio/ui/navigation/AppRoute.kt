@@ -27,6 +27,7 @@ import dev.borisochieng.artio.ui.screens.settings.SettingsScreen
 import dev.borisochieng.artio.utils.AnimationDirection
 import dev.borisochieng.artio.utils.VOID_ID
 import dev.borisochieng.artio.utils.animatedComposable
+import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -42,9 +43,9 @@ fun AppRoute(
     broadCastUrl: (Uri) -> Unit,
 ) {
     NavHost(
-		navController = navController,
-		startDestination = authViewModel.startScreen
-	) {
+        navController = navController,
+        startDestination = authViewModel.startScreen
+    ) {
         composable(AppRoute.HomeScreen.route) {
             HomeScreen(
                 bottomPadding = paddingValues.calculateBottomPadding(),
@@ -57,9 +58,9 @@ fun AppRoute(
             route = AppRoute.SketchPad.route,
             animationDirection = AnimationDirection.UpDown,
             arguments = listOf(
-                navArgument("sketchId") { type = NavType.StringType},
-                navArgument("userId") { type = NavType.StringType},
-                navArgument("isFromCollabUrl") { type = NavType.StringType},
+                navArgument("sketchId") { type = NavType.StringType },
+                navArgument("userId") { type = NavType.StringType },
+                navArgument("isFromCollabUrl") { type = NavType.StringType },
             )
         ) { backStackEntry ->
             val sketchId = backStackEntry.arguments?.getString("sketchId")
@@ -69,19 +70,20 @@ fun AppRoute(
             val isFromCollabUrl = backStackEntry.arguments?.getString("isFromCollabUrl").toBoolean()
 
             LaunchedEffect(sketchId, isFromCollabUrl) {
-	            sketchPadViewModel.apply {
-		            if (!isFromCollabUrl) {
-			            fetchSketch(sketchId)
-			            generateCollabUrl(sketchId)
-		            } else if (userId != VOID_ID) {
-						actions(SketchPadActions.SketchClosed)
-			            fetchSingleSketch(sketchId, userId)
-		            }
-		            //listen for path changes in collab mode
-		            if (isFromCollabUrl && VOID_ID !in setOf(userId, sketchId)) {
-			            listenForSketchChanges(userId, sketchId)
-		            }
-	            }
+                sketchPadViewModel.apply {
+                    if (!isFromCollabUrl) {
+                        fetchSketch(sketchId)
+                    } else if (userId != VOID_ID) {
+                        actions(SketchPadActions.SketchClosed)
+                        fetchSingleSketch(sketchId, userId)
+                        delay(300) //wait for sketch to be fetched from Firebase
+                        generateCollabUrl(sketchId)
+                    }
+                    //listen for path changes in collab mode
+                    if (isFromCollabUrl && VOID_ID !in setOf(userId, sketchId)) {
+                        listenForSketchChanges(userId, sketchId)
+                    }
+                }
             }
 
             DrawingBoard(
