@@ -99,8 +99,6 @@ class MainActivity : ComponentActivity() {
 
         }
 
-        handleDeepLink(intent = intent) // handle deep link on cold start
-
     }
 
     private fun shareCollaborateUrl(url: Uri) {
@@ -116,6 +114,21 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         setIntent(intent) //update current intent with new one
         handleDeepLink(intent)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        handleDeepLink(intent)
+        if (::navActions.isInitialized && pendingDeepLink != null) {
+            navActions.navigate(
+                Screens.SketchPad(
+                    sketchId = pendingDeepLink!!.boardId,
+                    userId = pendingDeepLink!!.userId,
+                    isFromCollabUrl = true
+                )
+            )
+            pendingDeepLink = null
+        }
     }
 
     private fun handleDeepLink(intent: Intent) {
