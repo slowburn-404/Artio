@@ -16,7 +16,7 @@ enum class PagerItems(
     Collaborate(
         imageId = R.drawable.collaborate,
         title = "Collaborate",
-        body = "Do not work by yourself, let other join in on the fun"
+        body = "Do not work by yourself, let others join in on the fun"
     ),
     CloudSync(
         imageId = R.drawable.cloud_sync,

@@ -1,5 +1,6 @@
 package dev.borisochieng.artio.ui.screens.auth
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -38,6 +39,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
@@ -47,6 +50,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import dev.borisochieng.artio.R
 import dev.borisochieng.artio.ui.navigation.Screens
 import dev.borisochieng.artio.ui.screens.auth.state.UiEvent
 import dev.borisochieng.artio.ui.theme.AppTypography
@@ -58,18 +62,6 @@ fun LoginScreen(
     viewModel: AuthViewModel = koinViewModel(),
     navigate: (Screens) -> Unit
 ) {
-    val title = buildAnnotatedString {
-        append("Sketch")
-
-        withStyle(
-            style = SpanStyle(
-                color = lightScheme.primary
-            )
-        ) {
-            append("Pad")
-        }
-    }
-
 
     var email by remember {
         mutableStateOf("")
@@ -130,22 +122,27 @@ fun LoginScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Spacer(modifier = Modifier.weight(1f))
+
+            Image(
+                painterResource(id = R.drawable.ic_logo),
+                contentDescription = "Logo",
+                modifier = Modifier
+                    .size(100.dp)
+            )
             Text(
-                text = title,
+                text = stringResource(id = R.string.app_name),
                 textAlign = TextAlign.Center,
                 style = AppTypography.displayMedium,
                 modifier = Modifier
                     .wrapContentWidth()
-                    .padding(4.dp)
             )
 
             Text(
                 text = "Login",
                 textAlign = TextAlign.Center,
-                style = AppTypography.headlineLarge,
+                style = AppTypography.titleLarge,
                 modifier = Modifier
                     .wrapContentWidth()
-                    .padding(4.dp)
             )
 
 //            OutlinedTextField(

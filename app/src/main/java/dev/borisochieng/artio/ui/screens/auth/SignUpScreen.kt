@@ -2,19 +2,27 @@ package dev.borisochieng.artio.ui.screens.auth
 
 import android.util.Patterns
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Lock
@@ -40,6 +48,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
@@ -49,6 +60,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import dev.borisochieng.artio.R
 import dev.borisochieng.artio.ui.navigation.Screens
 import dev.borisochieng.artio.ui.screens.auth.state.UiEvent
 import dev.borisochieng.artio.ui.theme.AppTypography
@@ -60,18 +72,6 @@ fun SignUpScreen(
     navigate: (Screens) -> Unit,
     viewModel: AuthViewModel = koinViewModel()
 ) {
-    val title = buildAnnotatedString {
-        append("Sketch")
-
-        withStyle(
-            style = SpanStyle(
-                color = lightScheme.primary
-            )
-        ) {
-            append("Pad")
-        }
-    }
-
     val loginText = buildAnnotatedString {
         append("Already have an account?")
 
@@ -121,6 +121,8 @@ fun SignUpScreen(
     }
 
     val snackBarHostState = remember { SnackbarHostState() }
+    val scrollState = rememberScrollState()
+    //val imeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
     val uiEvent by viewModel.uiEvent.collectAsState(initial = null)
     val uiState by viewModel.uiState.collectAsState()
     showProgressIndicator = uiState.isLoading
@@ -158,29 +160,38 @@ fun SignUpScreen(
     ) { innerPadding ->
         Column(
             modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
                 .padding(innerPadding)
                 .padding(16.dp)
+                .animateContentSize()
                 .imePadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Spacer(modifier = Modifier.weight(1f))
+
+            Image(
+                painterResource(id = R.drawable.ic_logo),
+                contentDescription = "Logo",
+                modifier = Modifier
+                    .size(100.dp)
+            )
+
             Text(
-                text = title,
+                text = "Artio",
                 textAlign = TextAlign.Center,
                 style = AppTypography.displayMedium,
                 modifier = Modifier
                     .wrapContentWidth()
-                    .padding(4.dp)
             )
 
             Text(
                 text = "Sign Up",
                 textAlign = TextAlign.Center,
-                style = AppTypography.headlineLarge,
+                style = AppTypography.titleLarge,
                 modifier = Modifier
                     .wrapContentWidth()
-                    .padding(4.dp)
             )
 
 //            OutlinedTextField(
