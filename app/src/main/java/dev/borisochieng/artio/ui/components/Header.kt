@@ -101,6 +101,6 @@ private fun greetingText(username: String?): String {
         in 5..11 -> "Good morning, ${username ?: ""}"
         in 12..16 -> "Good afternoon, ${username ?: ""}"
         in 17..20 -> "Good evening, ${username ?: ""}"
-        else -> "Hello ${username ?: ""}"
+        else -> "Hello, ${username ?: ""}"
     }
 }
