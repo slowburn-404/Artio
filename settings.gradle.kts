@@ -21,4 +21,14 @@ dependencyResolutionManagement {
 
 rootProject.name = "Artio"
 include(":app")
- 
+include(":core")
+include(":core")
+include(":core:data")
+include(":core:data:database")
+include(":core:data:firebase")
+include(":core:data:datastore-preferences")
+include(":core:ui")
+include(":feature")
+include(":feature:auth")
+include(":feature:draw")
+include(":feature:chat")
