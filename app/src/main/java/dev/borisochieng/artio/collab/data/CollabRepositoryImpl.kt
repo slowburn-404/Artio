@@ -185,16 +185,16 @@ class CollabRepositoryImpl(private val database: FirebaseDatabase) : CollabRepos
 
                 //monitor modification of existing lines
                 override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
-                    val updatedPath =
-                        snapshot.getValue(object : GenericTypeIndicator<Map<String, Any>>() {})
-                    val deserializedUpdatedPath = updatedPath?.let {
-                        deserializeDBPathProperties(
-                            pathObject = it
-                        )
-                    }
-                    deserializedUpdatedPath?.let {
-                        trySend(FirebaseResponse.Success(listOf(it.toPathProperties())))
-                    }
+//                    val updatedPath =
+//                        snapshot.getValue(object : GenericTypeIndicator<Map<String, Any>>() {})
+//                    val deserializedUpdatedPath = updatedPath?.let {
+//                        deserializeDBPathProperties(
+//                            pathObject = it
+//                        )
+//                    }
+//                    deserializedUpdatedPath?.let {
+//                        trySend(FirebaseResponse.Success(listOf(it.toPathProperties())))
+//                    }
                 }
 
                 //monitor removal of lines

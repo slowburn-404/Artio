@@ -14,8 +14,8 @@ android {
         applicationId = "dev.borisochieng.artio"
         minSdk = 24
         targetSdk = 34
-        versionCode = 3
-        versionName = "3.0"
+        versionCode = 301
+        versionName = "3.0.1"
 
 //        room {
 //            schemaDirectory(path = "$projectDir/schemas")
@@ -102,6 +102,9 @@ dependencies {
 
     // splashscreen
     implementation(libs.splash)
+
+    //ktlint
+    implementation(libs.kt.lint)
 
     // test
     testImplementation(libs.junit)
