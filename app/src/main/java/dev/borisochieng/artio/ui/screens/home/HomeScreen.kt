@@ -44,7 +44,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
-import dev.borisochieng.artio.database.Sketch
+import dev.borisochieng.database.database.Sketch
 import dev.borisochieng.artio.ui.components.Header
 import dev.borisochieng.artio.ui.components.HomeTopBar
 import dev.borisochieng.artio.ui.navigation.Screens
@@ -62,7 +62,7 @@ fun HomeScreen(
     navigate: (Screens) -> Unit
 ) {
     val (localSketches, remoteSketches, userIsLoggedIn, isLoading, feedback, fetchedFromRemoteDb, user) = uiState
-    val selectedSketch = remember { mutableStateOf<Sketch?>(null) }
+    val selectedSketch = remember { mutableStateOf<dev.borisochieng.database.database.Sketch?>(null) }
     val snackBarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 

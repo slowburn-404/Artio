@@ -46,7 +46,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.google.firebase.auth.FirebaseAuth
 import dev.borisochieng.artio.R
-import dev.borisochieng.artio.database.MessageModel
+import dev.borisochieng.database.database.MessageModel
 import dev.borisochieng.artio.ui.screens.drawingboard.SketchPadViewModel
 import dev.borisochieng.artio.ui.theme.lightScheme
 
@@ -334,7 +334,7 @@ fun ReceiverChat(
     }
 }
 
-fun checkNextSame(position: Int, messageModels: List<MessageModel?>): Boolean? {
+fun checkNextSame(position: Int, messageModels: List<dev.borisochieng.database.database.MessageModel?>): Boolean? {
     // check that position is valid
     if (position < 1 || position >= messageModels.size) {
         return null // invalid position
@@ -347,7 +347,7 @@ fun checkNextSame(position: Int, messageModels: List<MessageModel?>): Boolean? {
     return false // no same items found
 }
 
-fun getItemViewType(position: Int, messageModels: List<MessageModel?>): Int {
+fun getItemViewType(position: Int, messageModels: List<dev.borisochieng.database.database.MessageModel?>): Int {
 
 
     // val messageModelModels : List<MessageModel> = emptyList()

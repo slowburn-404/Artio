@@ -3,10 +3,10 @@ package dev.borisochieng.artio.di
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.FirebaseDatabase
-import dev.borisochieng.artio.auth.data.AuthRepositoryImpl
-import dev.borisochieng.artio.auth.domain.AuthRepository
-import dev.borisochieng.artio.collab.data.CollabRepositoryImpl
-import dev.borisochieng.artio.collab.domain.CollabRepository
+import dev.borisochieng.firebase.auth.data.AuthRepositoryImpl
+import dev.borisochieng.firebase.auth.domain.AuthRepository
+import dev.borisochieng.firebase.database.data.CollabRepositoryImpl
+import dev.borisochieng.firebase.database.domain.CollabRepository
 import dev.borisochieng.artio.ui.screens.auth.AuthViewModel
 import dev.borisochieng.artio.ui.screens.drawingboard.SketchPadViewModel
 import dev.borisochieng.artio.ui.screens.home.HomeViewModel
@@ -15,10 +15,14 @@ import org.koin.dsl.module
 
 object AppModule {
     val appModule = module {
-        factory<AuthRepository> { AuthRepositoryImpl() }
+        factory<dev.borisochieng.firebase.auth.domain.AuthRepository> { dev.borisochieng.firebase.auth.data.AuthRepositoryImpl() }
         single<FirebaseUser?> { FirebaseAuth.getInstance().currentUser }
         single<FirebaseDatabase> {FirebaseDatabase.getInstance()}
-        factory<CollabRepository> { CollabRepositoryImpl(get()) }
+        factory<dev.borisochieng.firebase.database.domain.CollabRepository> {
+            dev.borisochieng.firebase.database.data.CollabRepositoryImpl(
+                get()
+            )
+        }
         viewModel { AuthViewModel() }
         viewModel { HomeViewModel() }
         viewModel { SketchPadViewModel() }

@@ -15,9 +15,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowInsetsControllerCompat
-import dev.borisochieng.artio.database.dataStore
-import dev.borisochieng.artio.database.isDarkThemeOn
-import dev.borisochieng.artio.database.themePreferenceKey
+import dev.borisochieng.database.database.dataStore
+import dev.borisochieng.database.database.isDarkThemeOn
+import dev.borisochieng.database.database.themePreferenceKey
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 
@@ -290,7 +290,7 @@ fun AppTheme(
 fun isSystemInDarkThemeCustom(): Boolean {
     val context = LocalContext.current
     val exampleData = runBlocking { context.dataStore.data.first() }
-    val theme = context.isDarkThemeOn().collectAsState(initial = exampleData[themePreferenceKey] ?: 0)
+    val theme = context.isDarkThemeOn().collectAsState(initial = exampleData[dev.borisochieng.database.database.themePreferenceKey] ?: 0)
     return when (theme.value) {
         2 -> true
         1 -> false

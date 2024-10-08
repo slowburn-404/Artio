@@ -33,8 +33,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import dev.borisochieng.artio.database.Sketch
-import dev.borisochieng.artio.database.convertToOldColor
+import dev.borisochieng.database.database.Sketch
+import dev.borisochieng.database.database.convertToOldColor
 import dev.borisochieng.artio.ui.navigation.Screens
 import dev.borisochieng.artio.ui.screens.dialog.NameSketchDialog
 import dev.borisochieng.artio.ui.screens.drawingboard.data.SketchPadActions
@@ -42,7 +42,7 @@ import dev.borisochieng.artio.ui.screens.drawingboard.utils.DrawMode
 
 @Composable
 fun SketchPadScreen(
-    sketch: Sketch?,
+    sketch: dev.borisochieng.database.database.Sketch?,
     save: (Bitmap) -> Unit,
     actions: (SketchPadActions) -> Unit,
     navigate: (Screens) -> Unit

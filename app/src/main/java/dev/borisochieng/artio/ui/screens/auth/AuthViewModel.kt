@@ -8,10 +8,10 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
-import dev.borisochieng.artio.auth.data.FirebaseResponse
-import dev.borisochieng.artio.auth.domain.AuthRepository
-import dev.borisochieng.artio.auth.domain.model.User
-import dev.borisochieng.artio.database.KeyValueStore
+import dev.borisochieng.firebase.auth.data.FirebaseResponse
+import dev.borisochieng.firebase.auth.domain.AuthRepository
+import dev.borisochieng.firebase.auth.domain.model.User
+import dev.borisochieng.database.database.KeyValueStore
 import dev.borisochieng.artio.ui.navigation.AppRoute
 import dev.borisochieng.artio.ui.screens.auth.state.UiEvent
 import dev.borisochieng.artio.ui.screens.auth.state.UiState
@@ -27,9 +27,9 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 class AuthViewModel : ViewModel(), KoinComponent {
-    private val authRepository: AuthRepository by inject()
+    private val authRepository: dev.borisochieng.firebase.auth.domain.AuthRepository by inject()
 
-    private val keyValueStore: KeyValueStore by inject()
+    private val keyValueStore: dev.borisochieng.database.database.KeyValueStore by inject()
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> get() = _uiState.asStateFlow()
@@ -87,7 +87,7 @@ class AuthViewModel : ViewModel(), KoinComponent {
             }
 
             when (response) {
-                is FirebaseResponse.Success -> {
+                is dev.borisochieng.firebase.auth.data.FirebaseResponse.Success -> {
                     _uiState.update {
                         it.copy(
                             user = response.data,
@@ -100,7 +100,7 @@ class AuthViewModel : ViewModel(), KoinComponent {
 
                 }
 
-                is FirebaseResponse.Error -> {
+                is dev.borisochieng.firebase.auth.data.FirebaseResponse.Error -> {
                     val errorMessage: String = response.message
                     _uiState.update {
                         it.copy(
@@ -133,7 +133,7 @@ class AuthViewModel : ViewModel(), KoinComponent {
             }
 
             when (response) {
-                is FirebaseResponse.Success -> {
+                is dev.borisochieng.firebase.auth.data.FirebaseResponse.Success -> {
                     _uiState.update {
                         it.copy(
                             user = response.data,
@@ -145,7 +145,7 @@ class AuthViewModel : ViewModel(), KoinComponent {
 
                 }
 
-                is FirebaseResponse.Error -> {
+                is dev.borisochieng.firebase.auth.data.FirebaseResponse.Error -> {
                     val errorMessage: String = response.message
 
                     _uiState.update {
@@ -196,14 +196,14 @@ class AuthViewModel : ViewModel(), KoinComponent {
         viewModelScope.launch {
             val updatedUser = FirebaseAuth.getInstance().currentUser
             updatedUser?.let { currentUser ->
-                val user = User(
+                val user = dev.borisochieng.firebase.auth.domain.model.User(
                     uid = currentUser.uid,
                     email = currentUser.email!!,
                     displayName = currentUser.displayName,
                     imageUrl = currentUser.photoUrl,
                     isLoggedIn = true
 
-                    )
+                )
                 _uiState.update {
                     it.copy(
                         user = user
@@ -225,7 +225,7 @@ class AuthViewModel : ViewModel(), KoinComponent {
             val uploadImageTask = authRepository.uploadImageToFireStore(uri = uri)
 
             when (uploadImageTask) {
-                is FirebaseResponse.Success -> {
+                is dev.borisochieng.firebase.auth.data.FirebaseResponse.Success -> {
                     val imageUrl = uploadImageTask.data
 
                     //Update the user profile with the new image URL and username
@@ -237,7 +237,7 @@ class AuthViewModel : ViewModel(), KoinComponent {
                         )
 
                         when (updateProfileTask) {
-                            is FirebaseResponse.Success -> {
+                            is dev.borisochieng.firebase.auth.data.FirebaseResponse.Success -> {
                                 Log.i("User profile", "Updated user: ${updateProfileTask.data}")
                                 _uiState.update {
                                     it.copy(
@@ -249,7 +249,7 @@ class AuthViewModel : ViewModel(), KoinComponent {
                                 _eventFlow.emit(UiEvent.SnackBarEvent("Profile updated successfully"))
                             }
 
-                            is FirebaseResponse.Error -> {
+                            is dev.borisochieng.firebase.auth.data.FirebaseResponse.Error -> {
                                 _eventFlow.emit(UiEvent.SnackBarEvent(updateProfileTask.message))
                                 _uiState.update {
                                     it.copy(
@@ -262,7 +262,7 @@ class AuthViewModel : ViewModel(), KoinComponent {
                     }
                 }
 
-                is FirebaseResponse.Error -> {
+                is dev.borisochieng.firebase.auth.data.FirebaseResponse.Error -> {
                     _uiState.update {
                         it.copy(
                             error = uploadImageTask.message,
@@ -286,14 +286,14 @@ class AuthViewModel : ViewModel(), KoinComponent {
             }
 
             when(sendEmailTask) {
-                is FirebaseResponse.Success -> {
+                is dev.borisochieng.firebase.auth.data.FirebaseResponse.Success -> {
                     _uiState.update {
                         it.copy(isLoading = false)
                     }
                     _eventFlow.emit(UiEvent.SnackBarEvent(sendEmailTask.data.toString()))
                 }
 
-                is FirebaseResponse.Error -> {
+                is dev.borisochieng.firebase.auth.data.FirebaseResponse.Error -> {
                     _uiState.update {
                         it.copy(
                             error = sendEmailTask.message,

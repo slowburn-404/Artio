@@ -7,13 +7,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import dev.borisochieng.artio.auth.data.FirebaseResponse
-import dev.borisochieng.artio.auth.domain.AuthRepository
-import dev.borisochieng.artio.auth.domain.model.User
-import dev.borisochieng.artio.collab.data.toDBSketch
-import dev.borisochieng.artio.collab.domain.CollabRepository
-import dev.borisochieng.artio.database.Sketch
-import dev.borisochieng.artio.database.repository.SketchRepository
+import dev.borisochieng.firebase.auth.data.FirebaseResponse
+import dev.borisochieng.firebase.auth.domain.AuthRepository
+import dev.borisochieng.firebase.auth.domain.model.User
+import dev.borisochieng.firebase.database.data.toDBSketch
+import dev.borisochieng.firebase.database.domain.CollabRepository
+import dev.borisochieng.database.database.Sketch
+import dev.borisochieng.database.database.repository.SketchRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
@@ -23,12 +23,12 @@ import org.koin.core.component.inject
 
 class HomeViewModel : ViewModel(), KoinComponent {
 
-    private val authRepository by inject<AuthRepository>()
-    private val sketchRepository by inject<SketchRepository>()
-    private val collabRepository by inject<CollabRepository>()
+    private val authRepository by inject<dev.borisochieng.firebase.auth.domain.AuthRepository>()
+    private val sketchRepository by inject<dev.borisochieng.database.database.repository.SketchRepository>()
+    private val collabRepository by inject<dev.borisochieng.firebase.database.domain.CollabRepository>()
     private val firebaseUser by inject<FirebaseUser>()
 
-    private var localSketches by mutableStateOf<List<Sketch>>(emptyList()) // for internal use only
+    private var localSketches by mutableStateOf<List<dev.borisochieng.database.database.Sketch>>(emptyList()) // for internal use only
     private var synced by mutableStateOf(false)
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -70,7 +70,7 @@ class HomeViewModel : ViewModel(), KoinComponent {
         }
     }
 
-    private fun saveSketchToRemoteDb(sketch: Sketch) {
+    private fun saveSketchToRemoteDb(sketch: dev.borisochieng.database.database.Sketch) {
         viewModelScope.launch {
             if (!authRepository.checkIfUserIsLoggedIn()) return@launch
 
@@ -79,7 +79,7 @@ class HomeViewModel : ViewModel(), KoinComponent {
                 sketch = sketch.toDBSketch()
             )
             when (response) {
-                is FirebaseResponse.Success -> {
+                is dev.borisochieng.firebase.auth.data.FirebaseResponse.Success -> {
                     _uiState.update {
                         it.copy(
                             remoteSketches = fetchSketchesFromRemoteDB(),
@@ -88,7 +88,7 @@ class HomeViewModel : ViewModel(), KoinComponent {
                     }
                 }
 
-                is FirebaseResponse.Error -> {
+                is dev.borisochieng.firebase.auth.data.FirebaseResponse.Error -> {
                     _uiState.update { it.copy(feedback = response.message) }
                 }
             }
@@ -114,7 +114,7 @@ class HomeViewModel : ViewModel(), KoinComponent {
         }
     }
 
-    private fun renameSketch(sketch: Sketch) {
+    private fun renameSketch(sketch: dev.borisochieng.database.database.Sketch) {
         viewModelScope.launch {
             sketchRepository.updateSketch(sketch)
             if (!uiState.userIsLoggedIn) return@launch
@@ -138,7 +138,7 @@ class HomeViewModel : ViewModel(), KoinComponent {
         )
 
         when (renameTask) {
-            is FirebaseResponse.Success -> {
+            is dev.borisochieng.firebase.auth.data.FirebaseResponse.Success -> {
                 _uiState.update {
                     it.copy(
                         feedback = renameTask.data
@@ -146,7 +146,7 @@ class HomeViewModel : ViewModel(), KoinComponent {
                 }
             }
 
-            is FirebaseResponse.Error -> {
+            is dev.borisochieng.firebase.auth.data.FirebaseResponse.Error -> {
                 _uiState.update {
                     it.copy(
                         feedback = renameTask.message
@@ -157,7 +157,7 @@ class HomeViewModel : ViewModel(), KoinComponent {
         }
     }
 
-    private fun deleteSketch(sketchToDelete: Sketch) {
+    private fun deleteSketch(sketchToDelete: dev.borisochieng.database.database.Sketch) {
         viewModelScope.launch {
             sketchRepository.deleteSketch(sketchToDelete)
 
@@ -178,7 +178,7 @@ class HomeViewModel : ViewModel(), KoinComponent {
             val deleteTask = collabRepository.deleteSketch(userId = userId, boardId = boardId)
 
             when (deleteTask) {
-                is FirebaseResponse.Success -> {
+                is dev.borisochieng.firebase.auth.data.FirebaseResponse.Success -> {
                     _uiState.update {
                         it.copy(
                             feedback = deleteTask.data
@@ -186,7 +186,7 @@ class HomeViewModel : ViewModel(), KoinComponent {
                     }
                 }
 
-                is FirebaseResponse.Error -> {
+                is dev.borisochieng.firebase.auth.data.FirebaseResponse.Error -> {
                     _uiState.update {
                         it.copy(
                             feedback = deleteTask.message
@@ -208,12 +208,12 @@ class HomeViewModel : ViewModel(), KoinComponent {
         getUserDetails()
     }
 
-    private suspend fun fetchSketchesFromRemoteDB(): List<Sketch> {
+    private suspend fun fetchSketchesFromRemoteDB(): List<dev.borisochieng.database.database.Sketch> {
         if (!authRepository.checkIfUserIsLoggedIn()) return emptyList()
         val response = collabRepository.fetchExistingSketches(firebaseUser.uid)
 
         return when (response) {
-            is FirebaseResponse.Success -> {
+            is dev.borisochieng.firebase.auth.data.FirebaseResponse.Success -> {
                 response.data ?: emptyList()
             }
 
@@ -246,7 +246,7 @@ class HomeViewModel : ViewModel(), KoinComponent {
             currentUser?.let { user ->
                 _uiState.update { state ->
                     state.copy(
-                        user = User(
+                        user = dev.borisochieng.firebase.auth.domain.model.User(
                             uid = user.uid,
                             email = user.email!!,
                             displayName = user.displayName,

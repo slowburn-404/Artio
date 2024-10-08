@@ -13,17 +13,17 @@ import android.os.Environment
 import android.provider.MediaStore
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import dev.borisochieng.artio.database.PERMISSION_CODE
-import dev.borisochieng.artio.database.permissions
+import dev.borisochieng.database.database.PERMISSION_CODE
+import dev.borisochieng.database.database.permissions
 import java.io.File
 
 internal fun Activity.checkAndAskPermission(continueNext: () -> Unit) {
     if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P && ContextCompat.checkSelfPermission(this,
-            permissions[0]) != PackageManager.PERMISSION_GRANTED
+            dev.borisochieng.database.database.permissions[0]) != PackageManager.PERMISSION_GRANTED
     ) {
         ActivityCompat.requestPermissions(this,
-            permissions,
-            PERMISSION_CODE
+            dev.borisochieng.database.database.permissions,
+            dev.borisochieng.database.database.PERMISSION_CODE
         )
         return
     }

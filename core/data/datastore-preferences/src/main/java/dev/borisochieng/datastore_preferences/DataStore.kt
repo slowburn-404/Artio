@@ -1,0 +1,20 @@
+package dev.borisochieng.datastore_preferences
+
+import android.Manifest
+import android.content.Context
+//import androidx.compose.ui.graphics.Color
+//import androidx.compose.ui.graphics.toArgb
+//import androidx.core.graphics.alpha
+//import androidx.core.graphics.blue
+//import androidx.core.graphics.green
+//import androidx.core.graphics.red
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
