@@ -27,7 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import dev.borisochieng.artio.database.repository.TAG
+import dev.borisochieng.database.database.repository.TAG
 import dev.borisochieng.artio.ui.screens.drawingboard.SketchPadViewModel
 
 @Composable
@@ -48,7 +48,7 @@ fun ChatDialog(
 
     Dialog(onDismissRequest = onCancel) {
         val messages by viewModel.messages.collectAsState()
-        Log.d(TAG, "list of messages in chatsScreen $messages")
+        Log.d(dev.borisochieng.database.database.repository.TAG, "list of messages in chatsScreen $messages")
 
         Card {
             Column(Modifier.padding(16.dp, 8.dp).imePadding()) {

@@ -45,7 +45,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
-import dev.borisochieng.artio.database.Sketch
+import dev.borisochieng.database.database.Sketch
 import dev.borisochieng.artio.ui.navigation.Screens
 import dev.borisochieng.artio.ui.screens.dialog.LoadingCanvasDialog
 import dev.borisochieng.artio.ui.screens.dialog.NameSketchDialog
@@ -114,7 +114,11 @@ fun DrawingBoard(
             SketchPadActions.UpdateSketch(paths, texts)
         } else {
             openNameSketchDialog.value = false
-            val newSketch = Sketch(name = name, pathList = paths, textList = texts)
+            val newSketch = dev.borisochieng.database.database.Sketch(
+                name = name,
+                pathList = paths,
+                textList = texts
+            )
             SketchPadActions.SaveSketch(newSketch)
         }
         actions(action)

@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import dev.borisochieng.artio.auth.domain.model.User
+import dev.borisochieng.firebase.auth.domain.model.User
 import dev.borisochieng.artio.ui.theme.AppTypography
 import dev.borisochieng.artio.ui.theme.lightScheme
 import java.util.Calendar
@@ -33,7 +33,7 @@ import java.util.Calendar
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Header(
-    user: User,
+    user: dev.borisochieng.firebase.auth.domain.model.User,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {

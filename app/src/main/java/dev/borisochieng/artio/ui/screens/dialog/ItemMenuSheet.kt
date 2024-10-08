@@ -38,7 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.borisochieng.artio.R
-import dev.borisochieng.artio.database.Sketch
+import dev.borisochieng.database.database.Sketch
 import dev.borisochieng.artio.ui.screens.dialog.Menus.BackupSketch
 import dev.borisochieng.artio.ui.screens.dialog.Menus.Delete
 import dev.borisochieng.artio.ui.screens.dialog.Menus.Rename
@@ -48,12 +48,12 @@ import dev.borisochieng.artio.utils.Extensions.formatDate
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ItemMenuSheet(
-	sketch: Sketch,
-	backedUp: Boolean,
-	userIsLoggedIn: Boolean,
-	action: (HomeActions) -> Unit,
-	onPromptToLogin: () -> Unit,
-	onDismiss: () -> Unit
+    sketch: dev.borisochieng.database.database.Sketch,
+    backedUp: Boolean,
+    userIsLoggedIn: Boolean,
+    action: (HomeActions) -> Unit,
+    onPromptToLogin: () -> Unit,
+    onDismiss: () -> Unit
 ) {
 	val sheetState = rememberModalBottomSheetState(true)
 	val openRenameDialog = remember { mutableStateOf(false) }
@@ -94,14 +94,14 @@ fun ItemMenuSheet(
 		NameSketchDialog(
 			currentName = sketch.name,
 			onNamed = { newName ->
-				val renamedSketch = Sketch(
-					id = sketch.id,
-					name = newName,
-					dateCreated = sketch.dateCreated,
-					lastModified = sketch.lastModified,
-					pathList = sketch.pathList,
-					textList = sketch.textList
-				)
+				val renamedSketch = dev.borisochieng.database.database.Sketch(
+                    id = sketch.id,
+                    name = newName,
+                    dateCreated = sketch.dateCreated,
+                    lastModified = sketch.lastModified,
+                    pathList = sketch.pathList,
+                    textList = sketch.textList
+                )
 				action(HomeActions.RenameSketch(renamedSketch))
 				openRenameDialog.value = false; onDismiss()
 			},
@@ -149,8 +149,8 @@ private fun ItemMenu(
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun DragHandle(
-	sketch: Sketch,
-	modifier: Modifier = Modifier
+    sketch: dev.borisochieng.database.database.Sketch,
+    modifier: Modifier = Modifier
 ) {
 	Column(
 		modifier = modifier

@@ -8,16 +8,16 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseUser
-import dev.borisochieng.artio.auth.data.FirebaseResponse
-import dev.borisochieng.artio.auth.domain.AuthRepository
-import dev.borisochieng.artio.collab.data.models.BoardDetails
-import dev.borisochieng.artio.collab.data.toDBPathProperties
-import dev.borisochieng.artio.collab.data.toDBSketch
-import dev.borisochieng.artio.collab.domain.CollabRepository
-import dev.borisochieng.artio.database.MessageModel
-import dev.borisochieng.artio.database.Sketch
-import dev.borisochieng.artio.database.repository.SketchRepository
-import dev.borisochieng.artio.database.repository.TAG
+import dev.borisochieng.firebase.auth.data.FirebaseResponse
+import dev.borisochieng.firebase.auth.domain.AuthRepository
+import dev.borisochieng.firebase.database.data.models.BoardDetails
+import dev.borisochieng.firebase.database.data.toDBPathProperties
+import dev.borisochieng.firebase.database.data.toDBSketch
+import dev.borisochieng.firebase.database.domain.CollabRepository
+import dev.borisochieng.database.database.MessageModel
+import dev.borisochieng.database.database.Sketch
+import dev.borisochieng.database.database.repository.SketchRepository
+import dev.borisochieng.database.database.repository.TAG
 import dev.borisochieng.artio.ui.screens.drawingboard.data.CanvasUiEvents
 import dev.borisochieng.artio.ui.screens.drawingboard.data.CanvasUiState
 import dev.borisochieng.artio.ui.screens.drawingboard.data.PathProperties
@@ -37,9 +37,9 @@ import org.koin.core.component.inject
 
 class SketchPadViewModel : ViewModel(), KoinComponent {
 
-    private val authRepository: AuthRepository by inject()
-    private val sketchRepository by inject<SketchRepository>()
-    private val collabRepository by inject<CollabRepository>()
+    private val authRepository: dev.borisochieng.firebase.auth.domain.AuthRepository by inject()
+    private val sketchRepository by inject<dev.borisochieng.database.database.repository.SketchRepository>()
+    private val collabRepository by inject<dev.borisochieng.firebase.database.domain.CollabRepository>()
     private val firebaseUser by inject<FirebaseUser>()
 
     private val _uiState = MutableStateFlow(CanvasUiState())
@@ -48,8 +48,8 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
     private val _uiEvents = MutableSharedFlow<CanvasUiEvents>()
     val uiEvents: SharedFlow<CanvasUiEvents> = _uiEvents
 
-    private val _messages = MutableStateFlow<List<MessageModel?>>(emptyList())
-    val messages: StateFlow<List<MessageModel?>> = _messages.asStateFlow()
+    private val _messages = MutableStateFlow<List<dev.borisochieng.database.database.MessageModel?>>(emptyList())
+    val messages: StateFlow<List<dev.borisochieng.database.database.MessageModel?>> = _messages.asStateFlow()
 
     private val _typingUsers = MutableStateFlow<List<String>>(emptyList())
     val typingUsers: StateFlow<List<String>> = _typingUsers.asStateFlow()
@@ -59,7 +59,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
     private val message
         get() = messageState.value.message
 
-    private var remoteSketches by mutableStateOf<List<Sketch>>(emptyList())
+    private var remoteSketches by mutableStateOf<List<dev.borisochieng.database.database.Sketch>>(emptyList())
 
     init {
         isLoggedIn()
@@ -100,7 +100,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
         }
     }
 
-    private fun saveSketch(sketch: Sketch) {
+    private fun saveSketch(sketch: dev.borisochieng.database.database.Sketch) {
         viewModelScope.launch {
             sketchRepository.saveSketch(sketch)
             if (!authRepository.checkIfUserIsLoggedIn()) return@launch
@@ -114,19 +114,19 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 	) {
         viewModelScope.launch {
             if (uiState.sketch == null) return@launch
-            val updatedSketch = Sketch(
+            val updatedSketch = dev.borisochieng.database.database.Sketch(
                 id = uiState.sketch!!.id,
                 name = uiState.sketch!!.name,
                 dateCreated = uiState.sketch!!.dateCreated,
                 lastModified = Calendar.getInstance().time,
                 pathList = paths,
-				textList = texts
+                textList = texts
             )
             sketchRepository.updateSketch(updatedSketch)
         }
     }
 
-    private fun saveSketchToRemoteDb(sketch: Sketch) {
+    private fun saveSketchToRemoteDb(sketch: dev.borisochieng.database.database.Sketch) {
         viewModelScope.launch {
             val dbSketch = sketch.toDBSketch()
             val response = collabRepository.createSketch(
@@ -135,17 +135,17 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
             )
 
             when (response) {
-                is FirebaseResponse.Success -> {
+                is dev.borisochieng.firebase.auth.data.FirebaseResponse.Success -> {
                     Log.i("Board details on save", response.data.toString())
                     _uiState.update {
                         it.copy(
-                            boardDetails = response.data ?: BoardDetails(),
+                            boardDetails = response.data ?: dev.borisochieng.firebase.database.data.models.BoardDetails(),
                             error = ""
                         )
                     }
                 }
 
-                is FirebaseResponse.Error -> {
+                is dev.borisochieng.firebase.auth.data.FirebaseResponse.Error -> {
                     _uiState.update { it.copy(error = response.message) }
                     _uiEvents.emit(CanvasUiEvents.SnackBarEvent(response.message))
                 }
@@ -170,7 +170,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
                 boardId = boardId
             ).collectLatest { dbResponse ->
                 when (dbResponse) {
-                    is FirebaseResponse.Success -> {
+                    is dev.borisochieng.firebase.auth.data.FirebaseResponse.Success -> {
                         val newPaths = dbResponse.data ?: emptyList()
 
                         _uiState.update {
@@ -182,7 +182,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
                         }
                     }
 
-                    is FirebaseResponse.Error -> {
+                    is dev.borisochieng.firebase.auth.data.FirebaseResponse.Error -> {
                         _uiState.update { it.copy(error = dbResponse.message) }
                         _uiEvents.emit(CanvasUiEvents.SnackBarEvent(dbResponse.message))
                     }
@@ -206,7 +206,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
 
                 listenForSketchChanges(userId = userId, boardId = boardId)
 
-                if (response is FirebaseResponse.Error) {
+                if (response is dev.borisochieng.firebase.auth.data.FirebaseResponse.Error) {
                     _uiState.update { it.copy(error = response.message) }
                     _uiEvents.emit(CanvasUiEvents.SnackBarEvent(response.message))
                 }
@@ -220,7 +220,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
                 boardId = boardId
             )
             when (sketchResponse) {
-                is FirebaseResponse.Success -> {
+                is dev.borisochieng.firebase.auth.data.FirebaseResponse.Success -> {
                     Log.i("Single sketch from DB", sketchResponse.data.toString())
 
                     if (sketchResponse.data != null) {
@@ -233,7 +233,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
                     }
                 }
 
-                is FirebaseResponse.Error -> {
+                is dev.borisochieng.firebase.auth.data.FirebaseResponse.Error -> {
                     _uiState.update {
                         it.copy(
                             error = sketchResponse.message,
@@ -260,7 +260,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
             _uiState.update { it.copy(collabUrl = uri) }
         }
 
-    private suspend fun fetchSketchesFromRemoteDB(): List<Sketch> {
+    private suspend fun fetchSketchesFromRemoteDB(): List<dev.borisochieng.database.database.Sketch> {
         if (!authRepository.checkIfUserIsLoggedIn()) {
             remoteSketches = emptyList()
             return remoteSketches
@@ -268,7 +268,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
         val response = collabRepository.fetchExistingSketches(firebaseUser.uid)
 
         remoteSketches = when (response) {
-            is FirebaseResponse.Success -> {
+            is dev.borisochieng.firebase.auth.data.FirebaseResponse.Success -> {
                 response.data ?: emptyList()
             }
             else -> emptyList()
@@ -281,7 +281,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
             sketchRepository.getChats(boardId).collect {
                 _messages.value = emptyList()
                 _messages.value = it.reversed()
-                Log.d(TAG, "list of messages during initialization ${messages.value}")
+                Log.d(dev.borisochieng.database.database.repository.TAG, "list of messages during initialization ${messages.value}")
             }
         }
     }
@@ -291,7 +291,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
             sketchRepository.loadChats(boardId).collect { messagesList ->
                 _messages.value = emptyList()
                 _messages.value = messagesList.reversed()
-                Log.d(TAG, "list of messages after creation ${messages.value}")
+                Log.d(dev.borisochieng.database.database.repository.TAG, "list of messages after creation ${messages.value}")
             }
         }
     }
@@ -302,9 +302,9 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
             if (message.isNotEmpty()) {
                 sketchRepository.createChats(message, boardId = boardId).collect {
                     if (it) {
-                        Log.d(TAG, "message sent successfully")
+                        Log.d(dev.borisochieng.database.database.repository.TAG, "message sent successfully")
                     } else {
-                        Log.d(TAG, "message failed")
+                        Log.d(dev.borisochieng.database.database.repository.TAG, "message failed")
                     }
                 }
             }

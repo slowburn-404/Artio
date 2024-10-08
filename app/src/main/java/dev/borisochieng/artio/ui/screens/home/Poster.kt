@@ -27,7 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.borisochieng.artio.database.Sketch
+import dev.borisochieng.database.database.Sketch
 import dev.borisochieng.artio.ui.screens.drawingboard.components.MovableTextBox
 import dev.borisochieng.artio.utils.Extensions.formatDate
 
@@ -36,10 +36,10 @@ typealias SketchId = String
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SketchPoster(
-	sketch: Sketch,
-	modifier: Modifier = Modifier,
-	onClick: (SketchId) -> Unit,
-	onMenuClicked: (Sketch) -> Unit
+    sketch: dev.borisochieng.database.database.Sketch,
+    modifier: Modifier = Modifier,
+    onClick: (SketchId) -> Unit,
+    onMenuClicked: (dev.borisochieng.database.database.Sketch) -> Unit
 ) {
 	Column(
 		modifier = modifier

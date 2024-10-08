@@ -2,7 +2,6 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.jetbrains.kotlin.android)
-    alias(libs.plugins.ksp)
     alias(libs.plugins.google.services)
 }
 
@@ -76,29 +75,11 @@ dependencies {
     implementation(libs.androidx.material.icons)
     implementation(libs.androidx.material3)
 
-    //dataStore
-    implementation (libs.androidx.datastore.preferences)
-
-    //firebase
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.auth)
-    implementation(libs.firebase.storage)
-    implementation(libs.firebase.database)
-    implementation (libs.firebase.firestore)
-
-    // gson
-    implementation(libs.gson)
-
     //koin
     implementation(libs.koin.android)
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.core)
     implementation(libs.koin.androidx.compose)
-
-    // room
-    implementation(libs.room.ktx)
-    implementation(libs.room.runtime)
-    ksp(libs.room.compiler)
 
     // splashscreen
     implementation(libs.splash)

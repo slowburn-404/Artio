@@ -14,7 +14,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import dev.borisochieng.artio.R
-import dev.borisochieng.artio.collab.domain.DeepLinkData
+import dev.borisochieng.firebase.database.domain.DeepLinkData
 import dev.borisochieng.artio.ui.components.NavBar
 import dev.borisochieng.artio.ui.navigation.AppRoute
 import dev.borisochieng.artio.ui.navigation.NavActions
@@ -32,7 +32,7 @@ import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
     private lateinit var navActions: NavActions
-    private var pendingDeepLink: DeepLinkData? = null
+    private var pendingDeepLink: dev.borisochieng.firebase.database.domain.DeepLinkData? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.Theme_Artio)
@@ -140,7 +140,10 @@ class MainActivity : ComponentActivity() {
         val boardId = data.getQueryParameter("board_id")
 
         if (userId != null && boardId != null) {
-            pendingDeepLink = DeepLinkData(boardId = boardId, userId = userId)
+            pendingDeepLink = dev.borisochieng.firebase.database.domain.DeepLinkData(
+                boardId = boardId,
+                userId = userId
+            )
         }
 
 
