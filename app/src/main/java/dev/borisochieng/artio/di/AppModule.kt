@@ -15,14 +15,6 @@ import org.koin.dsl.module
 
 object AppModule {
     val appModule = module {
-        factory<dev.borisochieng.firebase.auth.domain.AuthRepository> { dev.borisochieng.firebase.auth.data.AuthRepositoryImpl() }
-        single<FirebaseUser?> { FirebaseAuth.getInstance().currentUser }
-        single<FirebaseDatabase> {FirebaseDatabase.getInstance()}
-        factory<dev.borisochieng.firebase.database.domain.CollabRepository> {
-            dev.borisochieng.firebase.database.data.CollabRepositoryImpl(
-                get()
-            )
-        }
         viewModel { AuthViewModel() }
         viewModel { HomeViewModel() }
         viewModel { SketchPadViewModel() }

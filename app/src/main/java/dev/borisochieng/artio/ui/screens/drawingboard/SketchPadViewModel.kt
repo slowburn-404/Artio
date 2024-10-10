@@ -20,9 +20,9 @@ import dev.borisochieng.database.database.repository.SketchRepository
 import dev.borisochieng.database.database.repository.TAG
 import dev.borisochieng.artio.ui.screens.drawingboard.data.CanvasUiEvents
 import dev.borisochieng.artio.ui.screens.drawingboard.data.CanvasUiState
-import dev.borisochieng.artio.ui.screens.drawingboard.data.PathProperties
+import dev.borisochieng.model.PathProperties
 import dev.borisochieng.artio.ui.screens.drawingboard.data.SketchPadActions
-import dev.borisochieng.artio.ui.screens.drawingboard.data.TextProperties
+import dev.borisochieng.model.TextProperties
 import dev.borisochieng.artio.utils.VOID_ID
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -109,8 +109,8 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
     }
 
     private fun updateSketch(
-	    paths: List<PathProperties>,
-	    texts: List<TextProperties>
+        paths: List<dev.borisochieng.model.PathProperties>,
+        texts: List<dev.borisochieng.model.TextProperties>
 	) {
         viewModelScope.launch {
             if (uiState.sketch == null) return@launch
@@ -191,7 +191,7 @@ class SketchPadViewModel : ViewModel(), KoinComponent {
         }
 
     fun updatePathInDb(
-        paths: List<PathProperties>,
+        paths: List<dev.borisochieng.model.PathProperties>,
         userId: String,
         boardId: String
     ) =

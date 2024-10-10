@@ -12,14 +12,16 @@
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/core" />
             <option value="$PROJECT_DIR$/core/data" />
-            <option value="$PROJECT_DIR$/core/data/database" />
-            <option value="$PROJECT_DIR$/core/data/datastore-preferences" />
-            <option value="$PROJECT_DIR$/core/data/firebase" />
+            <option value="$PROJECT_DIR$/core/database" />
+            <option value="$PROJECT_DIR$/core/datastore" />
+            <option value="$PROJECT_DIR$/core/firebase" />
+            <option value="$PROJECT_DIR$/core/model" />
             <option value="$PROJECT_DIR$/core/ui" />
             <option value="$PROJECT_DIR$/feature" />
             <option value="$PROJECT_DIR$/feature/auth" />
             <option value="$PROJECT_DIR$/feature/chat" />
             <option value="$PROJECT_DIR$/feature/draw" />
+            <option value="$PROJECT_DIR$/feature/onboarding" />
           </set>
         </option>
         <option name="resolveExternalAnnotations" value="false" />
