@@ -87,6 +87,18 @@ dependencies {
     //ktlint
     implementation(libs.kt.lint)
 
+    //features
+    implementation(project(":feature:auth"))
+    implementation(project(":feature:chat"))
+    implementation(project(":feature:draw"))
+    implementation(project(":feature:onboarding"))
+
+    //core modules
+    implementation(project(":core:data"))
+    implementation(project(":core:ui"))
+    implementation(project(":core:database"))
+    implementation(project(":core:firebase"))
+    implementation(project(":core:model"))
     // test
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

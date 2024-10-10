@@ -29,7 +29,6 @@ object PersistenceModule {
 	val persistenceModule = module {
 		single { provideDatabase(get<Context>().applicationContext) }
 		single { provideSketchDao(get()) }
-		factory { dev.borisochieng.database.database.KeyValueStore() }
 		factory<dev.borisochieng.database.database.repository.SketchRepository> { dev.borisochieng.database.database.repository.SketchRepositoryImpl() }
 	}
 

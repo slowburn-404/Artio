@@ -7,8 +7,8 @@ sealed class SketchPadActions {
 	data class SaveSketch(val sketch: dev.borisochieng.database.database.Sketch) : SketchPadActions()
 
 	data class UpdateSketch(
-		val paths: List<PathProperties>,
-		val texts: List<TextProperties>
+        val paths: List<dev.borisochieng.model.PathProperties>,
+        val texts: List<dev.borisochieng.model.TextProperties>
 	) : SketchPadActions()
 
 	data object CheckIfUserIsLoggedIn : SketchPadActions()

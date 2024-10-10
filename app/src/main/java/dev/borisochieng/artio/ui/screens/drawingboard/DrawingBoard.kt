@@ -57,9 +57,9 @@ import dev.borisochieng.artio.ui.screens.drawingboard.components.PaletteMenu
 import dev.borisochieng.artio.ui.screens.drawingboard.components.PaletteTopBar
 import dev.borisochieng.artio.ui.screens.drawingboard.data.CanvasUiEvents
 import dev.borisochieng.artio.ui.screens.drawingboard.data.CanvasUiState
-import dev.borisochieng.artio.ui.screens.drawingboard.data.PathProperties
+import dev.borisochieng.model.PathProperties
 import dev.borisochieng.artio.ui.screens.drawingboard.data.SketchPadActions
-import dev.borisochieng.artio.ui.screens.drawingboard.data.TextProperties
+import dev.borisochieng.model.TextProperties
 import dev.borisochieng.artio.ui.screens.drawingboard.utils.DrawMode
 import dev.borisochieng.artio.ui.screens.drawingboard.utils.ExportOption
 import dev.borisochieng.artio.ui.screens.drawingboard.utils.rememberDrawController
@@ -86,11 +86,11 @@ fun DrawingBoard(
     var drawMode by remember { mutableStateOf(DrawMode.Draw) }
     var exportOption by remember { mutableStateOf(ExportOption.PNG) }
 
-    val absolutePaths = remember { mutableStateListOf<PathProperties>() }
-    var paths by remember { mutableStateOf<List<PathProperties>>(emptyList()) }
+    val absolutePaths = remember { mutableStateListOf<dev.borisochieng.model.PathProperties>() }
+    var paths by remember { mutableStateOf<List<dev.borisochieng.model.PathProperties>>(emptyList()) }
 
-    val absoluteTexts = remember { mutableStateListOf<TextProperties>() }
-    var texts by remember { mutableStateOf<List<TextProperties>>(emptyList()) }
+    val absoluteTexts = remember { mutableStateListOf<dev.borisochieng.model.TextProperties>() }
+    var texts by remember { mutableStateOf<List<dev.borisochieng.model.TextProperties>>(emptyList()) }
     val showNewTextBox = remember { mutableStateOf(false) }
 
     var pencilSize by remember { mutableFloatStateOf(Sizes.Small.strokeWidth) }
@@ -127,7 +127,7 @@ fun DrawingBoard(
     }
 
     val addTextToPaths: (String) -> Unit = { textId ->
-        val textPath = PathProperties(id = textId, textMode = true)
+        val textPath = dev.borisochieng.model.PathProperties(id = textId, textMode = true)
         paths += textPath
         absolutePaths.clear()
         absolutePaths.addAll(paths)
@@ -344,7 +344,7 @@ fun DrawingBoard(
                                             if (drawMode !in setOf(DrawMode.Draw, DrawMode.Erase)) return@pointerInput
                                             detectDragGestures { change, dragAmount ->
                                                 change.consume()
-                                                val path = PathProperties(
+                                                val path = dev.borisochieng.model.PathProperties(
                                                     id = randomUUID().toString(), //generate id for each new path
                                                     color = when (drawMode) {
                                                         DrawMode.Erase -> Color.White

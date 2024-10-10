@@ -17,5 +17,5 @@ data class CanvasUiState(
     val error: String = "",
     val sketch: dev.borisochieng.database.database.Sketch? = null,
     val collabUrl: Uri? = null,
-    val paths: List<PathProperties> = emptyList(),
+    val paths: List<dev.borisochieng.model.PathProperties> = emptyList(),
 )

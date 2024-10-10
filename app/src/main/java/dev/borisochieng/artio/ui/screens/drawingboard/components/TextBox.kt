@@ -23,17 +23,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.IntOffset
-import dev.borisochieng.artio.ui.screens.drawingboard.data.TextProperties
+import dev.borisochieng.model.TextProperties
 import java.util.UUID.randomUUID
 
 @Composable
 fun MovableTextBox(
     modifier: Modifier = Modifier,
-    properties: TextProperties = TextProperties(),
+    properties: dev.borisochieng.model.TextProperties = dev.borisochieng.model.TextProperties(),
     active: Boolean,
-    onRemove: (TextProperties) -> Unit,
-    onFinish: (TextProperties) -> Unit = {},
-    onUpdate: (TextProperties) -> Unit = {}
+    onRemove: (dev.borisochieng.model.TextProperties) -> Unit,
+    onFinish: (dev.borisochieng.model.TextProperties) -> Unit = {},
+    onUpdate: (dev.borisochieng.model.TextProperties) -> Unit = {}
 ) {
     var text by remember { mutableStateOf(properties.text) }
     var offset by remember { mutableStateOf(properties.offset) }
@@ -77,7 +77,7 @@ fun MovableTextBox(
                                 return@clickable
                             }
                             val textIsNew = properties.id.isEmpty()
-                            val textProperties = TextProperties(
+                            val textProperties = dev.borisochieng.model.TextProperties(
                                 id = if (textIsNew) randomUUID().toString() else properties.id,
                                 text = text, offset = offset,
                                 scale = scale, rotation = rotation
